@@ -8,6 +8,9 @@ src/main/resources/docs/
 /out/
 /*.iml
 
+# other IDE files
+/bin/
+
 # Storage/log files
 /data/
 /preferences.json
@@ -26,6 +29,7 @@ AGENTS.md
 CLAUDE.md
 /.claude/
 /.codex/
+.mcp.json
 
 # Temp files
 _temp/
