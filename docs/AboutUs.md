@@ -17,8 +17,14 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 [[github](https://github.com/Monochromas)]
 
+### Micah Liow
+
+<img src="images/micahliow.png" width="200px">
+
+[[github](https://github.com/micahliow)]
+
 * Role: Developer
-* Responsibilities: Code
+
 ### Wang Yixuan
 
 <img src="images/wangyixuan818.png" width="200px">
