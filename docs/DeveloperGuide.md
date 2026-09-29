@@ -325,16 +325,24 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
+1.  RecruiterBuddy should support its documented recruitment-management functions on Windows, macOS, and Linux with Java 25 as the only installed Java version.
 2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
 3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
-
-*{More to be added}*
+4.  With Java 25 installed, a user should be able to launch RecruiterBuddy without running an application installer or separately installing additional runtime dependencies. Extracting a ZIP file is permitted.
+5.  RecruiterBuddy should be distributed as a single JAR file or, if additional files are necessary, a single ZIP file containing the JAR and those files. The distribution should not exceed 100 MB.
+6.  Creating, viewing, updating, searching, filtering, and deleting recruitment records, and saving and loading those records, should remain available without a network connection. Opening external website links is excluded.
+7.  After recruitment data has been successfully saved, closing RecruiterBuddy normally and reopening it with the same unchanged data files should restore the saved records and their field values, including all saved additions, modifications, and deletions.
+8.  A command rejected because of invalid syntax or invalid input values should leave both the in-memory recruitment records and persisted recruitment data unchanged.
+9.  If a recruitment-data file cannot be read or fails validation during startup, the startup process should not modify or delete that file.
+10. RecruiterBuddy should persist candidate, role-opening, interview, and candidate-note data locally in human-readable text files that can be inspected and modified using a plain-text editor.
 
 ### Glossary
 
-* **Mainstream OS**: Windows, Linux, Unix, or macOS
-* **Private contact detail**: A contact detail that is not meant to be shared with others
+* **Candidate**: A person being considered for a role opening whose recruitment details are recorded in RecruiterBuddy.
+* **Role opening**: A vacancy in the recruiter's department that is tracked in RecruiterBuddy.
+* **Recruitment record**: Stored information about a candidate or role opening, including associated interview details and candidate notes.
+* **Interview details**: Information recorded about a candidate's interview, such as its date and interviewer.
+* **Candidate note**: Free-text information recorded about a candidate for the recruiter's later reference.
 
 --------------------------------------------------------------------------------------------------------------------
 
