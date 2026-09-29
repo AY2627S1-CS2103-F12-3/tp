@@ -4,7 +4,7 @@
   pageNav: 3
 ---
 
-# AB-3 Developer Guide
+# RecruiterBuddy Developer Guide
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -300,7 +300,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 **Use case: Delete a person**
 
-**MSS**
+**Main Success Scenario (MSS)**
 
 1.  User requests to list persons
 2.  AddressBook shows a list of persons
@@ -334,21 +334,18 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 7.  After application data has been successfully saved, closing RecruiterBuddy normally and reopening it with the same unchanged data files should restore the saved data, including all saved additions, modifications, and deletions.
 8.  A command rejected because of invalid syntax or invalid input values should leave recruitment records and user-defined configuration unchanged, both in memory and in saved data files.
 9.  If an application-data file cannot be read or fails validation during startup, the startup process should not modify or delete that file.
-10. All persistent RecruiterBuddy data should be stored locally in human-readable text files that can be inspected and modified using a plain-text editor. This includes recruitment records, saved status history, and user-defined configuration such as shortcuts.
+10. All persistent RecruiterBuddy data should be stored locally in human-readable text files that can be inspected and modified using a plain-text editor. This includes recruitment records, saved candidate status history, and user-defined configuration such as command shortcuts.
 11. If writing updated data fails while the previously saved file remains accessible, RecruiterBuddy should leave that file's contents unchanged.
 
 ### Glossary
 
-* **Candidate**: A person who has applied for a role opening and whose recruitment details are recorded in RecruiterBuddy, regardless of the application's current status.
-* **Candidate status**: A candidate's current stage or outcome in the recruitment process.
-* **Role opening**: A vacancy in the recruiter's department that is tracked in RecruiterBuddy.
-* **Role status**: The recorded recruitment state of a role opening.
-* **Recruitment pipeline**: The stages a candidate may pass through during recruitment.
-* **Recruitment record**: Stored information about a candidate or role opening, including associated interview details and candidate notes.
-* **Interview details**: Information recorded about a candidate's interview, such as its date and interviewer.
-* **Candidate note**: Free-text information recorded about a candidate for the recruiter's later reference.
-* **Shortcut**: A user-defined abbreviation for a command or sequence of commands.
-* **Status history**: A chronological record of changes to a candidate's status.
+* **Candidate**: A person recorded in RecruiterBuddy who has applied for a role opening, regardless of the current stage or outcome of their job application.
+* **Candidate status**: The recorded stage or outcome of a candidate's recruitment process, as distinct from the status of a role opening.
+* **Candidate status history**: A chronological record of changes to a candidate's status.
+* **Command shortcut**: A user-defined abbreviation that represents a command or sequence of commands, rather than a keyboard key combination.
+* **Recruitment record**: Stored information about a candidate or role opening, including any associated interview details and candidate notes.
+* **Role opening**: A job vacancy in the recruiter's department tracked in RecruiterBuddy. Here, "role" refers to a job position.
+* **Role status**: The recorded state of recruitment for a role opening, as distinct from an individual candidate's progress.
 
 --------------------------------------------------------------------------------------------------------------------
 
