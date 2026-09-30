@@ -2,6 +2,10 @@
 
 [![CI Status](https://github.com/AY2627S1-CS2103-F12-3/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103-F12-3/tp/actions/workflows/gradle.yml)
 
+[![MarkBind Action](https://github.com/AY2627S1-CS2103-F12-3/tp/actions/workflows/docs.yml/badge.svg)](https://github.com/AY2627S1-CS2103-F12-3/tp/actions/workflows/docs.yml)
+
+[![pages-build-deployment](https://github.com/AY2627S1-CS2103-F12-3/tp/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/AY2627S1-CS2103-F12-3/tp/actions/workflows/pages/pages-build-deployment)
+
 ![Ui](docs/images/Ui.png)
 
 RecruiterBuddy is a desktop application for department recruiters who are responsible for filling a small number of vacancies within one department. It helps recruiters maintain candidate details, track the open role associated with each candidate, record upcoming recruiter interviews, and monitor where each candidate stands in the recruitment process.
