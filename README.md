@@ -1,6 +1,7 @@
+[![MarkBind Action](https://github.com/AY2627S1-CS2103-F12-3/tp/actions/workflows/docs.yml/badge.svg)](https://github.com/AY2627S1-CS2103-F12-3/tp/actions/workflows/docs.yml)
 [![Java CI](https://github.com/AY2627S1-CS2103-F12-3/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103-F12-3/tp/actions/workflows/gradle.yml)
+[![pages-build-deployment](https://github.com/AY2627S1-CS2103-F12-3/tp/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/AY2627S1-CS2103-F12-3/tp/actions/workflows/pages/pages-build-deployment)
 ![Ui](docs/images/Ui.png)
-
 * This is **a sample project for Software Engineering (SE) students**.<br>
   Example usages:
   * as a starting point of a course project (as opposed to writing everything from scratch)
