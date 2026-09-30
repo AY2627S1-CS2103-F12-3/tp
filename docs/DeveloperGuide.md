@@ -326,8 +326,13 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 ### Non-Functional Requirements
 
 1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
+2.  Should be able to hold up to 1000 candidates and roles without noticeable sluggishness in performance for typical usage.
+3.  All major UI elements should be fully visible and usable on screen resolutions 1920x1080 and higher, and on screen scales 100% - 125%
+4.  A new user should be able to learn all basic commands (adding, updating and deleting candidates and roles) within 30 minutes 
+5.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
+6.  Command syntax should be simple and intuitive, such that an experienced user (has spent > 1 hour using the application) can memorize the syntax for all basic commands.
+7.  The application should carry out a user action and give visual confirmation within 1 second of input.
+8.  When input is invalid, application should identify the issue and how to fix it, such that the user can achieve a valid input within n successive tries, where n is the number of errors in the initial input.
 
 *{More to be added}*
 
