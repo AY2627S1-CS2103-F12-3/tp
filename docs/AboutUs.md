@@ -19,3 +19,18 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 * Role: Developer
 * Responsibilities: Code
+### Wang Yixuan
+
+<img src="images/wangyixuan818.png" width="200px">
+
+[[github](https://github.com/wangyixuan818)]
+
+* Role: Developer
+
+### Parthipan Kavin
+
+<img src="images/kpkavin04.png" width="200px">
+
+[[github](http://github.com/kpkavin04)]
+
+* Role: Developer
