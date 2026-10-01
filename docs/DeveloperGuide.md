@@ -270,13 +270,19 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* has a need to manage a significant number of contacts
-* prefers desktop apps over other types of applications
-* can type fast
-* prefers typing to mouse interactions
-* is reasonably comfortable using CLI apps
+Department recruiters who:
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+* are responsible for filling a small number of vacancies within one department
+* independently maintain candidate contact details and recruitment records
+* track candidates through a simple recruitment process
+* frequently need to locate a candidate, identify candidates requiring attention, and update records after interviews
+* need to track the open roles available within their department
+* prefer using desktop applications
+* can type quickly
+* prefer keyboard commands to mouse-driven navigation
+* are reasonably comfortable using command-driven applications
+
+**Value proposition**: Help a department's recruiter keep track of candidates applying for their team's open roles, including candidate details and where each candidate stands in the interview process. RecruiterBuddy is optimised for recruiters who prefer typing commands to navigating a primarily mouse-driven interface, enabling them to retrieve and update recruitment records quickly.
 
 
 ### User stories
