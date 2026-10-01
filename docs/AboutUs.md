@@ -13,7 +13,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ### Samuel Chew
 
-<img src="images/monochromas.png" width="200px">
+<img src="images/Sam_pic.jpg" width="200px">
 
 [[github](https://github.com/Monochromas)]
 
