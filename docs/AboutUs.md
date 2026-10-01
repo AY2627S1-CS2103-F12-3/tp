@@ -15,10 +15,14 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 <img src="images/wangyixuan818.png" width="200px">
 
-[[github]([https://github.com/johndo](https://github.com/wangyixuan818/ByteBite))]
+[[github](https://github.com/wangyixuan818)]
 
 * Role: Developer
-* Responsibilities: Development
 
+### Parthipan Kavin
 
+<img src="images/kpkavin04.png" width="200px">
 
+[[github](http://github.com/kpkavin04)]
+
+* Role: Developer
