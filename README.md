@@ -2,6 +2,10 @@
 
 [![CI Status](https://github.com/AY2627S1-CS2103-F12-3/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103-F12-3/tp/actions/workflows/gradle.yml)
 
+[![MarkBind Action](https://github.com/AY2627S1-CS2103-F12-3/tp/actions/workflows/docs.yml/badge.svg)](https://github.com/AY2627S1-CS2103-F12-3/tp/actions/workflows/docs.yml)
+
+[![pages-build-deployment](https://github.com/AY2627S1-CS2103-F12-3/tp/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/AY2627S1-CS2103-F12-3/tp/actions/workflows/pages/pages-build-deployment)
+
 ![Ui](docs/images/Ui.png)
 
 RecruiterBuddy is a desktop application for department recruiters who are responsible for filling a small number of vacancies within one department. It helps recruiters maintain candidate details, track the open role associated with each candidate, record upcoming recruiter interviews, and monitor where each candidate stands in the recruitment process.
@@ -27,5 +31,5 @@ For detailed documentation, refer to the [User Guide](docs/UserGuide.md) and [De
 
 ## Acknowledgements
 
-* This project is based on the AddressBook-Level3 project created by the [SE-EDU initiative](https://se-education.org).
+* This project is based on the [AddressBook-Level3](https://se-education.org/addressbook-level3/) project created by the [SE-EDU initiative](https://se-education.org).
 * Libraries used: [JavaFX](https://openjfx.io/), [Jackson](https://github.com/FasterXML/jackson), and [JUnit5](https://github.com/junit-team/junit5).
