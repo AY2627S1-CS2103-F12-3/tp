@@ -4,7 +4,7 @@
   pageNav: 3
 ---
 
-# AB-3 Developer Guide
+# RecruiterBuddy Developer Guide
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -270,29 +270,64 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* has a need to manage a significant number of contacts
-* prefers desktop apps over other types of applications
-* can type fast
-* prefers typing to mouse interactions
-* is reasonably comfortable using CLI apps
+Department recruiters who:
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+* are responsible for filling a small number of vacancies within one department
+* independently maintain candidate contact details and recruitment records
+* track candidates through a simple recruitment process
+* frequently need to locate a candidate, identify candidates requiring attention, and update records after interviews
+* need to track the open roles available within their department
+* prefer using desktop applications
+* can type quickly
+* prefer keyboard commands to mouse-driven navigation
+* are reasonably comfortable using command-driven applications
+
+**Value proposition**: Help a department's recruiter keep track of candidates applying for their team's open roles, including candidate details and where each candidate stands in the interview process. RecruiterBuddy is optimised for recruiters who prefer typing commands to navigating a primarily mouse-driven interface, enabling them to retrieve and update recruitment records quickly.
 
 
 ### User stories
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a …                                    | I want to …                 | So that I can…                                                        |
-|----------|--------------------------------------------|------------------------------|------------------------------------------------------------------------|
-| `* * *`  | new user                                   | see usage instructions       | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person             |                                                                        |
-| `* * *`  | user                                       | delete a person              | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name        | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name         | locate a person easily                                                 |
-
-*{More to be added}*
+| Priority | As a … | I want to … | So that I can … |
+|----------|--------|-------------|-----------------|
+| `* * *` | department recruiter | add a role opening with its title and required experience level | track an active recruitment need in my department |
+| `* * *` | department recruiter | view all role openings and whether they are open or closed | review the roles tracked by my department |
+| `* * *` | department recruiter | close a role opening | prevent new candidates from being added after recruitment ends while retaining existing candidate records |
+| `* * *` | department recruiter | add a candidate to a specific open role with their contact details and address | keep the candidate's recruitment information in one place |
+| `* * *` | department recruiter | be warned when a candidate's email address or phone number is already recorded | avoid creating duplicate candidate profiles |
+| `* * *` | department recruiter | view all candidates | review the department's recruitment pipeline |
+| `* * *` | department recruiter | assign a candidate one controlled recruitment status | record where the candidate stands in the recruitment process |
+| `* * *` | department recruiter | remove a candidate's existing status and assign a new one | update the candidate as they progress through the recruitment process |
+| `* * *` | department recruiter | record or reschedule a candidate's recruiter interview date and time | keep track of upcoming interviews |
+| `* * *` | department recruiter | add notes to a candidate's record | retain relevant recruitment and interview information |
+| `* * *` | department recruiter | remove a candidate | correct an erroneous entry or remove a record that is no longer required |
+| `* * *` | user | have successful changes saved automatically and restored when RecruiterBuddy starts | avoid losing candidate and role information |
+| `* * *` | user | access a guide covering all supported commands and their formats | understand and correctly use RecruiterBuddy's features |
+| `* *` | potential user | see sample roles and candidates | understand how RecruiterBuddy looks when populated with department-specific information |
+| `* *` | first-time user | be greeted with a brief guide to key commands | begin using the most important features without feeling lost or overwhelmed |
+| `* *` | first-time user | display definitions of all candidate and role statuses with one command | understand what each recruitment stage represents |
+| `* *` | user ready to use RecruiterBuddy with real data | purge all sample candidates and roles with one command | begin with a clean data set |
+| `* *` | inexperienced user | receive an error message that explains how to correct an invalid command | recover from input mistakes |
+| `* *` | user | undo recent changes | recover quickly from an accidental update or deletion |
+| `* *` | department recruiter | replace a candidate's status with a new status using one command | move the candidate to another recruitment stage without an intermediate status-removal step |
+| `* *` | department recruiter | update other candidate details | keep the record accurate when a candidate's circumstances change |
+| `* *` | department recruiter | record assigned interviewers, interview locations, and multiple interview sessions | retain more complete interview information |
+| `* *` | busy department recruiter | filter candidates by recruitment status, interview date, or other recorded details | identify candidates who require attention |
+| `* *` | department recruiter | search for a candidate by name or other recorded details | locate a candidate without reviewing the entire list |
+| `* *` | department recruiter | filter candidates by applied role | focus on one role's recruitment pipeline |
+| `* *` | department recruiter re-engaging a past candidate | view the candidate's saved contact information | contact them about a new opportunity |
+| `* *` | experienced user | remove multiple candidates at once | clear candidate records that are no longer required |
+| `* *` | experienced user | add multiple candidate applications at once | record a batch of applications efficiently |
+| `* *` | experienced user | update the statuses of multiple candidates at once | move a group of candidates to another stage or reject them together |
+| `* *` | expert user | create shortcuts for frequently used commands | complete repetitive tasks more quickly |
+| `* *` | expert user | export all role and candidate information to a CSV file | back up the information or use it in an external reporting tool |
+| `* *` | expert user | import role and candidate information from a CSV file | restore a backup or transfer the information from another device |
+| `* *` | expert user | export selected candidate information to a CSV file | share only the records needed by another authorised system or user |
+| `* *` | expert user | view an audit trail of a candidate's status changes | understand how long the candidate spent at each recruitment stage |
+| `* *` | department recruiter | sort candidates by name, interview time, or status | review candidates in a useful order |
+| `* *` | department recruiter | filter roles by whether they are open or closed | focus on roles that require attention |
+| `* *` | department recruiter | reopen a closed role | resume recruitment when a vacancy becomes available again |
 
 ### Use cases
 
@@ -567,19 +602,62 @@ MSS:
 3. User selects a candidate.
 4. RecruiterBuddy displays the candidate’s status changes and the time spent at each stage.
 Use case ends.
+**Use case: Delete a person**
+
+**Main Success Scenario (MSS)**
+
+1.  User requests to list persons
+2.  AddressBook shows a list of persons
+3.  User requests to delete a specific person in the list
+4.  AddressBook deletes the person
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The list is empty.
+
+  Use case ends.
+
+* 3a. The given index is invalid.
+
+    * 3a1. AddressBook shows an error message.
+
+      Use case resumes at step 2.
+
+*{More to be added}*
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
+1.  RecruiterBuddy should support all its documented functions on Windows, macOS, and Linux with Java 25 as the only installed Java version.
+2.  Should be able to hold up to 1000 candidates and 1000 roles without noticeable sluggishness in performance for typical usage.
 3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
+4.  With Java 25 installed, a user should be able to launch RecruiterBuddy without running an application installer or separately installing additional runtime dependencies. Extracting a ZIP file is permitted.
+5.  RecruiterBuddy should be distributed as a single JAR file or, if additional files are necessary, a single ZIP file containing the JAR and those files. The distribution should not exceed 100 MB.
+6.  All documented functions that operate on locally stored application data should remain usable without an Internet connection. Following links to external websites is excluded.
+3.  GUI elements should be fully visible and work well on screen resolutions 1920x1080 and higher, and screen scales 100% - 125%.
+4.  GUI elements should be usable on screen resolutions 1280x720 and higher, and screen scales 150%.
+8.  After application data has been successfully saved, closing RecruiterBuddy normally and reopening it with the same unchanged data files should restore the saved data, including all saved additions, modifications, and deletions.
+9.  A new user should be able to learn all basic commands (adding, updating and deleting candidates and roles) within 30 minutes 
+10.  The application should carry out a user action and give visual confirmation within 1 second of input.
+11.  A command rejected because of invalid syntax or invalid input values should leave recruitment records and user-defined configuration unchanged, both in memory and in saved data file.
+12.  Command syntax should be simple and intuitive, such that an experienced user (has spent > 1 hour using the application) can memorize the syntax for all basic commands.
+13.  Upon rejecting a command, the issue and its fixes should be identified, such that the user can achieve a valid input within n successive tries, where n is the number of errors in the initial input.
+14.  If an application-data file cannot be read or fails validation during startup, the startup process should not modify or delete that file.
+15.  All persistent RecruiterBuddy data should be stored locally in human-readable text files that can be inspected and modified using a plain-text editor. This includes recruitment records, saved candidate status history, and user-defined configuration such as command shortcuts.
+16.  If writing updated data fails while the previously saved file remains accessible, RecruiterBuddy should leave that file's contents unchanged.
 
 *{More to be added}*
 
 ### Glossary
 
-* **Mainstream OS**: Windows, Linux, Unix, or macOS
-* **Private contact detail**: A contact detail that is not meant to be shared with others
+* **Candidate**: A person recorded in RecruiterBuddy who has applied for a role opening, regardless of the current stage or outcome of their job application.
+* **Candidate status**: The recorded stage or outcome of a candidate's recruitment process, as distinct from the status of a role opening.
+* **Candidate status history**: A chronological record of changes to a candidate's status.
+* **Command shortcut**: A user-defined abbreviation that represents a command or sequence of commands, rather than a keyboard key combination.
+* **Recruitment record**: Stored information about a candidate or role opening, including any associated interview details and candidate notes.
+* **Role opening**: A job vacancy in the recruiter's department tracked in RecruiterBuddy. Here, "role" refers to a job position.
+* **Role status**: The recorded state of recruitment for a role opening, as distinct from an individual candidate's progress.
 
 --------------------------------------------------------------------------------------------------------------------
 
