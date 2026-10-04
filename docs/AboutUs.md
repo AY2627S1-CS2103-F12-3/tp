@@ -11,51 +11,32 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ## Project team
 
-### John Doe
+### Samuel Chew
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/monochromas.png" width="200px">
 
-[[homepage](http://www.comp.nus.edu.sg/~damithch)]
-[[github](https://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[github](https://github.com/Monochromas)]
 
-* Role: Project Advisor
+### Micah Liow
 
-### Jane Doe
+<img src="images/micahliow.png" width="200px">
 
-<img src="images/johndoe.png" width="200px">
-
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
-
-* Role: Team Lead
-* Responsibilities: UI
-
-### Johnny Doe
-
-<img src="images/johndoe.png" width="200px">
-
-[[github](http://github.com/johndoe)] [[portfolio](team/johndoe.md)]
+[[github](https://github.com/micahliow)]
 
 * Role: Developer
-* Responsibilities: Data
 
-### Jean Doe
+### Wang Yixuan
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/wangyixuan818.png" width="200px">
 
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[github](https://github.com/wangyixuan818)]
 
 * Role: Developer
-* Responsibilities: Dev Ops + Threading
 
-### James Doe
+### Parthipan Kavin
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/kpkavin04.png" width="200px">
 
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[github](http://github.com/kpkavin04)]
 
 * Role: Developer
-* Responsibilities: UI
