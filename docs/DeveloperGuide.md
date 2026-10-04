@@ -270,29 +270,64 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* has a need to manage a significant number of contacts
-* prefers desktop apps over other types of applications
-* can type fast
-* prefers typing to mouse interactions
-* is reasonably comfortable using CLI apps
+Department recruiters who:
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+* are responsible for filling a small number of vacancies within one department
+* independently maintain candidate contact details and recruitment records
+* track candidates through a simple recruitment process
+* frequently need to locate a candidate, identify candidates requiring attention, and update records after interviews
+* need to track the open roles available within their department
+* prefer using desktop applications
+* can type quickly
+* prefer keyboard commands to mouse-driven navigation
+* are reasonably comfortable using command-driven applications
+
+**Value proposition**: Help a department's recruiter keep track of candidates applying for their team's open roles, including candidate details and where each candidate stands in the interview process. RecruiterBuddy is optimised for recruiters who prefer typing commands to navigating a primarily mouse-driven interface, enabling them to retrieve and update recruitment records quickly.
 
 
 ### User stories
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a …                                    | I want to …                 | So that I can…                                                        |
-|----------|--------------------------------------------|------------------------------|------------------------------------------------------------------------|
-| `* * *`  | new user                                   | see usage instructions       | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person             |                                                                        |
-| `* * *`  | user                                       | delete a person              | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name        | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name         | locate a person easily                                                 |
-
-*{More to be added}*
+| Priority | As a … | I want to … | So that I can … |
+|----------|--------|-------------|-----------------|
+| `* * *` | department recruiter | add a role opening with its title and required experience level | track an active recruitment need in my department |
+| `* * *` | department recruiter | view all role openings and whether they are open or closed | review the roles tracked by my department |
+| `* * *` | department recruiter | close a role opening | prevent new candidates from being added after recruitment ends while retaining existing candidate records |
+| `* * *` | department recruiter | add a candidate to a specific open role with their contact details and address | keep the candidate's recruitment information in one place |
+| `* * *` | department recruiter | be warned when a candidate's email address or phone number is already recorded | avoid creating duplicate candidate profiles |
+| `* * *` | department recruiter | view all candidates | review the department's recruitment pipeline |
+| `* * *` | department recruiter | assign a candidate one controlled recruitment status | record where the candidate stands in the recruitment process |
+| `* * *` | department recruiter | remove a candidate's existing status and assign a new one | update the candidate as they progress through the recruitment process |
+| `* * *` | department recruiter | record or reschedule a candidate's recruiter interview date and time | keep track of upcoming interviews |
+| `* * *` | department recruiter | add notes to a candidate's record | retain relevant recruitment and interview information |
+| `* * *` | department recruiter | remove a candidate | correct an erroneous entry or remove a record that is no longer required |
+| `* * *` | user | have successful changes saved automatically and restored when RecruiterBuddy starts | avoid losing candidate and role information |
+| `* * *` | user | access a guide covering all supported commands and their formats | understand and correctly use RecruiterBuddy's features |
+| `* *` | potential user | see sample roles and candidates | understand how RecruiterBuddy looks when populated with department-specific information |
+| `* *` | first-time user | be greeted with a brief guide to key commands | begin using the most important features without feeling lost or overwhelmed |
+| `* *` | first-time user | display definitions of all candidate and role statuses with one command | understand what each recruitment stage represents |
+| `* *` | user ready to use RecruiterBuddy with real data | purge all sample candidates and roles with one command | begin with a clean data set |
+| `* *` | inexperienced user | receive an error message that explains how to correct an invalid command | recover from input mistakes |
+| `* *` | user | undo recent changes | recover quickly from an accidental update or deletion |
+| `* *` | department recruiter | replace a candidate's status with a new status using one command | move the candidate to another recruitment stage without an intermediate status-removal step |
+| `* *` | department recruiter | update other candidate details | keep the record accurate when a candidate's circumstances change |
+| `* *` | department recruiter | record assigned interviewers, interview locations, and multiple interview sessions | retain more complete interview information |
+| `* *` | busy department recruiter | filter candidates by recruitment status, interview date, or other recorded details | identify candidates who require attention |
+| `* *` | department recruiter | search for a candidate by name or other recorded details | locate a candidate without reviewing the entire list |
+| `* *` | department recruiter | filter candidates by applied role | focus on one role's recruitment pipeline |
+| `* *` | department recruiter re-engaging a past candidate | view the candidate's saved contact information | contact them about a new opportunity |
+| `* *` | experienced user | remove multiple candidates at once | clear candidate records that are no longer required |
+| `* *` | experienced user | add multiple candidate applications at once | record a batch of applications efficiently |
+| `* *` | experienced user | update the statuses of multiple candidates at once | move a group of candidates to another stage or reject them together |
+| `* *` | expert user | create shortcuts for frequently used commands | complete repetitive tasks more quickly |
+| `* *` | expert user | export all role and candidate information to a CSV file | back up the information or use it in an external reporting tool |
+| `* *` | expert user | import role and candidate information from a CSV file | restore a backup or transfer the information from another device |
+| `* *` | expert user | export selected candidate information to a CSV file | share only the records needed by another authorised system or user |
+| `* *` | expert user | view an audit trail of a candidate's status changes | understand how long the candidate spent at each recruitment stage |
+| `* *` | department recruiter | sort candidates by name, interview time, or status | review candidates in a useful order |
+| `* *` | department recruiter | filter roles by whether they are open or closed | focus on roles that require attention |
+| `* *` | department recruiter | reopen a closed role | resume recruitment when a vacancy becomes available again |
 
 ### Use cases
 
