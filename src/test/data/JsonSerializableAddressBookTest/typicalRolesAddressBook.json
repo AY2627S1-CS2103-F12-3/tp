@@ -1,0 +1,17 @@
+{
+  "_comment": "AddressBook save file containing the roles in TypicalRoles#getTypicalRoleAddressBook()",
+  "persons": [],
+  "roles": [ {
+    "title": "Software Engineer",
+    "experienceLevel": "2 years",
+    "status": "OPEN"
+  }, {
+    "title": "Product Analyst",
+    "experienceLevel": "Entry level",
+    "status": "OPEN"
+  }, {
+    "title": "Product Designer",
+    "experienceLevel": "Senior",
+    "status": "CLOSED"
+  } ]
+}

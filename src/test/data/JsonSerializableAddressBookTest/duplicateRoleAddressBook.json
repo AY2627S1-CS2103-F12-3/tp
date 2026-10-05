@@ -1,0 +1,12 @@
+{
+  "persons": [],
+  "roles": [ {
+    "title": "Software Engineer",
+    "experienceLevel": "2 years",
+    "status": "OPEN"
+  }, {
+    "title": "software engineer",
+    "experienceLevel": "Senior",
+    "status": "CLOSED"
+  } ]
+}

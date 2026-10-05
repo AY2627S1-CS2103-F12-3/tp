@@ -22,6 +22,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.model.role.Role;
 import seedu.address.testutil.PersonBuilder;
 
 public class AddCommandTest {
@@ -139,6 +140,31 @@ public class AddCommandTest {
 
         @Override
         public void updateFilteredPersonList(Predicate<Person> predicate) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public boolean hasRole(Role role) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void addRole(Role role) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void setRole(Role target, Role editedRole) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public ObservableList<Role> getFilteredRoleList() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void updateFilteredRoleList(Predicate<Role> predicate) {
             throw new AssertionError("This method should not be called.");
         }
     }
