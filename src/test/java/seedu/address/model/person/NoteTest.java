@@ -23,6 +23,12 @@ public class NoteTest {
     }
 
     @Test
+    public void isEmpty() {
+        assertTrue(new Note("").isEmpty()); // no text
+        assertFalse(new Note("Strong Java skills").isEmpty()); // has text
+    }
+
+    @Test
     public void equals() {
         Note note = new Note("Strong Java skills");
 

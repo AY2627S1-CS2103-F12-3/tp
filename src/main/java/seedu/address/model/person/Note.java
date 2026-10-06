@@ -21,6 +21,13 @@ public class Note {
         value = note;
     }
 
+    /**
+     * Returns true if this note has no text, meaning the person has no note.
+     */
+    public boolean isEmpty() {
+        return value.isEmpty();
+    }
+
     @Override
     public String toString() {
         return value;
