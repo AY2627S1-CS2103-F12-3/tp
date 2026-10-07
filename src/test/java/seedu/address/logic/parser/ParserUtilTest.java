@@ -15,6 +15,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
+import seedu.address.model.person.Note;
 import seedu.address.model.person.Phone;
 import seedu.address.model.tag.Tag;
 
@@ -28,6 +29,7 @@ public class ParserUtilTest {
     private static final String VALID_NAME = "Rachel Walker";
     private static final String VALID_PHONE = "123456";
     private static final String VALID_ADDRESS = "123 Main Street #0505";
+    private static final String VALID_NOTE = "Interview 2026-10-20 14:00, scored 8/10";
     private static final String VALID_EMAIL = "rachel@example.com";
     private static final String VALID_TAG_1 = "friend";
     private static final String VALID_TAG_2 = "neighbour";
@@ -121,6 +123,27 @@ public class ParserUtilTest {
         String addressWithWhitespace = WHITESPACE + VALID_ADDRESS + WHITESPACE;
         Address expectedAddress = new Address(VALID_ADDRESS);
         assertEquals(expectedAddress, ParserUtil.parseAddress(addressWithWhitespace));
+    }
+
+    @Test
+    public void parseNote_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseNote(null));
+    }
+
+    @Test
+    public void parseNote_validValueWithoutWhitespace_returnsNote() {
+        assertEquals(new Note(VALID_NOTE), ParserUtil.parseNote(VALID_NOTE));
+    }
+
+    @Test
+    public void parseNote_validValueWithWhitespace_returnsTrimmedNote() {
+        String noteWithWhitespace = WHITESPACE + VALID_NOTE + WHITESPACE;
+        assertEquals(new Note(VALID_NOTE), ParserUtil.parseNote(noteWithWhitespace));
+    }
+
+    @Test
+    public void parseNote_whitespaceOnly_returnsEmptyNote() {
+        assertEquals(new Note(""), ParserUtil.parseNote(WHITESPACE));
     }
 
     @Test
