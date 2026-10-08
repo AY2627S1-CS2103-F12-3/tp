@@ -5,6 +5,7 @@ import java.util.function.Predicate;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.Person;
+import seedu.address.model.role.Role;
 
 /**
  * The API of the Model component.
@@ -12,6 +13,8 @@ import seedu.address.model.person.Person;
 public interface Model {
     /** {@code Predicate} that always evaluates to true */
     Predicate<Person> PREDICATE_SHOW_ALL_PERSONS = unused -> true;
+    /** {@code Predicate} that always evaluates to true */
+    Predicate<Role> PREDICATE_SHOW_ALL_ROLES = unused -> true;
 
     /**
      * Returns the user prefs.
@@ -68,4 +71,31 @@ public interface Model {
      * @throws NullPointerException if {@code predicate} is null.
      */
     void updateFilteredPersonList(Predicate<Person> predicate);
+
+    /**
+     * Returns true if a role with the same identity as {@code role} exists in the address book.
+     */
+    boolean hasRole(Role role);
+
+    /**
+     * Adds {@code role} to the address book.
+     */
+    void addRole(Role role);
+
+    /**
+     * Replaces {@code target} with {@code editedRole}.
+     */
+    void setRole(Role target, Role editedRole);
+
+    /**
+     * Returns an unmodifiable view of the filtered role list.
+     */
+    ObservableList<Role> getFilteredRoleList();
+
+    /**
+     * Updates the filter of the filtered role list to filter by {@code predicate}.
+     *
+     * @throws NullPointerException if {@code predicate} is null.
+     */
+    void updateFilteredRoleList(Predicate<Role> predicate);
 }

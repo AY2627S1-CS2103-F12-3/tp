@@ -12,6 +12,7 @@ import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.person.Person;
+import seedu.address.model.role.Role;
 
 /**
  * An Immutable AddressBook that is serializable to JSON format.
@@ -20,15 +21,23 @@ import seedu.address.model.person.Person;
 class JsonSerializableAddressBook {
 
     public static final String MESSAGE_DUPLICATE_PERSON = "Persons list contains duplicate person(s).";
+    public static final String MESSAGE_DUPLICATE_ROLE = "Roles list contains duplicate role(s).";
 
     private final List<JsonAdaptedPerson> persons = new ArrayList<>();
+    private final List<JsonAdaptedRole> roles = new ArrayList<>();
 
     /**
-     * Constructs a {@code JsonSerializableAddressBook} with the given persons.
+     * Constructs a {@code JsonSerializableAddressBook} with the given persons and roles.
      */
     @JsonCreator
-    public JsonSerializableAddressBook(@JsonProperty("persons") List<JsonAdaptedPerson> persons) {
-        this.persons.addAll(persons);
+    public JsonSerializableAddressBook(@JsonProperty("persons") List<JsonAdaptedPerson> persons,
+            @JsonProperty("roles") List<JsonAdaptedRole> roles) {
+        if (persons != null) {
+            this.persons.addAll(persons);
+        }
+        if (roles != null) {
+            this.roles.addAll(roles);
+        }
     }
 
     /**
@@ -38,6 +47,7 @@ class JsonSerializableAddressBook {
      */
     public JsonSerializableAddressBook(ReadOnlyAddressBook source) {
         persons.addAll(source.getPersonList().stream().map(JsonAdaptedPerson::new).collect(Collectors.toList()));
+        roles.addAll(source.getRoleList().stream().map(JsonAdaptedRole::new).collect(Collectors.toList()));
     }
 
     /**
@@ -53,6 +63,13 @@ class JsonSerializableAddressBook {
                 throw new IllegalValueException(MESSAGE_DUPLICATE_PERSON);
             }
             addressBook.addPerson(person);
+        }
+        for (JsonAdaptedRole jsonAdaptedRole : roles) {
+            Role role = jsonAdaptedRole.toModelType();
+            if (addressBook.hasRole(role)) {
+                throw new IllegalValueException(MESSAGE_DUPLICATE_ROLE);
+            }
+            addressBook.addRole(role);
         }
         return addressBook;
     }
