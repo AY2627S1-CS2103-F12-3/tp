@@ -2,11 +2,14 @@ package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_NOTE_BOB;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.HOON;
 import static seedu.address.testutil.TypicalPersons.IDA;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
+import static seedu.address.testutil.TypicalRoles.PRODUCT_ANALYST;
+import static seedu.address.testutil.TypicalRoles.SOFTWARE_ENGINEER;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -18,6 +21,7 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.testutil.PersonBuilder;
 
 public class JsonAddressBookStorageTest {
     private static final Path TEST_DATA_FOLDER = Paths.get("src", "test", "data", "JsonAddressBookStorageTest");
@@ -61,9 +65,18 @@ public class JsonAddressBookStorageTest {
     }
 
     @Test
+    public void readAddressBook_personWithNote_noteRead() throws Exception {
+        ReadOnlyAddressBook addressBook = readAddressBook("personWithNoteAddressBook.json").get();
+        AddressBook expected = new AddressBook();
+        expected.addPerson(new PersonBuilder(HOON).withNote(VALID_NOTE_BOB).build());
+        assertEquals(expected, new AddressBook(addressBook));
+    }
+
+    @Test
     public void readAndSaveAddressBook_allInOrder_success() throws Exception {
         Path filePath = testFolder.resolve("TempAddressBook.json");
         AddressBook original = getTypicalAddressBook();
+        original.addRole(SOFTWARE_ENGINEER);
         JsonAddressBookStorage jsonAddressBookStorage = new JsonAddressBookStorage(filePath);
 
         // Save in new file and read back
@@ -74,6 +87,7 @@ public class JsonAddressBookStorageTest {
         // Modify data, overwrite existing file, and read back
         original.addPerson(HOON);
         original.removePerson(ALICE);
+        original.addRole(PRODUCT_ANALYST);
         jsonAddressBookStorage.saveAddressBook(original, filePath);
         readBack = jsonAddressBookStorage.readAddressBook(filePath).get();
         assertEquals(original, new AddressBook(readBack));
@@ -84,6 +98,18 @@ public class JsonAddressBookStorageTest {
         readBack = jsonAddressBookStorage.readAddressBook().get(); // file path not specified
         assertEquals(original, new AddressBook(readBack));
 
+    }
+
+    @Test
+    public void readAndSaveAddressBook_personWithNote_noteRetained() throws Exception {
+        Path filePath = testFolder.resolve("TempAddressBook.json");
+        AddressBook original = new AddressBook();
+        original.addPerson(new PersonBuilder(HOON).withNote(VALID_NOTE_BOB).build());
+        JsonAddressBookStorage jsonAddressBookStorage = new JsonAddressBookStorage(filePath);
+
+        jsonAddressBookStorage.saveAddressBook(original, filePath);
+        ReadOnlyAddressBook readBack = jsonAddressBookStorage.readAddressBook(filePath).get();
+        assertEquals(original, new AddressBook(readBack));
     }
 
     @Test

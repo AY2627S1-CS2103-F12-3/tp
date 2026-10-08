@@ -11,6 +11,7 @@ import javafx.collections.transformation.FilteredList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.person.Person;
+import seedu.address.model.role.Role;
 
 /**
  * Represents the in-memory model of the address book data.
@@ -21,6 +22,7 @@ public class ModelManager implements Model {
     private final AddressBook addressBook;
     private final UserPrefs userPrefs;
     private final FilteredList<Person> filteredPersons;
+    private final FilteredList<Role> filteredRoles;
 
     /**
      * Initializes a ModelManager with the given addressBook and userPrefs.
@@ -33,6 +35,7 @@ public class ModelManager implements Model {
         this.addressBook = new AddressBook(addressBook);
         this.userPrefs = new UserPrefs(userPrefs);
         filteredPersons = new FilteredList<>(this.addressBook.getPersonList());
+        filteredRoles = new FilteredList<>(this.addressBook.getRoleList());
     }
 
     public ModelManager() {
@@ -110,6 +113,37 @@ public class ModelManager implements Model {
         filteredPersons.setPredicate(predicate);
     }
 
+    //=========== Filtered Role List Accessors ===============================================================
+
+    @Override
+    public boolean hasRole(Role role) {
+        requireNonNull(role);
+        return addressBook.hasRole(role);
+    }
+
+    @Override
+    public void addRole(Role role) {
+        addressBook.addRole(role);
+        updateFilteredRoleList(PREDICATE_SHOW_ALL_ROLES);
+    }
+
+    @Override
+    public void setRole(Role target, Role editedRole) {
+        requireAllNonNull(target, editedRole);
+        addressBook.setRole(target, editedRole);
+    }
+
+    @Override
+    public ObservableList<Role> getFilteredRoleList() {
+        return filteredRoles;
+    }
+
+    @Override
+    public void updateFilteredRoleList(Predicate<Role> predicate) {
+        requireNonNull(predicate);
+        filteredRoles.setPredicate(predicate);
+    }
+
     @Override
     public boolean equals(Object other) {
         if (other == this) {
@@ -123,7 +157,8 @@ public class ModelManager implements Model {
 
         return addressBook.equals(otherModelManager.addressBook)
                 && userPrefs.equals(otherModelManager.userPrefs)
-                && filteredPersons.equals(otherModelManager.filteredPersons);
+                && filteredPersons.equals(otherModelManager.filteredPersons)
+                && filteredRoles.equals(otherModelManager.filteredRoles);
     }
 
 }
