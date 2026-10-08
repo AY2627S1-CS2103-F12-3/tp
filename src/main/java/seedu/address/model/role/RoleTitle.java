@@ -9,10 +9,11 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
  */
 public class RoleTitle {
 
-    public static final String MESSAGE_CONSTRAINTS =
-            "Role title must be 1–100 characters and contain a letter.";
-
+    private static final int MIN_LENGTH = 1;
     private static final int MAX_LENGTH = 100;
+
+    public static final String MESSAGE_CONSTRAINTS =
+            "Role title must be " + MIN_LENGTH + "–" + MAX_LENGTH + " characters and contain a letter.";
 
     public final String value;
 
@@ -34,7 +35,7 @@ public class RoleTitle {
     public static boolean isValidRoleTitle(String test) {
         requireNonNull(test);
         long length = test.codePoints().count();
-        return length >= 1
+        return length >= MIN_LENGTH
                 && length <= MAX_LENGTH
                 && test.codePoints().anyMatch(Character::isLetter)
                 && test.codePoints().allMatch(RoleTitle::isAllowedCharacter);

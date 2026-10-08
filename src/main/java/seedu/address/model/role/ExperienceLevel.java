@@ -9,10 +9,12 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
  */
 public class ExperienceLevel {
 
-    public static final String MESSAGE_CONSTRAINTS =
-            "Required experience level must be 1–50 characters and must not contain a new line.";
-
+    private static final int MIN_LENGTH = 1;
     private static final int MAX_LENGTH = 50;
+
+    public static final String MESSAGE_CONSTRAINTS =
+            "Required experience level must be " + MIN_LENGTH + "–" + MAX_LENGTH
+                    + " characters and must not contain a new line.";
 
     public final String value;
 
@@ -34,7 +36,7 @@ public class ExperienceLevel {
     public static boolean isValidExperienceLevel(String test) {
         requireNonNull(test);
         long length = test.codePoints().count();
-        return length >= 1
+        return length >= MIN_LENGTH
                 && length <= MAX_LENGTH
                 && test.codePoints().allMatch(ExperienceLevel::isPrintableCharacter);
     }
