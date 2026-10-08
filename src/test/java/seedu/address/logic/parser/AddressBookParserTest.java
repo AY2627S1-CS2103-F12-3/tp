@@ -79,7 +79,8 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_note() throws Exception {
-        String note = "Interview 2026-10-20 14:00";
+        // prefix-like text must reach NoteCommandParser unchanged
+        String note = "Discuss t/java, Referee: n/Alice";
         NoteCommand command = (NoteCommand) parser.parseCommand(
                 NoteCommand.COMMAND_WORD + " " + INDEX_FIRST_PERSON.getOneBased() + " " + note);
         assertEquals(new NoteCommand(INDEX_FIRST_PERSON, new Note(note)), command);

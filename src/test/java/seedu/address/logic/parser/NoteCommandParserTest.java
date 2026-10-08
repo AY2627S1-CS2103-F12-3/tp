@@ -50,8 +50,8 @@ public class NoteCommandParserTest {
         // non-numeric index
         assertParseFailure(parser, "a Call back", MESSAGE_INVALID_FORMAT);
 
-        // note without index
-        assertParseFailure(parser, "Call back", MESSAGE_INVALID_FORMAT);
+        // note joined to index without a space
+        assertParseFailure(parser, "1Call back", MESSAGE_INVALID_FORMAT);
 
         // zero index
         assertParseFailure(parser, "0 Call back", MESSAGE_INVALID_FORMAT);

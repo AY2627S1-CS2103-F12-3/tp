@@ -83,6 +83,20 @@ public class NoteCommandTest {
     }
 
     @Test
+    public void execute_emptyNoteOnPersonWithoutNote_clearedMessage() {
+        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        assertTrue(firstPerson.getNote().isEmpty());
+        NoteCommand noteCommand = new NoteCommand(INDEX_FIRST_PERSON, new Note(""));
+
+        String expectedMessage = String.format(NoteCommand.MESSAGE_CLEAR_NOTE_SUCCESS,
+                Messages.format(firstPerson));
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+
+        assertCommandSuccess(noteCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
     public void execute_noteFilteredList_success() {
         showPersonAtIndex(model, INDEX_SECOND_PERSON);
 
