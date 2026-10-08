@@ -113,6 +113,22 @@ Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
 
+### Adding or clearing a note: `note`
+
+Records a note for an existing person, such as interview details.
+
+Format: `note INDEX [NOTE]`
+
+* Sets the note of the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, ...
+* Everything after the index is saved as the note, exactly as typed. The note can contain any text, including text that looks like a prefix, such as `t/` or `n/`.
+* A new note replaces the person's existing note.
+* To clear a person's note, enter `note INDEX` without a note after it.
+
+Examples:
+*  `note 1 Interview 2026-10-20 14:00` Sets the note of the 1st person to `Interview 2026-10-20 14:00`.
+*  `note 2 Discuss t/java experience` Sets the note of the 2nd person to `Discuss t/java experience`.
+*  `note 3` Clears the note of the 3rd person.
+
 ### Locating persons by name: `find`
 
 Finds persons whose names contain any of the given keywords.
@@ -201,4 +217,5 @@ Action     | Format, Examples
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List**   | `list`
+**Note**   | `note INDEX [NOTE]`<br> e.g., `note 1 Interview 2026-10-20 14:00`
 **Help**   | `help`

@@ -1,0 +1,55 @@
+package seedu.address.model.person;
+
+import static java.util.Objects.requireNonNull;
+
+/**
+ * Represents a Person's note in the address book, such as recruitment or interview details.
+ * Guarantees: immutable; is always non-null.
+ * Any text is accepted, including an empty string, which means the person has no note.
+ */
+public class Note {
+
+    public final String value;
+
+    /**
+     * Constructs a {@code Note}.
+     *
+     * @param note Text of the note, which may be empty.
+     */
+    public Note(String note) {
+        requireNonNull(note);
+        value = note;
+    }
+
+    /**
+     * Returns true if this note has no text, meaning the person has no note.
+     */
+    public boolean isEmpty() {
+        return value.isEmpty();
+    }
+
+    @Override
+    public String toString() {
+        return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == this) {
+            return true;
+        }
+
+        // instanceof handles nulls
+        if (!(other instanceof Note otherNote)) {
+            return false;
+        }
+
+        return value.equals(otherNote.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return value.hashCode();
+    }
+
+}
