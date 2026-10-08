@@ -12,8 +12,6 @@ import static seedu.address.logic.commands.CommandTestUtil.INVALID_PHONE_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_TAG_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_BOB;
-import static seedu.address.logic.commands.CommandTestUtil.NOTE_DESC_AMY;
-import static seedu.address.logic.commands.CommandTestUtil.NOTE_DESC_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.PREAMBLE_NON_EMPTY;
@@ -23,16 +21,13 @@ import static seedu.address.logic.commands.CommandTestUtil.TAG_DESC_HUSBAND;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
-import static seedu.address.logic.commands.CommandTestUtil.VALID_NOTE_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_FRIEND;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.address.testutil.TypicalPersons.AMY;
@@ -55,11 +50,11 @@ public class AddCommandParserTest {
 
     @Test
     public void parse_allFieldsPresent_success() {
-        Person expectedPerson = new PersonBuilder(BOB).withNote(VALID_NOTE_BOB).withTags(VALID_TAG_FRIEND).build();
+        Person expectedPerson = new PersonBuilder(BOB).withTags(VALID_TAG_FRIEND).build();
 
         // whitespace only preamble
         assertParseSuccess(parser, PREAMBLE_WHITESPACE + NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB
-                + ADDRESS_DESC_BOB + NOTE_DESC_BOB + TAG_DESC_FRIEND, new AddCommand(expectedPerson));
+                + ADDRESS_DESC_BOB + TAG_DESC_FRIEND, new AddCommand(expectedPerson));
 
 
         // multiple tags - all accepted
@@ -90,10 +85,6 @@ public class AddCommandParserTest {
         // multiple addresses
         assertParseFailure(parser, ADDRESS_DESC_AMY + validExpectedPersonString,
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_ADDRESS));
-
-        // multiple notes
-        assertParseFailure(parser, NOTE_DESC_AMY + NOTE_DESC_BOB + validExpectedPersonString,
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_NOTE));
 
         // multiple fields repeated
         assertParseFailure(parser,
@@ -140,45 +131,10 @@ public class AddCommandParserTest {
 
     @Test
     public void parse_optionalFieldsMissing_success() {
-        // zero tags and no note
+        // zero tags
         Person expectedPerson = new PersonBuilder(AMY).withTags().build();
         assertParseSuccess(parser, NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + ADDRESS_DESC_AMY,
                 new AddCommand(expectedPerson));
-    }
-
-    @Test
-    public void parse_emptyNote_success() {
-        String amyWithoutNote = NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + ADDRESS_DESC_AMY + TAG_DESC_FRIEND;
-
-        // empty note
-        assertParseSuccess(parser, amyWithoutNote + " " + PREFIX_NOTE, new AddCommand(AMY));
-
-        // whitespace-only note
-        assertParseSuccess(parser, amyWithoutNote + " " + PREFIX_NOTE + "   ", new AddCommand(AMY));
-    }
-
-    @Test
-    public void parse_noteWithSlashes_success() {
-        String note = "Scored 8/10, salary 5k/month";
-        Person expectedPerson = new PersonBuilder(AMY).withNote(note).build();
-        assertParseSuccess(parser, NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + ADDRESS_DESC_AMY
-                + " " + PREFIX_NOTE + note + TAG_DESC_FRIEND, new AddCommand(expectedPerson));
-    }
-
-    @Test
-    public void parse_noteContainingTagPrefix_splitIntoNoteAndTag() {
-        // a prefix inside a note starts a new field, so the note ends where the prefix begins
-        Person expectedPerson = new PersonBuilder(AMY).withNote("Discuss").withTags("java").build();
-        assertParseSuccess(parser, NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + ADDRESS_DESC_AMY
-                + " " + PREFIX_NOTE + "Discuss " + PREFIX_TAG + "java", new AddCommand(expectedPerson));
-    }
-
-    @Test
-    public void parse_noteContainingNamePrefix_failure() {
-        // the "n/" inside the note is read as a second name
-        assertParseFailure(parser, NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + ADDRESS_DESC_AMY
-                + " " + PREFIX_NOTE + "Referee: " + PREFIX_NAME + "a",
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_NAME));
     }
 
     @Test
