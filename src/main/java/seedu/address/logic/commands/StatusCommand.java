@@ -40,8 +40,8 @@ public class StatusCommand extends Command {
     /**
      * Creates a new StatusCommand that appends a Status to person's currently assigned tags.
      *
-     * @param index of the person in the filtered person list to edit
-     * @param status status (currently implemented as a tag) to assign to the candidate
+     * @param index of the person in the filtered person list to edit.
+     * @param status status (currently implemented as a tag) to assign to the candidate.
      */
     public StatusCommand(Index index, Tag status) {
         requireNonNull(index);

@@ -12,8 +12,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.tag.Tag;
 
 /**
- * Parses input arguments and creates a new StatusCommand object
- * Adapted from:
+ * Parses input arguments and creates a new StatusCommand object.
  */
 public class StatusCommandParser implements Parser<StatusCommand> {
     private static final Pattern COMMAND_PATTERN = Pattern.compile("(?<index>\\d+)\\s+(?<status>.+)");
@@ -21,7 +20,8 @@ public class StatusCommandParser implements Parser<StatusCommand> {
     /**
      * Parses the given {@code String} of arguments in the context of the StatusCommand
      * and returns a StatusCommand object for execution.
-     * @throws ParseException if the user input does not conform to the expected format
+     *
+     * @throws ParseException if the user input does not conform to the expected format.
      */
     public StatusCommand parse(String args) throws ParseException {
         requireNonNull(args);
