@@ -12,7 +12,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.tag.Tag;
 
 /**
- * Parses input arguments and creates a new DeleteStatusCommand object
+ * Parses input arguments and creates a new DeleteStatusCommand object.
  */
 public class DeleteStatusCommandParser implements Parser<DeleteStatusCommand> {
     private static final Pattern COMMAND_PATTERN = Pattern.compile("(?<targetIndex>\\d+)\\s+(?<targetStatus>.+)");
@@ -21,7 +21,7 @@ public class DeleteStatusCommandParser implements Parser<DeleteStatusCommand> {
      * Parses the given {@code String} of arguments in the context of the DeleteStatusCommand
      * and returns a DeleteStatusCommand object for execution.
      *
-     * @throws ParseException if the user input does not conform to the expected format
+     * @throws ParseException if the user input does not conform to the expected format.
      */
     public DeleteStatusCommand parse(String args) throws ParseException {
         requireNonNull(args);
