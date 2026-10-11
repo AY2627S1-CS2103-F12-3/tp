@@ -24,7 +24,7 @@ public class RoleCommandParserTest {
 
     @Test
     public void parse_missingSubcommand_throwsParseException() {
-        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddRoleCommand.MESSAGE_USAGE);
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, RoleCommandParser.MESSAGE_USAGE);
         assertThrows(ParseException.class, expectedMessage, () -> parser.parse(""));
     }
 

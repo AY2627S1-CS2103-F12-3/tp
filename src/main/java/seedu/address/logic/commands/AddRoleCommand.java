@@ -6,6 +6,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_ROLE_TITLE;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.logic.parser.RoleCommandParser;
 import seedu.address.model.Model;
 import seedu.address.model.role.Role;
 
@@ -14,15 +15,14 @@ import seedu.address.model.role.Role;
  */
 public class AddRoleCommand extends Command {
 
-    public static final String COMMAND_GROUP = "role";
     public static final String COMMAND_WORD = "add";
 
-    public static final String MESSAGE_USAGE = COMMAND_GROUP + " " + COMMAND_WORD
+    public static final String MESSAGE_USAGE = RoleCommandParser.COMMAND_WORD + " " + COMMAND_WORD
             + ": Adds an open role. "
             + "Parameters: "
             + PREFIX_ROLE_TITLE + "ROLE_TITLE "
             + PREFIX_EXPERIENCE_LEVEL + "EXPERIENCE_LEVEL\n"
-            + "Example: " + COMMAND_GROUP + " " + COMMAND_WORD + " "
+            + "Example: " + RoleCommandParser.COMMAND_WORD + " " + COMMAND_WORD + " "
             + PREFIX_ROLE_TITLE + "Software Engineer "
             + PREFIX_EXPERIENCE_LEVEL + "2 years";
 

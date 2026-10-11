@@ -15,13 +15,18 @@ import seedu.address.logic.parser.exceptions.ParseException;
  */
 public class RoleCommandParser implements Parser<Command> {
 
+    public static final String COMMAND_WORD = "role";
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Manages role openings.\n"
+            + "Available commands:\n"
+            + AddRoleCommand.MESSAGE_USAGE;
+
     private static final Pattern SUBCOMMAND_FORMAT = Pattern.compile("(?<subcommand>\\S+)(?<arguments>.*)");
 
     @Override
     public Command parse(String args) throws ParseException {
         Matcher matcher = SUBCOMMAND_FORMAT.matcher(args.trim());
         if (!matcher.matches()) {
-            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddRoleCommand.MESSAGE_USAGE));
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, MESSAGE_USAGE));
         }
 
         String subcommand = matcher.group("subcommand");

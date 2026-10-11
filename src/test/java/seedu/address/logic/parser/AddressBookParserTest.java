@@ -46,8 +46,15 @@ public class AddressBookParserTest {
     @Test
     public void parseCommand_addRole() throws Exception {
         AddRoleCommand command = (AddRoleCommand) parser.parseCommand(
-                "role add r/Software Engineer x/2 years");
+                RoleCommandParser.COMMAND_WORD + " add r/Software Engineer x/2 years");
         assertEquals(new AddRoleCommand(new RoleBuilder().build()), command);
+    }
+
+    @Test
+    public void parseCommand_roleWithoutSubcommand_throwsParseException() {
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, RoleCommandParser.MESSAGE_USAGE);
+        assertThrows(ParseException.class, expectedMessage, () ->
+                parser.parseCommand(RoleCommandParser.COMMAND_WORD));
     }
 
     @Test
