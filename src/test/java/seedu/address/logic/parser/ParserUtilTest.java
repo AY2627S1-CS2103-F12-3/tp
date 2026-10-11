@@ -17,6 +17,8 @@ import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Note;
 import seedu.address.model.person.Phone;
+import seedu.address.model.role.ExperienceLevel;
+import seedu.address.model.role.RoleTitle;
 import seedu.address.model.tag.Tag;
 
 public class ParserUtilTest {
@@ -25,6 +27,8 @@ public class ParserUtilTest {
     private static final String INVALID_ADDRESS = " ";
     private static final String INVALID_EMAIL = "example.com";
     private static final String INVALID_TAG = "#friend";
+    private static final String INVALID_ROLE_TITLE = "1234";
+    private static final String INVALID_EXPERIENCE_LEVEL = "Senior\nLevel";
 
     private static final String VALID_NAME = "Rachel Walker";
     private static final String VALID_PHONE = "123456";
@@ -33,6 +37,8 @@ public class ParserUtilTest {
     private static final String VALID_EMAIL = "rachel@example.com";
     private static final String VALID_TAG_1 = "friend";
     private static final String VALID_TAG_2 = "neighbour";
+    private static final String VALID_ROLE_TITLE = "Software Engineer";
+    private static final String VALID_EXPERIENCE_LEVEL = "2 years";
 
     private static final String WHITESPACE = " \t\r\n";
 
@@ -167,6 +173,41 @@ public class ParserUtilTest {
         String emailWithWhitespace = WHITESPACE + VALID_EMAIL + WHITESPACE;
         Email expectedEmail = new Email(VALID_EMAIL);
         assertEquals(expectedEmail, ParserUtil.parseEmail(emailWithWhitespace));
+    }
+
+    @Test
+    public void parseRoleTitle_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseRoleTitle(null));
+    }
+
+    @Test
+    public void parseRoleTitle_invalidValue_throwsParseException() {
+        assertThrows(ParseException.class, RoleTitle.MESSAGE_CONSTRAINTS, () ->
+                ParserUtil.parseRoleTitle(INVALID_ROLE_TITLE));
+    }
+
+    @Test
+    public void parseRoleTitle_validValueWithWhitespace_returnsTrimmedRoleTitle() throws Exception {
+        String roleTitleWithWhitespace = WHITESPACE + VALID_ROLE_TITLE + WHITESPACE;
+        assertEquals(new RoleTitle(VALID_ROLE_TITLE), ParserUtil.parseRoleTitle(roleTitleWithWhitespace));
+    }
+
+    @Test
+    public void parseExperienceLevel_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseExperienceLevel(null));
+    }
+
+    @Test
+    public void parseExperienceLevel_invalidValue_throwsParseException() {
+        assertThrows(ParseException.class, ExperienceLevel.MESSAGE_CONSTRAINTS, () ->
+                ParserUtil.parseExperienceLevel(INVALID_EXPERIENCE_LEVEL));
+    }
+
+    @Test
+    public void parseExperienceLevel_validValueWithWhitespace_returnsTrimmedExperienceLevel() throws Exception {
+        String experienceLevelWithWhitespace = WHITESPACE + VALID_EXPERIENCE_LEVEL + WHITESPACE;
+        assertEquals(new ExperienceLevel(VALID_EXPERIENCE_LEVEL),
+                ParserUtil.parseExperienceLevel(experienceLevelWithWhitespace));
     }
 
     @Test

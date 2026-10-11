@@ -14,6 +14,8 @@ import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Note;
 import seedu.address.model.person.Phone;
+import seedu.address.model.role.ExperienceLevel;
+import seedu.address.model.role.RoleTitle;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -103,6 +105,36 @@ public class ParserUtil {
             throw new ParseException(Email.MESSAGE_CONSTRAINTS);
         }
         return new Email(trimmedEmail);
+    }
+
+    /**
+     * Parses a {@code String roleTitle} into a {@code RoleTitle}.
+     * Leading and trailing whitespaces will be trimmed.
+     *
+     * @throws ParseException if the given {@code roleTitle} is invalid.
+     */
+    public static RoleTitle parseRoleTitle(String roleTitle) throws ParseException {
+        requireNonNull(roleTitle);
+        String trimmedRoleTitle = roleTitle.strip();
+        if (!RoleTitle.isValidRoleTitle(trimmedRoleTitle)) {
+            throw new ParseException(RoleTitle.MESSAGE_CONSTRAINTS);
+        }
+        return new RoleTitle(trimmedRoleTitle);
+    }
+
+    /**
+     * Parses a {@code String experienceLevel} into an {@code ExperienceLevel}.
+     * Leading and trailing whitespaces will be trimmed.
+     *
+     * @throws ParseException if the given {@code experienceLevel} is invalid.
+     */
+    public static ExperienceLevel parseExperienceLevel(String experienceLevel) throws ParseException {
+        requireNonNull(experienceLevel);
+        String trimmedExperienceLevel = experienceLevel.strip();
+        if (!ExperienceLevel.isValidExperienceLevel(trimmedExperienceLevel)) {
+            throw new ParseException(ExperienceLevel.MESSAGE_CONSTRAINTS);
+        }
+        return new ExperienceLevel(trimmedExperienceLevel);
     }
 
     /**

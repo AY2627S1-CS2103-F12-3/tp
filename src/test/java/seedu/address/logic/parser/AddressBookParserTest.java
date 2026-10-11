@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.AddCommand;
+import seedu.address.logic.commands.AddRoleCommand;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.logic.commands.EditCommand;
@@ -29,6 +30,7 @@ import seedu.address.model.person.Person;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.PersonUtil;
+import seedu.address.testutil.RoleBuilder;
 
 public class AddressBookParserTest {
 
@@ -39,6 +41,20 @@ public class AddressBookParserTest {
         Person person = new PersonBuilder().build();
         AddCommand command = (AddCommand) parser.parseCommand(PersonUtil.getAddCommand(person));
         assertEquals(new AddCommand(person), command);
+    }
+
+    @Test
+    public void parseCommand_addRole() throws Exception {
+        AddRoleCommand command = (AddRoleCommand) parser.parseCommand(
+                RoleCommandParser.COMMAND_WORD + " add r/Software Engineer x/2 years");
+        assertEquals(new AddRoleCommand(new RoleBuilder().build()), command);
+    }
+
+    @Test
+    public void parseCommand_roleWithoutSubcommand_throwsParseException() {
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, RoleCommandParser.MESSAGE_USAGE);
+        assertThrows(ParseException.class, expectedMessage, () ->
+                parser.parseCommand(RoleCommandParser.COMMAND_WORD));
     }
 
     @Test
