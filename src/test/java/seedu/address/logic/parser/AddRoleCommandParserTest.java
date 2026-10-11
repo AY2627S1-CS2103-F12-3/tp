@@ -2,7 +2,6 @@ package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.AddRoleCommandParser.MESSAGE_MISSING_FIELD;
-import static seedu.address.logic.parser.AddRoleCommandParser.MESSAGE_REPEATED_FIELD;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EXPERIENCE_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ROLE_TITLE;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
@@ -10,6 +9,7 @@ import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSucces
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.logic.Messages;
 import seedu.address.logic.commands.AddRoleCommand;
 import seedu.address.model.role.ExperienceLevel;
 import seedu.address.model.role.Role;
@@ -52,9 +52,9 @@ public class AddRoleCommandParserTest {
     @Test
     public void parse_repeatedField_failure() {
         assertParseFailure(parser, TITLE_DESC + TITLE_DESC + EXPERIENCE_LEVEL_DESC,
-                MESSAGE_REPEATED_FIELD);
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_ROLE_TITLE));
         assertParseFailure(parser, TITLE_DESC + EXPERIENCE_LEVEL_DESC + EXPERIENCE_LEVEL_DESC,
-                MESSAGE_REPEATED_FIELD);
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_EXPERIENCE_LEVEL));
     }
 
     @Test

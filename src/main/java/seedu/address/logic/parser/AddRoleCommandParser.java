@@ -18,7 +18,6 @@ import seedu.address.model.role.RoleTitle;
 public class AddRoleCommandParser implements Parser<AddRoleCommand> {
 
     public static final String MESSAGE_MISSING_FIELD = "Missing required field: %1$s.";
-    public static final String MESSAGE_REPEATED_FIELD = "Each field may be specified only once.";
 
     @Override
     public AddRoleCommand parse(String args) throws ParseException {
@@ -30,9 +29,7 @@ public class AddRoleCommandParser implements Parser<AddRoleCommand> {
             throw new ParseException(String.format(MESSAGE_MISSING_FIELD, missingPrefix));
         }
 
-        if (hasRepeatedPrefix(argMultimap, PREFIX_ROLE_TITLE, PREFIX_EXPERIENCE_LEVEL)) {
-            throw new ParseException(MESSAGE_REPEATED_FIELD);
-        }
+        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_ROLE_TITLE, PREFIX_EXPERIENCE_LEVEL);
 
         if (!argMultimap.getPreamble().isEmpty()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddRoleCommand.MESSAGE_USAGE));
@@ -51,10 +48,5 @@ public class AddRoleCommandParser implements Parser<AddRoleCommand> {
                 .filter(prefix -> argumentMultimap.getValue(prefix).isEmpty())
                 .findFirst()
                 .orElse(null);
-    }
-
-    private static boolean hasRepeatedPrefix(ArgumentMultimap argumentMultimap, Prefix... prefixes) {
-        return Arrays.stream(prefixes)
-                .anyMatch(prefix -> argumentMultimap.getAllValues(prefix).size() > 1);
     }
 }
