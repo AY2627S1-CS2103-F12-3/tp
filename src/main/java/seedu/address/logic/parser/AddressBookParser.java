@@ -61,7 +61,7 @@ public class AddressBookParser {
             case NoteCommand.COMMAND_WORD -> new NoteCommandParser().parse(arguments);
             case ClearCommand.COMMAND_WORD -> new ClearCommand();
             case FindCommand.COMMAND_WORD -> new FindCommandParser().parse(arguments);
-            case ListCommand.COMMAND_WORD -> new ListCommandParser().parse(arguments);
+            case ListCommand.COMMAND_WORD -> new ListCommand();
             case ExitCommand.COMMAND_WORD -> new ExitCommand();
             case HelpCommand.COMMAND_WORD -> new HelpCommand();
             case StatusCommand.COMMAND_WORD -> new StatusCommandParser().parse(arguments);
