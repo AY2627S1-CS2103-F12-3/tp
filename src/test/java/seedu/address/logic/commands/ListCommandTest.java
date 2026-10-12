@@ -36,4 +36,9 @@ public class ListCommandTest {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
         assertCommandSuccess(new ListCommand(), model, ListCommand.MESSAGE_SUCCESS, expectedModel);
     }
+
+    @Test
+    public void execute_listRoles_showsAllRoles() {
+        assertCommandSuccess(new ListCommand(true), model, ListCommand.MESSAGE_ROLE_SUCCESS, expectedModel);
+    }
 }
