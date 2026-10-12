@@ -1,4 +1,4 @@
-package seedu.address.model.status;
+package seedu.address.model.person;
 
 /**
  * Enum denoting the different possible candidate statuses.
