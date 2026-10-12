@@ -18,6 +18,12 @@ public class RoleCard extends UiPart<Region> {
     @FXML
     private Label status;
 
+    /**
+     * Creates a role card for the given role.
+     *
+     * @param role role to display
+     * @param displayedIndex index shown on the card
+     */
     public RoleCard(Role role, int displayedIndex) {
         super(FXML);
         id.setText(displayedIndex + ". ");

@@ -14,6 +14,11 @@ public class RoleListPanel extends UiPart<Region> {
     @FXML
     private ListView<Role> roleListView;
 
+    /**
+     * Creates a panel containing the given roles.
+     *
+     * @param roleList roles to display
+     */
     public RoleListPanel(ObservableList<Role> roleList) {
         super(FXML);
         roleListView.setItems(roleList);
