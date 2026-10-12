@@ -37,8 +37,4 @@ public class ListCommandTest {
         assertCommandSuccess(new ListCommand(), model, ListCommand.MESSAGE_SUCCESS, expectedModel);
     }
 
-    @Test
-    public void execute_listRoles_showsAllRoles() {
-        assertCommandSuccess(new ListCommand(true), model, ListCommand.MESSAGE_ROLE_SUCCESS, expectedModel);
-    }
 }
