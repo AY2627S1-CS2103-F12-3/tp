@@ -1,0 +1,5 @@
+coverage:
+  ignore:
+    - "src/main/java/seedu/address/ui/RoleCard.java"
+    - "src/main/java/seedu/address/ui/RoleListPanel.java"
+    - "src/main/java/seedu/address/ui/MainWindow.java"
