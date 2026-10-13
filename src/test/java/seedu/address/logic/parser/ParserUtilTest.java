@@ -17,6 +17,7 @@ import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Note;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.Status;
 import seedu.address.model.role.ExperienceLevel;
 import seedu.address.model.role.RoleTitle;
 import seedu.address.model.tag.Tag;
@@ -29,6 +30,7 @@ public class ParserUtilTest {
     private static final String INVALID_TAG = "#friend";
     private static final String INVALID_ROLE_TITLE = "1234";
     private static final String INVALID_EXPERIENCE_LEVEL = "Senior\nLevel";
+    private static final String INVALID_STATUS = "ghosted";
 
     private static final String VALID_NAME = "Rachel Walker";
     private static final String VALID_PHONE = "123456";
@@ -39,6 +41,8 @@ public class ParserUtilTest {
     private static final String VALID_TAG_2 = "neighbour";
     private static final String VALID_ROLE_TITLE = "Software Engineer";
     private static final String VALID_EXPERIENCE_LEVEL = "2 years";
+    private static final String VALID_STATUS_STRING = "PENDING RESUME SCREENING";
+    private static final Status VALID_STATUS = Status.PENDING_RESUME_SCREENING;
 
     private static final String WHITESPACE = " \t\r\n";
 
@@ -231,6 +235,36 @@ public class ParserUtilTest {
         String tagWithWhitespace = WHITESPACE + VALID_TAG_1 + WHITESPACE;
         Tag expectedTag = new Tag(VALID_TAG_1);
         assertEquals(expectedTag, ParserUtil.parseTag(tagWithWhitespace));
+    }
+
+    @Test
+    public void parseStatus_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseStatus(null));
+    }
+
+    @Test
+    public void parseStatus_invalidValue_throwsParseException() {
+        assertThrows(ParseException.class, Status.getConstraintsMessage(), () ->
+                ParserUtil.parseStatus(""));
+        assertThrows(ParseException.class, Status.getConstraintsMessage(), () ->
+                ParserUtil.parseStatus(WHITESPACE));
+        assertThrows(ParseException.class, Status.getConstraintsMessage(), () ->
+                ParserUtil.parseStatus(INVALID_STATUS));
+    }
+
+    @Test
+    public void parseStatus_validValueWithoutWhitespace_returnsStatus() throws Exception {
+        assertEquals(VALID_STATUS, ParserUtil.parseStatus(VALID_STATUS_STRING));
+    }
+
+    @Test
+    public void parseStatus_validValueWithWhitespace_returnsStatus() throws Exception {
+        assertEquals(VALID_STATUS, ParserUtil.parseStatus(WHITESPACE + VALID_STATUS_STRING + WHITESPACE));
+    }
+
+    @Test
+    public void parseStatus_validValueWithDifferentCase_returnsStatus() throws Exception {
+        assertEquals(VALID_STATUS, ParserUtil.parseStatus(VALID_STATUS_STRING.toLowerCase()));
     }
 
     @Test
