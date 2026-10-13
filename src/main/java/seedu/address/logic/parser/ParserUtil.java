@@ -14,6 +14,7 @@ import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Note;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.Status;
 import seedu.address.model.role.ExperienceLevel;
 import seedu.address.model.role.RoleTitle;
 import seedu.address.model.tag.Tag;
@@ -153,18 +154,27 @@ public class ParserUtil {
     }
 
     /**
-     * Parses a {@code String tag} into a {@code Tag}.
+     * Parses a {@code String status} into a {@code Status}.
      * Leading and trailing whitespaces will be trimmed.
+     * Parsing of status is case-insensitive, and internal whitespaces are treated as underscores.
      *
-     * @throws ParseException if the given {@code tag} is invalid.
+     * @param status Candidate status, to be parsed into a Status object.
+     *      It must exactly match one of the Status names after trimming whitespace, converting to uppercase,
+     *      and replacing internal whitespaces with underscores
+     *      (e.g. " pending_resume_screening " and "pending resume screening" are valid
+     *      because they match PENDING_RESUME_SCREENING).
+     * @throws ParseException if the given {@code status} is invalid (see @param for details)
      */
-    public static Tag parseStatus(String status) throws ParseException {
+    public static Status parseStatus(String status) throws ParseException {
         requireNonNull(status);
-        String trimmedStatus = status.trim();
-        if (!Tag.isValidTagName(trimmedStatus)) {
-            throw new ParseException(Tag.MESSAGE_CONSTRAINTS);
+        String normalizedStatus = status.trim()
+                .toUpperCase()
+                .replaceAll("\\s+", "_"); // "pending resume screening" -> "pending_resume_screening"
+        try {
+            return Status.valueOf(normalizedStatus.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new ParseException(Status.getConstraintsMessage());
         }
-        return new Tag(trimmedStatus);
     }
 
     /**
