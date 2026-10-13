@@ -11,16 +11,17 @@ import seedu.address.model.role.Role;
  * The API of the Model component.
  */
 public interface Model {
+    /** {@code Predicate} that always evaluates to true */
+    Predicate<Person> PREDICATE_SHOW_ALL_PERSONS = unused -> true;
+    /** {@code Predicate} that always evaluates to true */
+    Predicate<Role> PREDICATE_SHOW_ALL_ROLES = unused -> true;
+
     default boolean isRoleListDisplayed() {
         return false;
     }
 
     default void setRoleListDisplayed(boolean displayed) {
     }
-    /** {@code Predicate} that always evaluates to true */
-    Predicate<Person> PREDICATE_SHOW_ALL_PERSONS = unused -> true;
-    /** {@code Predicate} that always evaluates to true */
-    Predicate<Role> PREDICATE_SHOW_ALL_ROLES = unused -> true;
 
     /**
      * Returns the user prefs.

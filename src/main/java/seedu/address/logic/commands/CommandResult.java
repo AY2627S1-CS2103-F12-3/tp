@@ -29,6 +29,9 @@ public class CommandResult {
         this(feedbackToUser, showHelp, exit, false);
     }
 
+    /**
+     * Constructs a command result with explicit help, exit, and role-list flags.
+     */
     public CommandResult(String feedbackToUser, boolean showHelp, boolean exit, boolean showRoleList) {
         this.feedbackToUser = requireNonNull(feedbackToUser);
         this.showHelp = showHelp;
