@@ -163,7 +163,7 @@ public class ParserUtil {
      *      and replacing internal whitespaces with underscores
      *      (e.g. " pending_resume_screening " and "pending resume screening" are valid
      *      because they match PENDING_RESUME_SCREENING).
-     * @throws ParseException if the given {@code status} is invalid (see @param for details)
+     * @throws ParseException if the given {@code status} is invalid (see param specification for details)
      */
     public static Status parseStatus(String status) throws ParseException {
         requireNonNull(status);
