@@ -181,9 +181,8 @@ public class MainWindow extends UiPart<Stage> {
     private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
         try {
             CommandResult commandResult = logic.execute(commandText);
-            boolean listingRoles = commandText.trim().equals("list role");
             personListPanelPlaceholder.getChildren().setAll(
-                    listingRoles ? roleListPanel.getRoot() : personListPanel.getRoot());
+                    commandResult.isShowRoleList() ? roleListPanel.getRoot() : personListPanel.getRoot());
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
 

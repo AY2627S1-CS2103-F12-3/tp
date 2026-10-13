@@ -31,7 +31,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
    * `list` : Lists all contacts.
    * `list role` : Lists all unique roles, with each role shown in its own box.
-   * `role add t/Software Engineer e/2 years` : Adds an open role.
+   * `role add r/Software Engineer x/2 years` : Adds an open role.
 
    * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to the Address Book.
 
@@ -97,13 +97,13 @@ Examples:
 
 Adds an open role to the address book. Role titles are unique, ignoring case.
 
-Format: `role add t/ROLE_TITLE e/EXPERIENCE_LEVEL`
+Format: `role add r/ROLE_TITLE x/EXPERIENCE_LEVEL`
 
 Examples:
 
-* `role add t/Software Engineer e/2 years`
-* `role add t/Product Manager e/5 years`
-* `role add t/UX Designer e/3 years`
+* `role add r/Software Engineer x/2 years`
+* `role add r/Product Manager x/5 years`
+* `role add r/UX Designer x/3 years`
 
 New roles are created with status `OPEN`. To view all roles, use `list role`.
 
@@ -253,6 +253,6 @@ Action     | Format, Examples
 **List**   | `list`
 **List roles** | `list role`
 **Note**   | `note INDEX [NOTE]`<br> e.g., `note 1 Interview 2026-10-20 14:00`
-**Role add** | `role add t/ROLE_TITLE e/EXPERIENCE_LEVEL`<br> e.g., `role add t/Software Engineer e/2 years`
+**Role add** | `role add r/ROLE_TITLE x/EXPERIENCE_LEVEL`<br> e.g., `role add r/Software Engineer x/2 years`
 **Status** | `status INDEX STATUS`<br> e.g., `status 1 accepted`
 **Help**   | `help`

@@ -32,9 +32,12 @@ public class ListCommand extends Command {
     public CommandResult execute(Model model) {
         requireNonNull(model);
         if (listRoles) {
+            model.setRoleListDisplayed(true);
             model.updateFilteredRoleList(PREDICATE_SHOW_ALL_ROLES);
-            return new CommandResult(MESSAGE_ROLE_SUCCESS);
+            model.updateFilteredPersonList(person -> false);
+            return new CommandResult(MESSAGE_ROLE_SUCCESS, false, false, true);
         }
+        model.setRoleListDisplayed(false);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
         return new CommandResult(MESSAGE_SUCCESS);
     }

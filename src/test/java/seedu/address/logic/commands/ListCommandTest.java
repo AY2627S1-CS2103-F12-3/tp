@@ -7,6 +7,7 @@ import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -35,6 +36,14 @@ public class ListCommandTest {
     public void execute_listIsFiltered_showsEverything() {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
         assertCommandSuccess(new ListCommand(), model, ListCommand.MESSAGE_SUCCESS, expectedModel);
+    }
+
+    @Test
+    public void execute_listRoles_hidesCandidateIndexListAndRequestsRoleView() {
+        CommandResult result = new ListCommand(true).execute(model);
+
+        assertTrue(model.getFilteredPersonList().isEmpty());
+        assertTrue(result.isShowRoleList());
     }
 
 }

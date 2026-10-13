@@ -116,6 +116,12 @@ public class AddressBookParserTest {
     }
 
     @Test
+    public void parseCommand_listRoleWithWhitespace_isAccepted() throws Exception {
+        assertTrue(parser.parseCommand("list\trole") instanceof ListCommand);
+        assertTrue(parser.parseCommand("list  role") instanceof ListCommand);
+    }
+
+    @Test
     public void parseCommand_unrecognisedInput_throwsParseException() {
         assertThrows(ParseException.class, String.format(MESSAGE_INVALID_COMMAND_FORMAT, HelpCommand.MESSAGE_USAGE), ()
             -> parser.parseCommand(""));
