@@ -9,6 +9,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.Status;
 
 /**
  * A UI component that displays information of a {@code Person}.
@@ -16,6 +17,7 @@ import seedu.address.model.person.Person;
 public class PersonCard extends UiPart<Region> {
 
     private static final String FXML = "PersonListCard.fxml";
+    private static final String STATUS_STYLE_CLASS = "cell_status_label";
 
     /**
      * Note: Certain keywords such as "location" and "resources" are reserved keywords in JavaFX.
@@ -56,9 +58,19 @@ public class PersonCard extends UiPart<Region> {
         address.setText(person.getAddress().value);
         email.setText(person.getEmail().value);
         showNote(person.getNote());
+        showStatus(person.getStatus());
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
+    }
+
+    /**
+     * Shows {@code status} as the first label in the tag row, styled to stand apart from the tags.
+     */
+    private void showStatus(Status status) {
+        Label statusLabel = new Label(status.toString());
+        statusLabel.getStyleClass().add(STATUS_STYLE_CLASS);
+        tags.getChildren().add(statusLabel);
     }
 
     /**
