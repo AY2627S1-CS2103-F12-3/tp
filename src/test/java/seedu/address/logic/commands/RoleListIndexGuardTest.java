@@ -10,9 +10,9 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
-import seedu.address.testutil.TypicalPersons;
 import seedu.address.model.person.Note;
 import seedu.address.model.tag.Tag;
+import seedu.address.testutil.TypicalPersons;
 
 public class RoleListIndexGuardTest {
     private Model model;
