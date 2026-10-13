@@ -16,6 +16,7 @@ import seedu.address.model.person.Name;
 import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.Status;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -24,12 +25,14 @@ import seedu.address.model.tag.Tag;
 class JsonAdaptedPerson {
 
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Person's %s field is missing!";
+    public static final String INVALID_STATUS_MESSAGE_FORMAT = "Candidate status '%s' is invalid.";
 
     private final String name;
     private final String phone;
     private final String email;
     private final String address;
     private final String note;
+    private final String status;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
 
     /**
@@ -38,12 +41,14 @@ class JsonAdaptedPerson {
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("address") String address,
-            @JsonProperty("note") String note, @JsonProperty("tags") List<JsonAdaptedTag> tags) {
+            @JsonProperty("note") String note, @JsonProperty("status") String status,
+            @JsonProperty("tags") List<JsonAdaptedTag> tags) {
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
         this.note = note;
+        this.status = status;
         if (tags != null) {
             this.tags.addAll(tags);
         }
@@ -58,6 +63,7 @@ class JsonAdaptedPerson {
         email = source.getEmail().value;
         address = source.getAddress().value;
         note = source.getNote().value;
+        status = source.getStatus().name();
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));
@@ -109,8 +115,28 @@ class JsonAdaptedPerson {
         // Notes are optional, so a missing note (e.g., in a file saved before notes existed) means no note.
         final Note modelNote = (note == null) ? new Note("") : new Note(note);
 
+        final Status modelStatus = toModelStatus();
+
         final Set<Tag> modelTags = new HashSet<>(personTags);
-        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelNote, Person.DEFAULT_STATUS, modelTags);
+        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelNote, modelStatus, modelTags);
+    }
+
+    /**
+     * Converts the stored status into the model's {@code Status} object.
+     * A missing status (e.g., in a file saved before statuses existed) means the default status.
+     *
+     * @throws IllegalValueException if the stored status is not the exact name of a {@code Status}.
+     */
+    private Status toModelStatus() throws IllegalValueException {
+        if (status == null) {
+            return Person.DEFAULT_STATUS;
+        }
+
+        try {
+            return Status.valueOf(status);
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalValueException(String.format(INVALID_STATUS_MESSAGE_FORMAT, status), exception);
+        }
     }
 
 }
