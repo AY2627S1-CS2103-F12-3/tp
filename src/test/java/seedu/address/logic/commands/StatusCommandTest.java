@@ -24,6 +24,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.Status;
 import seedu.address.model.tag.Tag;
 import seedu.address.testutil.PersonBuilder;
 
@@ -57,6 +58,18 @@ public class StatusCommandTest {
         expectedModel.setPerson(model.getFilteredPersonList().get(0), editedPerson);
 
         assertCommandSuccess(statusCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_personWithStatusField_statusFieldPreserved() throws Exception {
+        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person hiredPerson = new PersonBuilder(firstPerson).withStatus(Status.HIRED).build();
+        model.setPerson(firstPerson, hiredPerson);
+
+        new StatusCommand(INDEX_FIRST_PERSON, STATUS_ACCEPTED).execute(model);
+
+        Person updatedPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        assertEquals(Status.HIRED, updatedPerson.getStatus());
     }
 
     @Test
