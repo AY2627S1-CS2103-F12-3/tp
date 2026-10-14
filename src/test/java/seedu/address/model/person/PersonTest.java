@@ -17,6 +17,7 @@ import static seedu.address.testutil.TypicalPersons.BOB;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.model.role.RoleTitle;
 import seedu.address.testutil.PersonBuilder;
 
 public class PersonTest {
@@ -118,6 +119,12 @@ public class PersonTest {
         // different note -> different hash code
         Person editedAlice = new PersonBuilder(ALICE).withNote(VALID_NOTE_BOB).build();
         assertNotEquals(ALICE.hashCode(), editedAlice.hashCode());
+    }
+
+    @Test
+    public void withRole_newRole_changesOnlyRole() {
+        Person expectedPerson = new PersonBuilder(ALICE).withRole(VALID_ROLE_BOB).build();
+        assertEquals(expectedPerson, ALICE.withRole(new RoleTitle(VALID_ROLE_BOB)));
     }
 
     @Test

@@ -3,6 +3,7 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
@@ -12,6 +13,7 @@ import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.person.Person;
 import seedu.address.model.role.Role;
+import seedu.address.model.role.RoleTitle;
 
 /**
  * Represents the in-memory model of the address book data.
@@ -119,6 +121,12 @@ public class ModelManager implements Model {
     public boolean hasRole(Role role) {
         requireNonNull(role);
         return addressBook.hasRole(role);
+    }
+
+    @Override
+    public Optional<Role> findRole(RoleTitle title) {
+        requireNonNull(title);
+        return addressBook.findRole(title);
     }
 
     @Override

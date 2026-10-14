@@ -4,12 +4,14 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.UniquePersonList;
 import seedu.address.model.role.Role;
+import seedu.address.model.role.RoleTitle;
 import seedu.address.model.role.UniqueRoleList;
 
 /**
@@ -104,6 +106,13 @@ public class AddressBook implements ReadOnlyAddressBook {
     public boolean hasRole(Role role) {
         requireNonNull(role);
         return roles.contains(role);
+    }
+
+    /**
+     * Returns the role whose title matches {@code title}, ignoring case, if there is one.
+     */
+    public Optional<Role> findRole(RoleTitle title) {
+        return roles.findByTitle(title);
     }
 
     /**

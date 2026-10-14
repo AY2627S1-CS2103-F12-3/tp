@@ -1,5 +1,5 @@
 {
-  "_comment": "AddressBook save file which contains the same Person values as in TypicalPersons#getTypicalAddressBook()",
+  "_comment": "AddressBook save file which contains the same values as in TypicalPersons#getTypicalAddressBook()",
   "persons" : [ {
     "name" : "Alice Pauline",
     "phone" : "94351253",
@@ -49,5 +49,18 @@
     "address" : "4th street",
     "role" : "Software Engineer",
     "tags" : [ ]
+  } ],
+  "roles" : [ {
+    "title" : "Software Engineer",
+    "experienceLevel" : "2 years",
+    "status" : "OPEN"
+  }, {
+    "title" : "Product Analyst",
+    "experienceLevel" : "Entry level",
+    "status" : "OPEN"
+  }, {
+    "title" : "Product Designer",
+    "experienceLevel" : "Senior",
+    "status" : "CLOSED"
   } ]
 }

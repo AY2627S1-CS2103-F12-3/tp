@@ -6,9 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
+import static seedu.address.testutil.TypicalRoles.CLOSED_DESIGNER;
+import static seedu.address.testutil.TypicalRoles.SOFTWARE_ENGINEER;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
@@ -23,6 +26,7 @@ import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.person.Person;
 import seedu.address.model.role.Role;
+import seedu.address.model.role.RoleTitle;
 import seedu.address.testutil.PersonBuilder;
 
 public class AddCommandTest {
@@ -34,7 +38,7 @@ public class AddCommandTest {
 
     @Test
     public void execute_personAcceptedByModel_addSuccessful() throws Exception {
-        ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded();
+        ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded(SOFTWARE_ENGINEER);
         Person validPerson = new PersonBuilder().build();
 
         CommandResult commandResult = new AddCommand(validPerson).execute(modelStub);
@@ -42,6 +46,39 @@ public class AddCommandTest {
         assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validPerson)),
                 commandResult.getFeedbackToUser());
         assertEquals(List.of(validPerson), modelStub.personsAdded);
+    }
+
+    @Test
+    public void execute_roleInDifferentCase_addsPersonWithRoleTitle() throws Exception {
+        ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded(SOFTWARE_ENGINEER);
+        Person personWithLowerCaseRole = new PersonBuilder().withRole("software engineer").build();
+
+        new AddCommand(personWithLowerCaseRole).execute(modelStub);
+
+        Person expectedPerson = new PersonBuilder().withRole(SOFTWARE_ENGINEER.getTitle().value).build();
+        assertEquals(List.of(expectedPerson), modelStub.personsAdded);
+    }
+
+    @Test
+    public void execute_roleNotFound_throwsCommandException() {
+        ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded();
+        Person validPerson = new PersonBuilder().build();
+        AddCommand addCommand = new AddCommand(validPerson);
+
+        String expectedMessage = String.format(AddCommand.MESSAGE_ROLE_NOT_FOUND, validPerson.getRole());
+        assertThrows(CommandException.class, expectedMessage, () -> addCommand.execute(modelStub));
+        assertTrue(modelStub.personsAdded.isEmpty());
+    }
+
+    @Test
+    public void execute_closedRole_throwsCommandException() {
+        ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded(CLOSED_DESIGNER);
+        Person personForClosedRole = new PersonBuilder().withRole(CLOSED_DESIGNER.getTitle().value).build();
+        AddCommand addCommand = new AddCommand(personForClosedRole);
+
+        String expectedMessage = String.format(AddCommand.MESSAGE_ROLE_CLOSED, CLOSED_DESIGNER.getTitle());
+        assertThrows(CommandException.class, expectedMessage, () -> addCommand.execute(modelStub));
+        assertTrue(modelStub.personsAdded.isEmpty());
     }
 
     @Test
@@ -149,6 +186,11 @@ public class AddCommandTest {
         }
 
         @Override
+        public Optional<Role> findRole(RoleTitle title) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
         public void addRole(Role role) {
             throw new AssertionError("This method should not be called.");
         }
@@ -188,10 +230,23 @@ public class AddCommandTest {
     }
 
     /**
-     * A Model stub that always accepts the person being added.
+     * A Model stub that contains the given roles and always accepts the person being added.
      */
     private class ModelStubAcceptingPersonAdded extends ModelStub {
         final ArrayList<Person> personsAdded = new ArrayList<>();
+        private final List<Role> roles;
+
+        ModelStubAcceptingPersonAdded(Role... roles) {
+            this.roles = List.of(roles);
+        }
+
+        @Override
+        public Optional<Role> findRole(RoleTitle title) {
+            requireNonNull(title);
+            return roles.stream()
+                    .filter(role -> role.getTitle().isSameTitle(title))
+                    .findFirst();
+        }
 
         @Override
         public boolean hasPerson(Person person) {

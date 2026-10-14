@@ -11,5 +11,10 @@
     "email": "hans@example.com",
     "address": "4th street",
     "role": "Software Engineer"
+  } ],
+  "roles": [ {
+    "title": "Software Engineer",
+    "experienceLevel": "2 years",
+    "status": "OPEN"
   } ]
 }

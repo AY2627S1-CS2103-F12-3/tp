@@ -35,6 +35,20 @@ public class RoleTitleTest {
     }
 
     @Test
+    public void isSameTitle() {
+        RoleTitle roleTitle = new RoleTitle("Software Engineer");
+
+        // same title in a different case -> returns true
+        assertTrue(roleTitle.isSameTitle(new RoleTitle("SOFTWARE engineer")));
+
+        // different title -> returns false
+        assertFalse(roleTitle.isSameTitle(new RoleTitle("Software Engineer II")));
+
+        // null -> returns false
+        assertFalse(roleTitle.isSameTitle(null));
+    }
+
+    @Test
     public void constructor_titleWithSurroundingWhitespace_trimsWhitespace() {
         RoleTitle roleTitle = new RoleTitle("  Software Engineer  ");
         assertEquals("Software Engineer", roleTitle.value);

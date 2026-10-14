@@ -8,6 +8,7 @@ import static seedu.address.testutil.TypicalRoles.PRODUCT_ANALYST;
 import static seedu.address.testutil.TypicalRoles.SOFTWARE_ENGINEER;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -33,6 +34,23 @@ public class UniqueRoleListTest {
     public void contains_roleInList_returnsTrue() {
         uniqueRoleList.add(SOFTWARE_ENGINEER);
         assertTrue(uniqueRoleList.contains(SOFTWARE_ENGINEER));
+    }
+
+    @Test
+    public void findByTitle_nullTitle_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> uniqueRoleList.findByTitle(null));
+    }
+
+    @Test
+    public void findByTitle_titleNotInList_returnsEmpty() {
+        uniqueRoleList.add(SOFTWARE_ENGINEER);
+        assertEquals(Optional.empty(), uniqueRoleList.findByTitle(PRODUCT_ANALYST.getTitle()));
+    }
+
+    @Test
+    public void findByTitle_titleInDifferentCase_returnsRole() {
+        uniqueRoleList.add(SOFTWARE_ENGINEER);
+        assertEquals(Optional.of(SOFTWARE_ENGINEER), uniqueRoleList.findByTitle(new RoleTitle("software ENGINEER")));
     }
 
     @Test

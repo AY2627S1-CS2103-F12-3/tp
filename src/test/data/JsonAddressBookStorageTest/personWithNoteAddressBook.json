@@ -6,5 +6,10 @@
     "address": "little india",
     "role": "Software Engineer",
     "note": "Referred by Alice"
+  } ],
+  "roles": [ {
+    "title": "Software Engineer",
+    "experienceLevel": "2 years",
+    "status": "OPEN"
   } ]
 }

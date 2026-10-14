@@ -13,6 +13,7 @@ import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
+import seedu.address.model.role.Role;
 
 /**
  * Adds a person to the address book.
@@ -40,6 +41,10 @@ public class AddCommand extends Command {
 
     public static final String MESSAGE_SUCCESS = "New candidate added: %1$s";
     public static final String MESSAGE_DUPLICATE_PERSON = "This candidate already exists in RecruiterBuddy.";
+    public static final String MESSAGE_ROLE_NOT_FOUND =
+            "No role named “%1$s” exists. Add the role first, then add the candidate.";
+    public static final String MESSAGE_ROLE_CLOSED =
+            "The role “%1$s” is closed, so no new candidates can be added to it.";
 
     private final Person toAdd;
 
@@ -59,8 +64,27 @@ public class AddCommand extends Command {
             throw new CommandException(MESSAGE_DUPLICATE_PERSON);
         }
 
-        model.addPerson(toAdd);
-        return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(toAdd)));
+        Role role = findOpenRole(model);
+
+        // Saves the role's own spelling of the title, so each role is shown and stored in one way.
+        Person personToAdd = toAdd.withRole(role.getTitle());
+        model.addPerson(personToAdd);
+        return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(personToAdd)));
+    }
+
+    /**
+     * Returns the open role that the candidate to add is applying for.
+     *
+     * @throws CommandException if no such role exists or the role is closed.
+     */
+    private Role findOpenRole(Model model) throws CommandException {
+        Role role = model.findRole(toAdd.getRole())
+                .orElseThrow(() -> new CommandException(String.format(MESSAGE_ROLE_NOT_FOUND, toAdd.getRole())));
+
+        if (role.isClosed()) {
+            throw new CommandException(String.format(MESSAGE_ROLE_CLOSED, role.getTitle()));
+        }
+        return role;
     }
 
     @Override

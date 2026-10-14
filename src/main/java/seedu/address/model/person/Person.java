@@ -71,6 +71,13 @@ public class Person {
         return role;
     }
 
+    /**
+     * Returns a copy of this candidate with {@code newRole} as its role.
+     */
+    public Person withRole(RoleTitle newRole) {
+        return new Person(name, phone, email, address, newRole, note, status, tags);
+    }
+
     public Note getNote() {
         return note;
     }
