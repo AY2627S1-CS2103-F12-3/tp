@@ -97,6 +97,12 @@ public interface Model {
     void addRole(Role role);
 
     /**
+     * Deletes {@code role} from the address book.
+     * The role must exist and have no associated candidates.
+     */
+    void deleteRole(Role role);
+
+    /**
      * Replaces {@code target} with {@code editedRole}.
      */
     void setRole(Role target, Role editedRole);

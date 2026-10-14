@@ -294,6 +294,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *` | department recruiter | add a role opening with its title and required experience level | track an active recruitment need in my department |
 | `* * *` | department recruiter | view all role openings and whether they are open or closed | review the roles tracked by my department |
 | `* * *` | department recruiter | close a role opening | prevent new candidates from being added after recruitment ends while retaining existing candidate records |
+| `* * *` | department recruiter | delete a role with no associated candidates | remove an erroneous vacancy and reuse its title without losing candidate records |
 | `* * *` | department recruiter | add a candidate to a specific open role with their contact details and address | keep the candidate's recruitment information in one place |
 | `* * *` | department recruiter | be warned when a candidate's email address or phone number is already recorded | avoid creating duplicate candidate profiles |
 | `* * *` | department recruiter | view all candidates | review the department's recruitment pipeline |
@@ -431,6 +432,38 @@ Manual checks: add a role, run `list role`, close it with no candidates, and ver
 status and success message. Restart to verify persistence. Repeat with pending candidates (closure
 must fail), then with one hired candidate and the others rejected or withdrawn (closure must succeed).
 Check invalid indices, extra arguments, repeated closure, and attempting to add a candidate to the closed role.
+
+UC07a — Delete Role Opening
+System: RecruiterBuddy
+Actor: Recruiter
+MSS:
+1. Recruiter displays the role list using `list role`.
+2. Recruiter selects the mistaken role using `role delete INDEX`.
+3. RecruiterBuddy checks that the role has no associated candidates.
+4. RecruiterBuddy removes the role and saves the updated records.
+5. RecruiterBuddy confirms deletion and updates the displayed role indices.
+Use case ends.
+
+Extensions:
+
+* 2a. The role list is not displayed, or the index is invalid.
+  * 2a1. RecruiterBuddy reports the error without changing records.
+* 3a. The role has associated candidates, regardless of their statuses or visibility.
+  * 3a1. RecruiterBuddy reports their count without changing records.
+
+`RoleCommandParser` delegates to `DeleteRoleCommandParser`. Close and delete share
+`ParserUtil#parseRoleIndex` so invalid indices and extra arguments are handled consistently.
+`DeleteRoleCommand` resolves the displayed role and counts associated candidates in the complete
+stored list, matching titles without case sensitivity. Only a role with no candidates is removed
+through `Model#deleteRole`, `AddressBook#removeRole`, and `UniqueRoleList#remove`.
+The observable role list updates automatically and the command result keeps the role view visible.
+`LogicManager` saves the removal. Removing the role releases its title for reuse; candidates are
+never deleted, detached, or reassigned by this command.
+
+Manual checks: create an unused role, run `list role`, then `role delete INDEX`.
+Verify the role disappears, remaining indices update, and it stays absent after restarting.
+Recreate the role using its previous title. Repeat with an empty closed role (deletion succeeds)
+and with a role containing candidates at any status (deletion fails without changing records).
 
 UC08 — Delete Candidate Record
 System: RecruiterBuddy

@@ -21,6 +21,26 @@ public class UniqueRoleListTest {
     private final UniqueRoleList uniqueRoleList = new UniqueRoleList();
 
     @Test
+    public void remove_nullRole_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> uniqueRoleList.remove(null));
+    }
+
+    @Test
+    public void remove_missingRole_throwsRoleNotFoundException() {
+        uniqueRoleList.add(SOFTWARE_ENGINEER);
+        assertThrows(RoleNotFoundException.class, () -> uniqueRoleList.remove(PRODUCT_ANALYST));
+        assertEquals(List.of(SOFTWARE_ENGINEER), uniqueRoleList.asUnmodifiableObservableList());
+    }
+
+    @Test
+    public void remove_existingRole_updatesObservableList() {
+        uniqueRoleList.add(SOFTWARE_ENGINEER);
+        uniqueRoleList.add(PRODUCT_ANALYST);
+        uniqueRoleList.remove(SOFTWARE_ENGINEER);
+        assertEquals(List.of(PRODUCT_ANALYST), uniqueRoleList.asUnmodifiableObservableList());
+    }
+
+    @Test
     public void contains_nullRole_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> uniqueRoleList.contains(null));
     }

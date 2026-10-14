@@ -12,11 +12,17 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.AddRoleCommand;
 import seedu.address.logic.commands.CloseRoleCommand;
 import seedu.address.logic.commands.Command;
+import seedu.address.logic.commands.DeleteRoleCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 
 public class RoleCommandParserTest {
 
     private final RoleCommandParser parser = new RoleCommandParser();
+
+    @Test
+    public void parse_deleteRoleCommand_success() throws Exception {
+        assertEquals(new DeleteRoleCommand(Index.fromOneBased(1)), parser.parse("delete 1"));
+    }
 
     @Test
     public void parse_closeRoleCommand_success() throws Exception {

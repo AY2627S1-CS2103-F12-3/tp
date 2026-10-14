@@ -136,6 +136,31 @@ If closure fails, no records change:
 * Extra arguments: `The role close command takes only a role index.`
 * Candidate list displayed: `The role list is not displayed. Use list role first.`
 
+### Deleting a role: `role delete`
+
+Permanently removes a role entered by mistake. Run `list role` first.
+
+Format: `role delete INDEX`
+
+`INDEX` must be a positive integer shown in the current role list. An `OPEN` or `CLOSED` role
+can be deleted only when it has no associated candidates. All candidates are checked, including
+those hidden by filters and those marked `HIRED`, `REJECTED`, or `WITHDRAWN`.
+
+Example: `list role`, followed by `role delete 1`.
+
+Success shows `Deleted role: ROLE_TITLE.`. The role disappears, remaining displayed indices update,
+and the change is saved automatically. Its title can be used again with `role add`.
+Deletion is immediate and permanent. It never deletes, detaches, or reassigns candidates.
+
+If deletion fails, no records change:
+
+* Associated candidates: `Cannot delete role: ROLE_TITLE. It has N associated candidate(s).`
+* Invalid or missing index: `Role index must refer to a displayed role.`
+* Extra arguments: `The role delete command takes only a role index.`
+* Candidate list displayed: `The role list is not displayed. Use list role first.`
+
+Use `role close` to finish recruitment and retain its history; `role delete` removes an unused role.
+
 ### Listing all persons: `list`
 
 Shows a list of all persons in the address book.
@@ -288,5 +313,6 @@ Action     | Format, Examples
 **Note**   | `note INDEX [NOTE]`<br> e.g., `note 1 Interview 2026-10-20 14:00`
 **Role add** | `role add r/ROLE_TITLE x/EXPERIENCE_LEVEL`<br> e.g., `role add r/Software Engineer x/2 years`
 **Role close** | `role close INDEX`<br> e.g., `list role` followed by `role close 1`
+**Role delete** | `role delete INDEX`<br> e.g., `list role` followed by `role delete 1`
 **Status** | `status INDEX STATUS`<br> e.g., `status 1 accepted`
 **Help**   | `help`

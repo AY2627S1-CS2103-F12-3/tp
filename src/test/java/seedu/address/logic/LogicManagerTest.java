@@ -10,6 +10,7 @@ import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.ROLE_DESC_AMY;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.AMY;
+import static seedu.address.testutil.TypicalRoles.PRODUCT_ANALYST;
 import static seedu.address.testutil.TypicalRoles.SOFTWARE_ENGINEER;
 
 import java.io.IOException;
@@ -25,6 +26,7 @@ import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.AddRoleCommand;
 import seedu.address.logic.commands.CloseRoleCommand;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.DeleteRoleCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -126,6 +128,41 @@ public class LogicManagerTest {
 
         assertThrows(CommandException.class, String.format(CloseRoleCommand.MESSAGE_PENDING_CANDIDATES,
                 SOFTWARE_ENGINEER.getTitle(), 1), () -> logic.execute("role close 1"));
+        assertEquals(saved, model.getAddressBook());
+        assertEquals(saved, addressBookStorage.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_deleteRoleCommand_persistsDeletionAndTitleReuse() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
+        model.addRole(PRODUCT_ANALYST);
+        Person candidate = new PersonBuilder().withRole(PRODUCT_ANALYST.getTitle().value).build();
+        model.addPerson(candidate);
+        logic.execute("list role");
+        CommandResult result = logic.execute("role delete 1");
+        assertEquals(String.format(DeleteRoleCommand.MESSAGE_SUCCESS, SOFTWARE_ENGINEER.getTitle()),
+                result.getFeedbackToUser());
+        assertEquals(List.of(PRODUCT_ANALYST), logic.getFilteredRoleList());
+        ReadOnlyAddressBook saved = addressBookStorage.readAddressBook().orElseThrow();
+        assertEquals(List.of(PRODUCT_ANALYST), saved.getRoleList());
+        assertEquals(List.of(candidate), saved.getPersonList());
+
+        logic.execute("role add r/software engineer x/Senior");
+        Role recreated = new RoleBuilder().withTitle("software engineer").withExperienceLevel("Senior").build();
+        saved = addressBookStorage.readAddressBook().orElseThrow();
+        assertEquals(List.of(PRODUCT_ANALYST, recreated), saved.getRoleList());
+        assertEquals(List.of(candidate), saved.getPersonList());
+    }
+
+    @Test
+    public void execute_deleteOccupiedRole_keepsSavedDataUnchanged() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
+        model.addPerson(new PersonBuilder().withStatus(Status.REJECTED).build());
+        logic.execute("list role");
+        ReadOnlyAddressBook saved = addressBookStorage.readAddressBook().orElseThrow();
+
+        assertThrows(CommandException.class, String.format(DeleteRoleCommand.MESSAGE_ASSOCIATED_CANDIDATES,
+                SOFTWARE_ENGINEER.getTitle(), 1), () -> logic.execute("role delete 1"));
         assertEquals(saved, model.getAddressBook());
         assertEquals(saved, addressBookStorage.readAddressBook().orElseThrow());
     }
