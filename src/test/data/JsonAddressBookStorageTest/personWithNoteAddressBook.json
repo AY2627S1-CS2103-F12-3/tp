@@ -4,6 +4,7 @@
     "phone": "8482424",
     "email": "stefan@example.com",
     "address": "little india",
+    "role": "Software Engineer",
     "note": "Referred by Alice"
   } ]
 }

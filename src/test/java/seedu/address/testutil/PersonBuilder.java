@@ -10,6 +10,7 @@ import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.Status;
+import seedu.address.model.role.RoleTitle;
 import seedu.address.model.tag.Tag;
 import seedu.address.model.util.SampleDataUtil;
 
@@ -22,12 +23,14 @@ public class PersonBuilder {
     public static final String DEFAULT_PHONE = "85355255";
     public static final String DEFAULT_EMAIL = "amy@gmail.com";
     public static final String DEFAULT_ADDRESS = "123, Jurong West Ave 6, #08-111";
+    public static final String DEFAULT_ROLE = "Software Engineer";
     public static final String DEFAULT_NOTE = "";
 
     private Name name;
     private Phone phone;
     private Email email;
     private Address address;
+    private RoleTitle role;
     private Note note;
     private Status status;
     private Set<Tag> tags;
@@ -40,6 +43,7 @@ public class PersonBuilder {
         phone = new Phone(DEFAULT_PHONE);
         email = new Email(DEFAULT_EMAIL);
         address = new Address(DEFAULT_ADDRESS);
+        role = new RoleTitle(DEFAULT_ROLE);
         note = new Note(DEFAULT_NOTE);
         status = Person.DEFAULT_STATUS;
         tags = new HashSet<>();
@@ -53,6 +57,7 @@ public class PersonBuilder {
         phone = personToCopy.getPhone();
         email = personToCopy.getEmail();
         address = personToCopy.getAddress();
+        role = personToCopy.getRole();
         note = personToCopy.getNote();
         status = personToCopy.getStatus();
         tags = new HashSet<>(personToCopy.getTags());
@@ -107,6 +112,14 @@ public class PersonBuilder {
     }
 
     /**
+     * Sets the {@code RoleTitle} of the {@code Person} that we are building.
+     */
+    public PersonBuilder withRole(String role) {
+        this.role = new RoleTitle(role);
+        return this;
+    }
+
+    /**
      * Sets the {@code Status} of the {@code Person} that we are building.
      */
     public PersonBuilder withStatus(Status status) {
@@ -115,7 +128,7 @@ public class PersonBuilder {
     }
 
     public Person build() {
-        return new Person(name, phone, email, address, note, status, tags);
+        return new Person(name, phone, email, address, role, note, status, tags);
     }
 
 }

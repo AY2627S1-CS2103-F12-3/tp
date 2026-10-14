@@ -13,6 +13,7 @@ import static seedu.address.logic.commands.CommandTestUtil.INVALID_TAG_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_BOB;
+import static seedu.address.logic.commands.CommandTestUtil.ROLE_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.TAG_DESC_FRIEND;
 import static seedu.address.logic.commands.CommandTestUtil.TAG_DESC_HUSBAND;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_AMY;
@@ -101,6 +102,16 @@ public class EditCommandParserTest {
         // multiple invalid values, but only the first invalid value is captured
         assertParseFailure(parser, "1" + INVALID_NAME_DESC + INVALID_EMAIL_DESC + VALID_ADDRESS_AMY + VALID_PHONE_AMY,
                 Name.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
+    public void parse_roleSpecified_failure() {
+        // role alone
+        assertParseFailure(parser, "1" + ROLE_DESC_AMY, EditCommand.MESSAGE_ROLE_NOT_EDITABLE);
+
+        // role with other valid fields, so it is not silently read as part of the address
+        assertParseFailure(parser, "1" + PHONE_DESC_BOB + ADDRESS_DESC_AMY + ROLE_DESC_AMY,
+                EditCommand.MESSAGE_ROLE_NOT_EDITABLE);
     }
 
     @Test

@@ -83,7 +83,8 @@ public class StatusCommand extends Command {
 
         updatedTags.add(status);
 
-        return new Person(name, phone, email, address, note, personToEdit.getStatus(), updatedTags);
+        return new Person(name, phone, email, address, personToEdit.getRole(), note, personToEdit.getStatus(),
+                updatedTags);
     }
 
     @Override
