@@ -14,22 +14,27 @@ public enum Status {
     REJECTED("Rejected");
 
     public static final String MESSAGE_CONSTRAINTS_START = "Status must be one of the following: ";
-    private final String name;
+    private final String displayName;
 
-    Status(String name) {
-        this.name = name;
+    Status(String displayName) {
+        this.displayName = displayName;
     }
 
+    /**
+     * Returns an error message listing for when a status does not match any of the existing values.
+     *
+     * @return String listing values of Status.
+     */
     public static String getConstraintsMessage() {
         Status[] values = Status.values();
         String names = Arrays.stream(values)
-                .map(Status::toString)
+                .map(Status::name)
                 .collect(Collectors.joining(", "));
         return MESSAGE_CONSTRAINTS_START + names;
     }
 
     @Override
     public String toString() {
-        return name;
+        return displayName;
     }
 }
