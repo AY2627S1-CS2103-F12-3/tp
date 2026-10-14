@@ -7,9 +7,9 @@ import java.util.stream.Collectors;
  * Enum denoting the different possible candidate statuses.
  */
 public enum Status {
-    PENDING_RESUME_SCREENING("Pending resume screening"),
-    PENDING_RECRUITER_INTERVIEW("Pending recruiter interview"),
-    PENDING_OFFER_EXTENSION("Pending offer extension"),
+    PENDING_RESUME_SCREENING("Pending Resume Screening"),
+    PENDING_RECRUITER_INTERVIEW("Pending Recruiter Interview"),
+    PENDING_OFFER_EXTENSION("Pending Offer Extension"),
     HIRED("Hired"),
     REJECTED("Rejected");
 

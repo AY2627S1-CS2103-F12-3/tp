@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.StatusCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.tag.Tag;
+import seedu.address.model.person.Status;
 
 /**
  * Parses input arguments and creates a new StatusCommand object.
@@ -38,7 +38,7 @@ public class StatusCommandParser implements Parser<StatusCommand> {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, StatusCommand.MESSAGE_USAGE), pe);
         }
 
-        Tag status = ParserUtil.parseTag(matcher.group("status"));
+        Status status = ParserUtil.parseStatus(matcher.group("status"));
         return new StatusCommand(index, status);
     }
 }

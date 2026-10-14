@@ -1,7 +1,8 @@
 package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
-import static seedu.address.logic.commands.CommandTestUtil.STATUS_ACCEPTED;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_STATUS_1;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_STATUS_1_STRING;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
@@ -9,7 +10,7 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.StatusCommand;
-import seedu.address.model.tag.Tag;
+import seedu.address.model.person.Status;
 
 public class StatusCommandParserTest {
 
@@ -20,30 +21,45 @@ public class StatusCommandParserTest {
 
     @Test
     public void parse_validArgs_returnsStatusCommand() {
-        assertParseSuccess(parser, "1 accepted", new StatusCommand(INDEX_FIRST_PERSON, STATUS_ACCEPTED));
+        assertParseSuccess(parser, "1 " + VALID_STATUS_1_STRING, new StatusCommand(INDEX_FIRST_PERSON, VALID_STATUS_1));
+    }
 
+    @Test
+    public void parse_validArgsWithWhitespace_returnsStatusCommand() {
         // Surrounding and repeated whitespace is ignored.
-        assertParseSuccess(parser, "  1   accepted  ", new StatusCommand(INDEX_FIRST_PERSON, STATUS_ACCEPTED));
+        assertParseSuccess(parser, "  1   " + VALID_STATUS_1_STRING + "  ",
+                new StatusCommand(INDEX_FIRST_PERSON, VALID_STATUS_1));
+    }
+
+    @Test
+    public void parse_validArgsDifferentCase_returnsStatusCommand() {
+        assertParseSuccess(parser, "1 " + VALID_STATUS_1_STRING.toLowerCase(),
+                new StatusCommand(INDEX_FIRST_PERSON, VALID_STATUS_1));
     }
 
     @Test
     public void parse_missingIndexOrStatus_failure() {
         assertParseFailure(parser, "", MESSAGE_INVALID_FORMAT);
-        assertParseFailure(parser, "accepted", MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, VALID_STATUS_1_STRING, MESSAGE_INVALID_FORMAT);
         assertParseFailure(parser, "1", MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, "1   ", MESSAGE_INVALID_FORMAT);
     }
 
     @Test
     public void parse_invalidIndex_failure() {
-        assertParseFailure(parser, "a accepted", MESSAGE_INVALID_FORMAT);
-        assertParseFailure(parser, "1accepted", MESSAGE_INVALID_FORMAT);
-        assertParseFailure(parser, "0 accepted", MESSAGE_INVALID_FORMAT);
-        assertParseFailure(parser, "-1 accepted", MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, "a " + VALID_STATUS_1_STRING, MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, "1" + VALID_STATUS_1_STRING, MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, "0 " + VALID_STATUS_1_STRING, MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, "-1 " + VALID_STATUS_1_STRING, MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, "2147483648 " + VALID_STATUS_1_STRING, MESSAGE_INVALID_FORMAT);
     }
 
     @Test
     public void parse_invalidStatus_failure() {
-        assertParseFailure(parser, "1 accepted!", Tag.MESSAGE_CONSTRAINTS);
-        assertParseFailure(parser, "1 accepted status", Tag.MESSAGE_CONSTRAINTS);
+        String expectedMessage = Status.getConstraintsMessage();
+        assertParseFailure(parser, "1 accepted", expectedMessage);
+        assertParseFailure(parser, "1 " + VALID_STATUS_1_STRING + "!", expectedMessage);
+        assertParseFailure(parser, "1 pending resume screening", expectedMessage);
+        assertParseFailure(parser, "1 " + VALID_STATUS_1_STRING + " extra", expectedMessage);
     }
 }

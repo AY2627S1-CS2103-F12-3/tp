@@ -155,10 +155,9 @@ public class ParserUtil {
 
     /**
      * Parses a {@code String status} into a {@code Status}.
-     * Leading and trailing whitespaces will be trimmed.
-     * Parsing of status is case-insensitive.
+     * Parsing is case-insensitive, and leading and trailing whitespaces are trimmed.
      *
-     * @param status Candidate status, to be parsed into a Status object.
+     * @param status String denoting status, to be parsed into a Status object.
      * @throws ParseException if the given {@code status} does not match one of the existing statuses.
      */
     public static Status parseStatus(String status) throws ParseException {
