@@ -11,7 +11,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Note;
-import seedu.address.model.tag.Tag;
+import seedu.address.model.person.Status;
 import seedu.address.testutil.TypicalPersons;
 
 public class RoleListIndexGuardTest {
@@ -31,6 +31,6 @@ public class RoleListIndexGuardTest {
         assertThrows(CommandException.class, () -> new NoteCommand(INDEX_FIRST_PERSON,
                 new Note("note")).execute(model));
         assertThrows(CommandException.class, () -> new StatusCommand(INDEX_FIRST_PERSON,
-                new Tag("accepted")).execute(model));
+                Status.HIRED).execute(model));
     }
 }
