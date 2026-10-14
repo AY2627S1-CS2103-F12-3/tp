@@ -18,6 +18,7 @@ public class PersonCard extends UiPart<Region> {
 
     private static final String FXML = "PersonListCard.fxml";
     private static final String STATUS_STYLE_CLASS = "cell_status_label";
+    private static final String ROLE_FORMAT = "Applying for: %1$s";
 
     /**
      * Note: Certain keywords such as "location" and "resources" are reserved keywords in JavaFX.
@@ -35,6 +36,8 @@ public class PersonCard extends UiPart<Region> {
     private Label name;
     @FXML
     private Label id;
+    @FXML
+    private Label role;
     @FXML
     private Label phone;
     @FXML
@@ -54,6 +57,8 @@ public class PersonCard extends UiPart<Region> {
         this.person = person;
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
+        // The prefix stops the role title being mistaken for the candidate's current job.
+        role.setText(String.format(ROLE_FORMAT, person.getRole().value));
         phone.setText(person.getPhone().value);
         address.setText(person.getAddress().value);
         email.setText(person.getEmail().value);

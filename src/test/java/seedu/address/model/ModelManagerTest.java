@@ -12,6 +12,7 @@ import static seedu.address.testutil.TypicalRoles.PRODUCT_ANALYST;
 import static seedu.address.testutil.TypicalRoles.SOFTWARE_ENGINEER;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -92,6 +93,17 @@ public class ModelManagerTest {
     public void hasRole_roleInAddressBook_returnsTrue() {
         modelManager.addRole(SOFTWARE_ENGINEER);
         assertTrue(modelManager.hasRole(SOFTWARE_ENGINEER));
+    }
+
+    @Test
+    public void findRole_nullTitle_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> modelManager.findRole(null));
+    }
+
+    @Test
+    public void findRole_roleInAddressBook_returnsRole() {
+        modelManager.addRole(SOFTWARE_ENGINEER);
+        assertEquals(Optional.of(SOFTWARE_ENGINEER), modelManager.findRole(SOFTWARE_ENGINEER.getTitle()));
     }
 
     @Test

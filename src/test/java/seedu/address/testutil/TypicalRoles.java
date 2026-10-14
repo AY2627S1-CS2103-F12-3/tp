@@ -1,5 +1,7 @@
 package seedu.address.testutil;
 
+import java.util.List;
+
 import seedu.address.model.AddressBook;
 import seedu.address.model.role.Role;
 import seedu.address.model.role.RoleStatus;
@@ -21,6 +23,13 @@ public class TypicalRoles {
             .build();
 
     private TypicalRoles() {
+    }
+
+    /**
+     * Returns the typical roles.
+     */
+    public static List<Role> getTypicalRoles() {
+        return List.of(SOFTWARE_ENGINEER, PRODUCT_ANALYST, CLOSED_DESIGNER);
     }
 
     /**

@@ -1,11 +1,13 @@
 package seedu.address.model;
 
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.Person;
 import seedu.address.model.role.Role;
+import seedu.address.model.role.RoleTitle;
 
 /**
  * The API of the Model component.
@@ -83,6 +85,11 @@ public interface Model {
      * Returns true if a role with the same identity as {@code role} exists in the address book.
      */
     boolean hasRole(Role role);
+
+    /**
+     * Returns the role whose title matches {@code title}, ignoring case, if there is one.
+     */
+    Optional<Role> findRole(RoleTitle title);
 
     /**
      * Adds {@code role} to the address book.
