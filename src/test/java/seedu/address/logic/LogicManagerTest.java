@@ -23,6 +23,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.AddRoleCommand;
+import seedu.address.logic.commands.CloseRoleCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -32,7 +33,9 @@ import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.Status;
 import seedu.address.model.role.Role;
+import seedu.address.model.role.RoleStatus;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -88,6 +91,43 @@ public class LogicManagerTest {
                 String.format(AddRoleCommand.MESSAGE_SUCCESS, role.getTitle()), expectedModel);
         assertEquals(List.of(role), logic.getFilteredRoleList());
         assertEquals(List.of(role), addressBookStorage.readAddressBook().orElseThrow().getRoleList());
+    }
+
+    @Test
+    public void execute_closeRoleCommand_preservesCandidatesAndPersistsClosure() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
+        Person candidate = new PersonBuilder().withStatus(Status.HIRED).build();
+        model.addPerson(candidate);
+        logic.execute("list role");
+
+        CommandResult result = logic.execute("role close 1");
+        Role closedRole = new RoleBuilder(SOFTWARE_ENGINEER).withStatus(RoleStatus.CLOSED).build();
+        assertEquals(String.format(CloseRoleCommand.MESSAGE_SUCCESS, SOFTWARE_ENGINEER.getTitle()),
+                result.getFeedbackToUser());
+        assertEquals(List.of(closedRole), logic.getFilteredRoleList());
+        ReadOnlyAddressBook saved = addressBookStorage.readAddressBook().orElseThrow();
+        assertEquals(List.of(closedRole), saved.getRoleList());
+        assertEquals(List.of(candidate), saved.getPersonList());
+
+        String addCandidate = "add n/Another Candidate p/91234567 e/another@example.com"
+                + " a/Clementi r/Software Engineer";
+        assertThrows(CommandException.class, String.format(AddCommand.MESSAGE_ROLE_CLOSED,
+                SOFTWARE_ENGINEER.getTitle()), () -> logic.execute(addCandidate));
+        assertEquals(saved, model.getAddressBook());
+        assertEquals(saved, addressBookStorage.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_closePendingRole_keepsSavedDataUnchanged() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
+        model.addPerson(new PersonBuilder().build());
+        logic.execute("list role");
+        ReadOnlyAddressBook saved = addressBookStorage.readAddressBook().orElseThrow();
+
+        assertThrows(CommandException.class, String.format(CloseRoleCommand.MESSAGE_PENDING_CANDIDATES,
+                SOFTWARE_ENGINEER.getTitle(), 1), () -> logic.execute("role close 1"));
+        assertEquals(saved, model.getAddressBook());
+        assertEquals(saved, addressBookStorage.readAddressBook().orElseThrow());
     }
 
     @Test

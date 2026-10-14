@@ -109,6 +109,33 @@ Examples:
 
 New roles are created with status `OPEN`. To view all roles, use `list role`.
 
+### Closing a role: `role close`
+
+Ends recruitment while retaining the role and all its candidate records.
+
+Format: `role close INDEX`
+
+Run `list role` first. `INDEX` must be a positive integer shown in the current role list.
+The role must be `OPEN`. Every associated candidate must be `HIRED`, `REJECTED`, or `WITHDRAWN`,
+and at most one may be `HIRED`. A role with no candidates, or no hired candidate, may also be closed.
+Checks include candidates hidden by filters. Candidates loaded without a saved status receive
+`PENDING_RESUME_SCREENING` and must receive a final outcome before closure.
+
+Example: `list role`, followed by `role close 1`.
+
+Success shows `Closed role: ROLE_TITLE.` and changes the displayed status to `CLOSED`.
+The role and its candidates are saved automatically; candidate statuses remain unchanged.
+New candidates cannot be added to the closed role. A role is never closed automatically.
+
+If closure fails, no records change:
+
+* Pending candidates: `Cannot close role: ROLE_TITLE. N candidate(s) still pending.`
+* Multiple hired candidates: `Cannot close role: ROLE_TITLE. More than one candidate is marked HIRED.`
+* Already closed: `ROLE_TITLE is already closed.`
+* Invalid or missing index: `Role index must refer to a displayed role.`
+* Extra arguments: `The role close command takes only a role index.`
+* Candidate list displayed: `The role list is not displayed. Use list role first.`
+
 ### Listing all persons: `list`
 
 Shows a list of all persons in the address book.
@@ -260,5 +287,6 @@ Action     | Format, Examples
 **List roles** | `list role`
 **Note**   | `note INDEX [NOTE]`<br> e.g., `note 1 Interview 2026-10-20 14:00`
 **Role add** | `role add r/ROLE_TITLE x/EXPERIENCE_LEVEL`<br> e.g., `role add r/Software Engineer x/2 years`
+**Role close** | `role close INDEX`<br> e.g., `list role` followed by `role close 1`
 **Status** | `status INDEX STATUS`<br> e.g., `status 1 accepted`
 **Help**   | `help`

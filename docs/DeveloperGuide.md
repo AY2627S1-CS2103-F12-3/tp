@@ -403,12 +403,35 @@ UC07 — Close Role Opening
 System: RecruiterBuddy
 Actor: Recruiter
 MSS:
-1. Recruiter requests to close a role opening.
-2. RecruiterBuddy displays the active role openings.
-3. Recruiter selects the role opening to close.
-4. RecruiterBuddy closes the selected role opening.
-5. RecruiterBuddy confirms that the role opening has been closed.
+1. Recruiter displays the role list using `list role`.
+2. Recruiter selects a role using `role close INDEX`.
+3. RecruiterBuddy checks that the role is open, all associated candidates have final outcomes,
+   and at most one candidate is hired.
+4. RecruiterBuddy closes the role, retaining all candidate records and their statuses.
+5. RecruiterBuddy saves the change and confirms closure.
 Use case ends.
+
+Extensions:
+
+* 2a. The role list is not displayed, or the index is invalid.
+  * 2a1. RecruiterBuddy reports the error without changing records.
+* 3a. The role is already closed, candidates are pending, or multiple candidates are hired.
+  * 3a1. RecruiterBuddy reports the error without changing records.
+
+`RoleCommandParser` delegates the `close` subcommand to `CloseRoleCommandParser`.
+`CloseRoleCommand` resolves the index against `Model#getFilteredRoleList` but checks candidate
+outcomes against the complete `ReadOnlyAddressBook#getPersonList`, matching role titles without
+case sensitivity. `HIRED`, `REJECTED`, and `WITHDRAWN` are final outcomes; other statuses are pending.
+Missing saved statuses already default to `PENDING_RESUME_SCREENING` during loading.
+After validation, `Model#setRole` replaces the immutable role with a `CLOSED` copy.
+The observable role list updates its existing UI, and `LogicManager` saves the updated address book.
+The existing candidate-add guard rejects closed roles. No candidate is modified by closure.
+
+Manual checks: add a role, run `list role`, close it with no candidates, and verify its displayed
+status and success message. Restart to verify persistence. Repeat with pending candidates (closure
+must fail), then with one hired candidate and the others rejected or withdrawn (closure must succeed).
+Check invalid indices, extra arguments, repeated closure, and attempting to add a candidate to the closed role.
+
 UC08 — Delete Candidate Record
 System: RecruiterBuddy
 Actor: User
