@@ -10,8 +10,10 @@ public enum Status {
     PENDING_RESUME_SCREENING("Pending Resume Screening"),
     PENDING_RECRUITER_INTERVIEW("Pending Recruiter Interview"),
     PENDING_OFFER_EXTENSION("Pending Offer Extension"),
+    PENDING_OFFER_DECISION("Pending Offer Decision"),
     HIRED("Hired"),
-    REJECTED("Rejected");
+    REJECTED("Rejected"),
+    WITHDRAWN("Withdrawn");
 
     public static final String MESSAGE_CONSTRAINTS_START = "Status must be one of the following: ";
     private final String displayName;
