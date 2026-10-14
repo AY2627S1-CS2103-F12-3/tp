@@ -23,6 +23,7 @@ public class ModelManager implements Model {
     private final UserPrefs userPrefs;
     private final FilteredList<Person> filteredPersons;
     private final FilteredList<Role> filteredRoles;
+    private boolean roleListDisplayed;
 
     /**
      * Initializes a ModelManager with the given addressBook and userPrefs.
@@ -111,6 +112,16 @@ public class ModelManager implements Model {
     public void updateFilteredPersonList(Predicate<Person> predicate) {
         requireNonNull(predicate);
         filteredPersons.setPredicate(predicate);
+    }
+
+    @Override
+    public boolean isRoleListDisplayed() {
+        return roleListDisplayed;
+    }
+
+    @Override
+    public void setRoleListDisplayed(boolean displayed) {
+        roleListDisplayed = displayed;
     }
 
     //=========== Filtered Role List Accessors ===============================================================

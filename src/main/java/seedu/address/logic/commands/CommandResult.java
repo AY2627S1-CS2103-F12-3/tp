@@ -19,13 +19,24 @@ public class CommandResult {
     /** The application should exit. */
     private final boolean exit;
 
+    /** Whether the role list should be shown. */
+    private final boolean showRoleList;
+
     /**
      * Constructs a {@code CommandResult} with the specified fields.
      */
     public CommandResult(String feedbackToUser, boolean showHelp, boolean exit) {
+        this(feedbackToUser, showHelp, exit, false);
+    }
+
+    /**
+     * Constructs a command result with explicit help, exit, and role-list flags.
+     */
+    public CommandResult(String feedbackToUser, boolean showHelp, boolean exit, boolean showRoleList) {
         this.feedbackToUser = requireNonNull(feedbackToUser);
         this.showHelp = showHelp;
         this.exit = exit;
+        this.showRoleList = showRoleList;
     }
 
     /**
@@ -48,6 +59,10 @@ public class CommandResult {
         return exit;
     }
 
+    public boolean isShowRoleList() {
+        return showRoleList;
+    }
+
     @Override
     public boolean equals(Object other) {
         if (other == this) {
@@ -61,12 +76,13 @@ public class CommandResult {
 
         return feedbackToUser.equals(otherCommandResult.feedbackToUser)
                 && showHelp == otherCommandResult.showHelp
-                && exit == otherCommandResult.exit;
+                && exit == otherCommandResult.exit
+                && showRoleList == otherCommandResult.showRoleList;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(feedbackToUser, showHelp, exit);
+        return Objects.hash(feedbackToUser, showHelp, exit, showRoleList);
     }
 
     @Override

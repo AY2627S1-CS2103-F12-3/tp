@@ -36,6 +36,9 @@ public class DeleteCommand extends Command {
         requireNonNull(model);
         List<Person> lastShownList = model.getFilteredPersonList();
 
+        if (model.isRoleListDisplayed()) {
+            throw new CommandException(Messages.MESSAGE_PERSON_LIST_NOT_DISPLAYED);
+        }
         if (targetIndex.getZeroBased() >= lastShownList.size()) {
             throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
         }

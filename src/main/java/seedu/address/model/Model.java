@@ -16,6 +16,13 @@ public interface Model {
     /** {@code Predicate} that always evaluates to true */
     Predicate<Role> PREDICATE_SHOW_ALL_ROLES = unused -> true;
 
+    default boolean isRoleListDisplayed() {
+        return false;
+    }
+
+    default void setRoleListDisplayed(boolean displayed) {
+    }
+
     /**
      * Returns the user prefs.
      */

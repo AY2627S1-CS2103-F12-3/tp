@@ -111,7 +111,14 @@ public class AddressBookParserTest {
     @Test
     public void parseCommand_list() throws Exception {
         assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD) instanceof ListCommand);
-        assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD + " 3") instanceof ListCommand);
+        assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD + " role") instanceof ListCommand);
+        assertThrows(ParseException.class, () -> parser.parseCommand(ListCommand.COMMAND_WORD + " 3"));
+    }
+
+    @Test
+    public void parseCommand_listRoleWithWhitespace_isAccepted() throws Exception {
+        assertTrue(parser.parseCommand("list\trole") instanceof ListCommand);
+        assertTrue(parser.parseCommand("list  role") instanceof ListCommand);
     }
 
     @Test
