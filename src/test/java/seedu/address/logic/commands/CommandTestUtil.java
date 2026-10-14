@@ -19,8 +19,8 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.Status;
 import seedu.address.model.role.Role;
-import seedu.address.model.tag.Tag;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 
 /**
@@ -42,8 +42,10 @@ public class CommandTestUtil {
     public static final String VALID_NOTE_BOB = "Referred by Alice";
     public static final String VALID_TAG_HUSBAND = "husband";
     public static final String VALID_TAG_FRIEND = "friend";
-    public static final String VALID_STATUS_ACCEPTED = "accepted";
-    public static final String VALID_STATUS_REJECTED = "rejected";
+    public static final String VALID_STATUS_1_STRING = "PENDING_RECRUITER_INTERVIEW";
+    public static final Status VALID_STATUS_1 = Status.valueOf(VALID_STATUS_1_STRING);
+    public static final String VALID_STATUS_2_STRING = "PENDING_OFFER_EXTENSION";
+    public static final Status VALID_STATUS_2 = Status.valueOf(VALID_STATUS_2_STRING);
 
     public static final String NAME_DESC_AMY = " " + PREFIX_NAME + VALID_NAME_AMY;
     public static final String NAME_DESC_BOB = " " + PREFIX_NAME + VALID_NAME_BOB;
@@ -70,8 +72,6 @@ public class CommandTestUtil {
 
     public static final EditCommand.EditPersonDescriptor DESC_AMY;
     public static final EditCommand.EditPersonDescriptor DESC_BOB;
-    public static final Tag STATUS_ACCEPTED;
-    public static final Tag STATUS_REJECTED;
 
     static {
         DESC_AMY = new EditPersonDescriptorBuilder().withName(VALID_NAME_AMY)
@@ -80,8 +80,6 @@ public class CommandTestUtil {
         DESC_BOB = new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB)
                 .withPhone(VALID_PHONE_BOB).withEmail(VALID_EMAIL_BOB).withAddress(VALID_ADDRESS_BOB)
                 .withTags(VALID_TAG_HUSBAND, VALID_TAG_FRIEND).build();
-        STATUS_ACCEPTED = new Tag(VALID_STATUS_ACCEPTED);
-        STATUS_REJECTED = new Tag(VALID_STATUS_REJECTED);
     }
 
     /**

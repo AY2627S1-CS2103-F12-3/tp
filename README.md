@@ -17,7 +17,7 @@ RecruiterBuddy combines a graphical interface with a command-driven workflow. It
 RecruiterBuddy is planned to support the following features:
 
 * **Candidate management:** Add, list, and remove candidates. Each candidate is associated with exactly one open role and has a name, phone number, email address, and address. Candidate notes, tags, and recruiter interview details can also be recorded.
-* **Recruitment status tracking:** Assign each candidate exactly one status from `PENDING_RESUME_SCREENING`, `PENDING_RECRUITER_INTERVIEW`, `PENDING_OFFER_EXTENSION`, `PENDING_OFFER_DECISION`, `HIRED`, `REJECTED`, or `WITHDRAWN`.
+* **Recruitment status tracking:** Assign each candidate exactly one status from `PENDING_RESUME_SCREENING`, `PENDING_RECRUITER_INTERVIEW`, `PENDING_OFFER_EXTENSION`, `PENDING_OFFER_DECISION`, `HIRED`, `REJECTED`, or `WITHDRAWN`. A candidate's status can be updated as they progress through the recruitment pipeline.
 * **Duplicate prevention:** Prevent candidates with duplicate email addresses or phone numbers from being added.
 * **Interview tracking:** Record or reschedule a candidate's recruiter interview date and time.
 * **Role management:** Add and list role openings, including their titles and required experience levels. Each role represents exactly one vacancy and has either an `OPEN` or `CLOSED` status.

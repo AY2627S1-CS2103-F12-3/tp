@@ -84,6 +84,8 @@ Adds a person to the address book.
 
 Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... `
 
+* Newly added persons are automatically assigned the status `Pending Resume Screening`.
+
 <box type="tip" seamless>
 
 **Tip:** A person can have any number of tags, including zero.
@@ -174,11 +176,15 @@ Updates the recruitment status of the candidate at the specified index.
 
 Format: `status INDEX STATUS`
 
+* Updates the status of the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, ... and cannot exceed the length of the _displayed_ persons list.
+* The person's original status is replaced with the one specified in `STATUS`.
+* `STATUS` must be one of the following: `PENDING_RESUME_SCREENING`, `PENDING_RECRUITER_INTERVIEW`, `PENDING_OFFER_EXTENSION`, `PENDING_OFFER_DECISION`, `HIRED`, `REJECTED`, or `WITHDRAWN`.
+* `STATUS` is not case-sensitive; for example, `hired`, `Hired` and `hiRED` are treated as the same as `HIRED`.
+
 Example:
 
-* `status 1 accepted`
-
-The index refers to the candidate's position in the currently displayed person list.
+* `status 1 pending_offer_extension`
+* `status 2 PENDING_RECRUITER_INTERVIEW`
 
 ### Deleting a person: `delete`
 
