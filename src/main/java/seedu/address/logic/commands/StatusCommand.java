@@ -37,15 +37,16 @@ public class StatusCommand extends Command {
             + "Example: " + COMMAND_WORD + " 1 " + Status.values()[0].name();
 
     public static final String MESSAGE_ADD_STATUS_SUCCESS = "Status of candidate: %1$s";
+    public static final String MESSAGE_ROLE_ALREADY_HAS_HIRED_CANDIDATE = "%1$s already has a hired candidate.";
 
     private final Index index;
     private final Status status;
 
     /**
-     * Creates a new StatusCommand that appends a Status to person's currently assigned tags.
+     * Creates a command that replaces the selected candidate's recruitment status.
      *
      * @param index of the person in the filtered person list to edit.
-     * @param status status (currently implemented as a tag) to assign to the candidate.
+     * @param status recruitment status to assign to the candidate.
      */
     public StatusCommand(Index index, Status status) {
         requireNonNull(index);
@@ -60,7 +61,8 @@ public class StatusCommand extends Command {
      *
      * @param model {@code Model} which the command should operate on.
      * @return {@code CommandResult} containing the success message.
-     * @throws CommandException if index is larger than size of displayed candidates list.
+     * @throws CommandException if no candidate list is displayed, the index is invalid, or another candidate
+     *     for the same role is already hired when assigning {@code HIRED}.
      */
     @Override
     public CommandResult execute(Model model) throws CommandException {
@@ -75,11 +77,29 @@ public class StatusCommand extends Command {
         }
 
         Person personToEdit = lastShownList.get(index.getZeroBased());
+        verifyHiringAllowed(model, personToEdit);
         Person editedPerson = addStatusToPerson(personToEdit, status);
 
         model.setPerson(personToEdit, editedPerson);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
         return new CommandResult(String.format(MESSAGE_ADD_STATUS_SUCCESS, status));
+    }
+
+    /**
+     * Checks that assigning {@code HIRED} will not fill the same role more than once.
+     */
+    private void verifyHiringAllowed(Model model, Person personToEdit) throws CommandException {
+        if (status != Status.HIRED) {
+            return;
+        }
+        boolean hasOtherHiredCandidate = model.getAddressBook().getPersonList().stream()
+                .anyMatch(candidate -> !candidate.isSamePerson(personToEdit)
+                        && candidate.getStatus() == Status.HIRED
+                        && candidate.getRole().isSameTitle(personToEdit.getRole()));
+        if (hasOtherHiredCandidate) {
+            throw new CommandException(String.format(MESSAGE_ROLE_ALREADY_HAS_HIRED_CANDIDATE,
+                    personToEdit.getRole()));
+        }
     }
 
     /**

@@ -232,11 +232,18 @@ Format: `status INDEX STATUS`
 * The person's original status is replaced with the one specified in `STATUS`.
 * `STATUS` must be one of the following: `PENDING_RESUME_SCREENING`, `PENDING_RECRUITER_INTERVIEW`, `PENDING_OFFER_EXTENSION`, `PENDING_OFFER_DECISION`, `HIRED`, `REJECTED`, or `WITHDRAWN`.
 * `STATUS` is not case-sensitive; for example, `hired`, `Hired` and `hiRED` are treated as the same as `HIRED`.
+* Each role has one vacancy. Assigning `HIRED` fails if another candidate for the same role is already
+  `HIRED`, including candidates hidden by filters. Role titles are compared without case sensitivity.
+  The error is `ROLE_TITLE already has a hired candidate.` No candidate data changes.
+* Reapplying `HIRED` to the same candidate is allowed when no other candidate for that role is hired.
+  Assigning other statuses is still allowed. Marking a candidate `HIRED` does not close the role;
+  use `role close` explicitly after all candidates have final outcomes.
 
 Example:
 
 * `status 1 pending_offer_extension`
 * `status 2 PENDING_RECRUITER_INTERVIEW`
+* `status 1 HIRED`
 
 ### Deleting a person: `delete`
 

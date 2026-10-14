@@ -428,10 +428,21 @@ After validation, `Model#setRole` replaces the immutable role with a `CLOSED` co
 The observable role list updates its existing UI, and `LogicManager` saves the updated address book.
 The existing candidate-add guard rejects closed roles. No candidate is modified by closure.
 
+`StatusCommand` checks the complete stored candidate list before assigning `HIRED`.
+It excludes the selected candidate by candidate identity, then checks whether any other candidate
+with a case-insensitively matching role title is already hired. A conflict raises a command exception
+before updating any records or filters. Reapplying `HIRED` to the same candidate is allowed if there
+is no other hire for that role. Other status changes remain available. Hiring never closes a role
+automatically; the close command separately validates final outcomes and the number of hires.
+
 Manual checks: add a role, run `list role`, close it with no candidates, and verify its displayed
 status and success message. Restart to verify persistence. Repeat with pending candidates (closure
 must fail), then with one hired candidate and the others rejected or withdrawn (closure must succeed).
 Check invalid indices, extra arguments, repeated closure, and attempting to add a candidate to the closed role.
+For hiring checks, assign `HIRED` to one candidate, filter the list to another candidate for the same
+role, then try assigning `HIRED` again. The command must fail without changing either record.
+Verify that reapplying `HIRED` to the first candidate succeeds, and that candidates for different
+roles can each be hired. Restart to verify that successful updates are saved and rejected updates are absent.
 
 UC07a — Delete Role Opening
 System: RecruiterBuddy

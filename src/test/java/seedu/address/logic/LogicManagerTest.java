@@ -28,6 +28,7 @@ import seedu.address.logic.commands.CloseRoleCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.DeleteRoleCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.StatusCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
@@ -165,6 +166,52 @@ public class LogicManagerTest {
                 SOFTWARE_ENGINEER.getTitle(), 1), () -> logic.execute("role delete 1"));
         assertEquals(saved, model.getAddressBook());
         assertEquals(saved, addressBookStorage.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_secondHire_rejectsChangeAndPreservesSavedData() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
+        Person first = new PersonBuilder().withName("First Candidate").build();
+        Person second = new PersonBuilder().withName("Second Candidate").build();
+        model.addPerson(first);
+        model.addPerson(second);
+        logic.execute("status 1 HIRED");
+        ReadOnlyAddressBook saved = addressBookStorage.readAddressBook().orElseThrow();
+        assertEquals(Status.HIRED, saved.getPersonList().getFirst().getStatus());
+        assertEquals(List.of(SOFTWARE_ENGINEER), saved.getRoleList());
+
+        assertThrows(CommandException.class, String.format(StatusCommand.MESSAGE_ROLE_ALREADY_HAS_HIRED_CANDIDATE,
+                SOFTWARE_ENGINEER.getTitle()), () -> logic.execute("status 2 HIRED"));
+        assertEquals(saved, model.getAddressBook());
+        assertEquals(saved, addressBookStorage.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_roleLifecycle_preservesHistoryUntilExplicitDeletion() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
+        model.addPerson(new PersonBuilder().withName("First Candidate").build());
+        model.addPerson(new PersonBuilder().withName("Second Candidate").build());
+        logic.execute("status 1 HIRED");
+        logic.execute("status 2 REJECTED");
+        logic.execute("list role");
+        logic.execute("role close 1");
+
+        ReadOnlyAddressBook saved = addressBookStorage.readAddressBook().orElseThrow();
+        assertEquals(RoleStatus.CLOSED, saved.getRoleList().getFirst().getStatus());
+        assertEquals(Status.HIRED, saved.getPersonList().getFirst().getStatus());
+        assertEquals(Status.REJECTED, saved.getPersonList().get(1).getStatus());
+        assertThrows(CommandException.class, String.format(DeleteRoleCommand.MESSAGE_ASSOCIATED_CANDIDATES,
+                SOFTWARE_ENGINEER.getTitle(), 2), () -> logic.execute("role delete 1"));
+        assertEquals(saved, addressBookStorage.readAddressBook().orElseThrow());
+
+        logic.execute("list");
+        logic.execute("delete 2");
+        logic.execute("delete 1");
+        logic.execute("list role");
+        logic.execute("role delete 1");
+        saved = addressBookStorage.readAddressBook().orElseThrow();
+        assertEquals(List.of(), saved.getRoleList());
+        assertEquals(List.of(), saved.getPersonList());
     }
 
     @Test
