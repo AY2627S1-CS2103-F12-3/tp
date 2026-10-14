@@ -22,13 +22,14 @@ public class NoteCommand extends Command {
     public static final String COMMAND_WORD = "note";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Replaces the note of the person identified by the index number used in the displayed person list. "
+            + ": Replaces the note of the candidate identified by the index number used in the displayed "
+            + "candidate list. "
             + "Everything after the index is saved as the note. Leave NOTE empty to clear the existing note.\n"
             + "Parameters: INDEX (must be a positive integer) [NOTE]\n"
             + "Example: " + COMMAND_WORD + " 1 Interview 2026-10-20 14:00";
 
-    public static final String MESSAGE_UPDATE_NOTE_SUCCESS = "Updated note of person: %1$s";
-    public static final String MESSAGE_CLEAR_NOTE_SUCCESS = "Cleared note of person: %1$s";
+    public static final String MESSAGE_UPDATE_NOTE_SUCCESS = "Updated note of candidate: %1$s";
+    public static final String MESSAGE_CLEAR_NOTE_SUCCESS = "Cleared note of candidate: %1$s";
 
     private final Index index;
     private final Note note;
@@ -61,7 +62,7 @@ public class NoteCommand extends Command {
 
         Person personToEdit = lastShownList.get(index.getZeroBased());
         Person editedPerson = new Person(personToEdit.getName(), personToEdit.getPhone(), personToEdit.getEmail(),
-                personToEdit.getAddress(), note, personToEdit.getTags());
+                personToEdit.getAddress(), note, personToEdit.getStatus(), personToEdit.getTags());
 
         model.setPerson(personToEdit, editedPerson);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);

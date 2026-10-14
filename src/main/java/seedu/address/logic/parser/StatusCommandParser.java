@@ -38,7 +38,7 @@ public class StatusCommandParser implements Parser<StatusCommand> {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, StatusCommand.MESSAGE_USAGE), pe);
         }
 
-        Tag status = ParserUtil.parseStatus(matcher.group("status"));
+        Tag status = ParserUtil.parseTag(matcher.group("status"));
         return new StatusCommand(index, status);
     }
 }

@@ -16,6 +16,9 @@ import seedu.address.model.tag.Tag;
  */
 public class Person {
 
+    /** Status of a newly added candidate, and of a saved candidate that has no status. */
+    public static final Status DEFAULT_STATUS = Status.PENDING_RESUME_SCREENING;
+
     // Identity fields
     private final Name name;
     private final Phone phone;
@@ -24,18 +27,21 @@ public class Person {
     // Data fields
     private final Address address;
     private final Note note;
+    private final Status status;
     private final Set<Tag> tags = new HashSet<>();
 
     /**
      * Every field must be present and not null.
      */
-    public Person(Name name, Phone phone, Email email, Address address, Note note, Set<Tag> tags) {
-        requireAllNonNull(name, phone, email, address, note, tags);
+    public Person(Name name, Phone phone, Email email, Address address, Note note, Status status,
+            Set<Tag> tags) {
+        requireAllNonNull(name, phone, email, address, note, status, tags);
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
         this.note = note;
+        this.status = status;
         this.tags.addAll(tags);
     }
 
@@ -57,6 +63,10 @@ public class Person {
 
     public Note getNote() {
         return note;
+    }
+
+    public Status getStatus() {
+        return status;
     }
 
     /**
@@ -100,13 +110,14 @@ public class Person {
                 && email.equals(otherPerson.email)
                 && address.equals(otherPerson.address)
                 && note.equals(otherPerson.note)
+                && status == otherPerson.status
                 && tags.equals(otherPerson.tags);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, address, note, tags);
+        return Objects.hash(name, phone, email, address, note, status, tags);
     }
 
     @Override
@@ -117,6 +128,7 @@ public class Person {
                 .add("email", email)
                 .add("address", address)
                 .add("note", note)
+                .add("status", status)
                 .add("tags", tags)
                 .toString();
     }
