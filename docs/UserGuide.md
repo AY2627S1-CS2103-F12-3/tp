@@ -97,17 +97,44 @@ Examples:
 
 ### Adding a role: `role add`
 
-Adds an open role to the address book. Role titles are unique, ignoring case.
+Records a vacancy with its title and required experience level. Each role represents exactly one
+vacancy; there is no opening-count field.
 
 Format: `role add r/ROLE_TITLE x/EXPERIENCE_LEVEL`
+
+Both `r/` and `x/` are required, must appear exactly once, and may appear in either order.
+Leading and trailing whitespace is removed from each value before validation and storage.
+
+* `ROLE_TITLE`: 1–100 characters after trimming, with at least one letter. It may contain letters,
+  digits, spaces, apostrophes (`'`), ampersands (`&`), hyphens (`-`), slashes (`/`), and full stops (`.`).
+* `EXPERIENCE_LEVEL`: 1–50 printable characters after trimming, with no embedded newlines, tabs,
+  or other control characters. Examples include `Entry level`, `2 years`, and `Senior`.
+* Role titles must be unique across both `OPEN` and `CLOSED` roles, ignoring case and surrounding
+  whitespace. Changing the experience level does not make a title distinct. Internal spaces are
+  significant: a title with one space between words differs from one with two consecutive spaces.
 
 Examples:
 
 * `role add r/Software Engineer x/2 years`
-* `role add r/Product Manager x/5 years`
-* `role add r/UX Designer x/3 years`
+* `role add x/Entry level r/Product Analyst`
 
-New roles are created with status `OPEN`. To view all roles, use `list role`.
+On success, RecruiterBuddy shows `Added open role: ROLE_TITLE.` and saves the role with status `OPEN`.
+Run `list role` to display it; `role add` itself returns to the candidate list.
+
+If validation fails, no role is created:
+
+* Missing title prefix: `Missing required field: r/.`
+* Missing experience prefix: `Missing required field: x/.`
+* Repeated prefix: `Multiple values specified for the following single-valued field(s): PREFIX`.
+  For example, repeating `x/` reports that prefix even if both values are identical.
+* Empty or invalid title: `Role title must be 1–100 characters and contain a letter.`
+* Empty or invalid experience level:
+  `Required experience level must be 1–50 characters and must not contain a new line.`
+* Duplicate title: `A role named “ROLE_TITLE” already exists.`
+* Text before the first prefix: `Invalid command format!`, followed by the command's usage and example.
+
+Closing a role does not release its title. An unused role can instead be removed with `role delete`
+before creating another role with that title.
 
 ### Closing a role: `role close`
 
@@ -283,17 +310,64 @@ Format: `exit`
 
 ### Saving the data
 
-AddressBook automatically saves data after every command. You do not need to save manually.
+RecruiterBuddy automatically saves the complete candidate and role data after a command executes
+successfully, including commands such as `list` that do not change records. You do not need to save
+manually. Commands rejected during parsing or validation do not trigger a save.
+
+Saved roles retain their titles, required experience levels, and `OPEN` or `CLOSED` statuses after
+restarting. Candidates associated with closed roles are retained too. If no data file exists,
+RecruiterBuddy starts with sample roles and candidates, not an empty data set.
+
+If saving fails, an error reports the file-access problem instead of the normal success message.
+Changes already made may remain in the current session without being saved. Resolve the file-access
+problem and run a successful command to retry saving before exiting.
 
 ### Editing the data file
 
-AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+By default, RecruiterBuddy saves data in `[JAR file location]/data/addressbook.json`.
+Advanced users may edit this JSON file while the application is closed. Back it up first.
+
+The file contains a `persons` array for candidates and a `roles` array for role openings.
+For example, this complete file contains one role and no candidates:
+
+```json
+{
+  "persons": [],
+  "roles": [
+    {
+      "title": "Software Engineer",
+      "experienceLevel": "2 years",
+      "status": "OPEN"
+    }
+  ]
+}
+```
+
+When editing roles and their candidate associations:
+
+* Every role needs `title`, `experienceLevel`, and `status`. Title and experience values must satisfy
+  the same constraints as `role add`; role status must be exactly `OPEN` or `CLOSED` in uppercase.
+* Do not repeat role titles, even with different capitalisation or experience levels.
+* Each candidate's `role` field must name an existing role, ignoring case. It may name a closed role,
+  because closing preserves candidates. On loading, the role's stored capitalisation is used for
+  its candidates. If you rename a role in the file, update every associated candidate's `role` too.
+* A candidate's saved `status` uses an uppercase status name, such as `HIRED`. If absent, it defaults
+  to `PENDING_RESUME_SCREENING`. A missing candidate `role` has no default and prevents loading;
+  older contact-only files therefore need role information added before they can be used.
+* Keep recruitment outcomes consistent: at most one candidate per role should be `HIRED`, and closed
+  roles should have no pending candidates. The status and close commands enforce these rules during
+  normal use; do not rely on the loader to detect every inconsistent outcome introduced by hand.
 
 <box type="warning" seamless>
 
 **Caution:**
-If your changes make the data file invalid, AddressBook starts with an empty address book at the next run. The invalid file remains on disk until you run a command (AddressBook saves after every command). Still, we recommend backing up the file before editing it.<br>
-Furthermore, certain edits can cause the AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
+Malformed JSON, invalid role fields, duplicate role titles, or a candidate referring to a nonexistent
+role prevent the whole file from loading; valid records are not loaded separately.
+RecruiterBuddy then starts with empty lists. Startup alone does not overwrite the invalid data file,
+but the next successfully executed command, including `list`, can overwrite it with the current data.
+If the lists unexpectedly appear empty, close the application window without entering any commands
+(including `exit`), then restore your backup or fix the file before restarting. No automatic backup
+or migration of old contact-only files is provided.
 </box>
 
 ### Archiving data files `[coming in v2.0]`

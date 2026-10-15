@@ -13,7 +13,13 @@
 
 ## **Acknowledgements**
 
-* _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
+* This project builds on [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) by the
+  [SE-EDU initiative](https://se-education.org). Its existing architecture and documentation form the
+  starting point for RecruiterBuddy.
+* Kavin Parthipan (`kpkavin04`) used OpenAI Codex to assist with requirements analysis, implementation,
+  tests, review, and documentation for the persistent role model, role commands, and associated
+  candidate-status and displayed-list safeguards. This acknowledgement covers that contribution,
+  not other team members' tool usage.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -117,15 +123,24 @@ How the parsing works:
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
 
 ### Model component
-**API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
+**API** : [`Model.java`](https://github.com/AY2627S1-CS2103-F12-3/tp/blob/master/src/main/java/seedu/address/model/Model.java)
 
-<puml src="diagrams/ModelClassDiagram.puml" width="450" />
+<puml src="diagrams/ModelClassDiagram.puml" width="600" alt="Partial model structure showing candidates and roles" />
 
+The partial diagram focuses on role associations. Filtered-view associations and unrelated candidate
+fields are omitted for clarity.
 
 The `Model` component,
 
-* stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
-* stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
+* stores candidates (`Person`) in `UniquePersonList` and roles (`Role`) in `UniqueRoleList`, both owned
+  by `AddressBook`. `ReadOnlyAddressBook` exposes unmodifiable observable views of both collections.
+* maintains filtered candidate and role lists in `ModelManager`, exposed through
+  `getFilteredPersonList()` and `getFilteredRoleList()`. The UI observes these lists so additions,
+  replacements, and removals update the relevant list panel.
+* represents each role as an immutable title, required experience level, and `RoleStatus` (`OPEN` or
+  `CLOSED`). One role is one vacancy; no opening count is stored.
+* stores each candidate's association as a `RoleTitle`, not a separate copy of a `Role`. Role lookups
+  match titles without case sensitivity.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
@@ -140,13 +155,17 @@ The `Model` component,
 
 ### Storage component
 
-**API** : [`Storage.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/storage/Storage.java)
+**API** : [`Storage.java`](https://github.com/AY2627S1-CS2103-F12-3/tp/blob/master/src/main/java/seedu/address/storage/Storage.java)
 
 <puml src="diagrams/StorageClassDiagram.puml" width="550" />
 
 The `Storage` component,
-* can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
+* saves candidates and roles together in the address book JSON file, and user preferences in a
+  separate JSON file. It reads them back into corresponding model objects.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
+* uses `JsonSerializableAddressBook` with `JsonAdaptedPerson`, `JsonAdaptedTag`, and `JsonAdaptedRole`
+  to convert between JSON-compatible values and model objects. A role's saved fields are `title`,
+  `experienceLevel`, and `status`; the status is the exact enum name.
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
 ### Common classes
@@ -158,6 +177,59 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 ## **Implementation**
 
 This section describes some noteworthy details on how certain features are implemented.
+
+### Role creation and persistence
+
+#### Role identity and validation
+
+`RoleTitle` strips surrounding whitespace, validates 1–100 Unicode code points and the allowed
+characters, and requires at least one letter. `ExperienceLevel` similarly strips its value and
+validates 1–50 printable code points, excluding control, format, surrogate, unassigned, line-separator,
+and paragraph-separator characters. Their constraint messages use the same length constants as their
+validation, avoiding independently hard-coded limits.
+
+`Role#isSameRole` compares only titles through `RoleTitle#isSameTitle`, ignoring case. `UniqueRoleList`
+uses that identity to reject duplicates, irrespective of experience level or open/closed status.
+Full `Role#equals` also compares experience level and status; it is not the duplicate rule. Internal
+spaces are not collapsed. The immutable `Role` constructor without a status creates an `OPEN` role.
+
+#### Adding an opening
+
+`AddressBookParser` routes `role` to `RoleCommandParser`, which delegates `add` to
+`AddRoleCommandParser`. The parser tokenises `r/` and `x/`, checks missing fields, reuses
+`ArgumentMultimap#verifyNoDuplicatePrefixesFor`, rejects a non-empty preamble, and validates both
+values through `ParserUtil`. Missing-prefix errors therefore take precedence over repeated-prefix
+or invalid-value errors when several problems occur together.
+
+`AddRoleCommand` checks `Model#hasRole` before calling `Model#addRole`. The model updates the underlying
+observable collection and resets the role filter to show all roles. The command returns
+`Added open role: TITLE.` with the default candidate-list view; `list role` displays the updated roles.
+Parsing or duplicate rejection leaves the stored records unchanged.
+
+#### Saving and restoring associations
+
+After a command executes successfully, `LogicManager#execute` asks `Storage` to save the complete
+address book, including both collections. This also happens for successful read-only commands.
+Parsing and command-validation failures do not reach the save call. Save errors become
+`CommandException`s; earlier in-memory changes are not rolled back. This is not a transactional save
+or an automatic backup mechanism.
+
+`JsonSerializableAddressBook#toModelType` reconstructs roles before candidates. Each `JsonAdaptedRole`
+validates its required fields and exact `OPEN`/`CLOSED` enum name. Duplicate titles are rejected using
+the same identity rule as the model. Each candidate must then reference an existing role; the loader
+replaces the candidate's role title with that role's canonical stored title. Closed roles are valid
+references because closure retains candidates.
+
+An absent `roles` array is treated as empty, but loading still fails if a candidate lacks a role or
+references a missing one. A missing candidate status defaults to `PENDING_RESUME_SCREENING`, whereas
+a missing role status is invalid. There is no automatic migration from old contact-only records.
+Loading validates fields, duplicate records, and references; it does not enforce all command-level
+recruitment rules, such as the maximum number of hired candidates in hand-edited data.
+
+Invalid data is reported as `DataLoadingException`. `MainApp` starts with an empty `AddressBook`
+after a load failure, without partially importing valid records or immediately overwriting the file.
+If the file is absent instead, it uses `SampleDataUtil#getSampleAddressBook`. The next successfully
+executed command saves the current state, so users must recover invalid files before issuing commands.
 
 ### \[Proposed\] Undo/redo feature
 
