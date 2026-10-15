@@ -29,15 +29,17 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:
 
-   * `list` : Lists all contacts.
+   * `list` : Lists all candidates.
    * `list role` : Lists all unique roles, with each role shown in its own box.
    * `role add r/Software Engineer x/2 years` : Adds an open role.
 
-   * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to the Address Book.
+   * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 r/Data Analyst` : Adds a candidate named `John Doe` who is applying for the sample `Data Analyst` role.
 
-   * `delete 3` : Deletes the 3rd contact shown in the current list.
+   * `note 1 Interview 2026-10-20 14:00` : Records an interview date and time for the 1st candidate.
 
-   * `clear` : Deletes all contacts.
+   * `delete 3` : Deletes the 3rd candidate shown in the current list.
+
+   * `clear` : Deletes all candidates and roles.
 
    * `exit` : Exits the app.
 
@@ -78,22 +80,25 @@ Shows a message explaining how to access the help page.
 Format: `help`
 
 
-### Adding a person: `add`
+### Adding a candidate: `add`
 
-Adds a person to the address book.
+Adds a candidate who is applying for a role.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... `
+Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
 
-* Newly added persons are automatically assigned the status `Pending Resume Screening`.
+* `ROLE` must be the title of an existing role that is `OPEN`. Use [`role add`](#adding-a-role-role-add) to create the role first.
+* `ROLE` is matched ignoring case; for example, `r/software engineer` matches the role `Software Engineer`. The candidate is saved with the role's own spelling of the title.
+* Newly added candidates are automatically assigned the status `Pending Resume Screening`.
+* The candidate's card shows the role as `Applying for: ROLE`.
 
 <box type="tip" seamless>
 
-**Tip:** A person can have any number of tags, including zero.
+**Tip:** A candidate can have any number of tags, including zero.
 </box>
 
 Examples:
-* `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
-* `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
+* `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 r/Software Engineer`
+* `add n/Betsy Crowe t/referral e/betsycrowe@example.com a/Newgate Prison p/1234567 r/product manager t/java`
 
 ### Adding a role: `role add`
 
@@ -109,9 +114,9 @@ Examples:
 
 New roles are created with status `OPEN`. To view all roles, use `list role`.
 
-### Listing all persons: `list`
+### Listing all candidates: `list`
 
-Shows a list of all persons in the address book.
+Shows a list of all candidates.
 
 Format: `list`
 
@@ -121,41 +126,42 @@ Shows every unique role in the address book. Each role is displayed in its own b
 
 Format: `list role`
 
-### Editing a person: `edit`
+### Editing a candidate: `edit`
 
-Edits an existing person in the address book.
+Edits an existing candidate.
 
 Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
 
-* Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, ...
+* Edits the candidate at the specified `INDEX`. The index refers to the index number shown in the displayed candidate list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
-* When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
-* To remove all of a person's tags, enter `t/` without a tag after it.
+* When editing tags, all of the candidate's existing tags are removed; adding tags is not cumulative.
+* To remove all of a candidate's tags, enter `t/` without a tag after it.
+* A candidate's role cannot be edited, so `r/` is rejected. The candidate's status and note are also kept; use `status` or `note` to change them.
 
 Examples:
-*  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
-*  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
+*  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st candidate to be `91234567` and `johndoe@example.com` respectively.
+*  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd candidate to be `Betsy Crower` and clears all existing tags.
 
 ### Adding or clearing a note: `note`
 
-Records a note for an existing person, such as interview details.
+Records a note for an existing candidate, such as an interview date and time.
 
 Format: `note INDEX [NOTE]`
 
-* Sets the note of the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, ...
+* Sets the note of the candidate at the specified `INDEX`. The index refers to the index number shown in the displayed candidate list. The index **must be a positive integer** 1, 2, 3, ...
 * Everything after the index is saved as the note, exactly as typed. The note can contain any text, including text that looks like a prefix, such as `t/` or `n/`.
-* A new note replaces the person's existing note.
-* To clear a person's note, enter `note INDEX` without a note after it.
+* A new note replaces the candidate's existing note.
+* To clear a candidate's note, enter `note INDEX` without a note after it.
 
 Examples:
-*  `note 1 Interview 2026-10-20 14:00` Sets the note of the 1st person to `Interview 2026-10-20 14:00`.
-*  `note 2 Discuss t/java experience` Sets the note of the 2nd person to `Discuss t/java experience`.
-*  `note 3` Clears the note of the 3rd person.
+*  `note 1 Interview 2026-10-20 14:00` Sets the note of the 1st candidate to `Interview 2026-10-20 14:00`.
+*  `note 2 Discuss t/java experience` Sets the note of the 2nd candidate to `Discuss t/java experience`.
+*  `note 3` Clears the note of the 3rd candidate.
 
-### Locating persons by name: `find`
+### Locating candidates by name: `find`
 
-Finds persons whose names contain any of the given keywords.
+Finds candidates whose names contain any of the given keywords.
 
 Format: `find KEYWORD [MORE_KEYWORDS]`
 
@@ -163,7 +169,7 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 * Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
 * The search considers only names.
 * Only full words match; for example, `Han` does not match `Hans`.
-* Persons matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
+* Candidates matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
 
 Examples:
 * `find John` returns `john` and `John Doe`
@@ -186,23 +192,23 @@ Example:
 * `status 1 pending_offer_extension`
 * `status 2 PENDING_RECRUITER_INTERVIEW`
 
-### Deleting a person: `delete`
+### Deleting a candidate: `delete`
 
-Deletes the specified person from the address book.
+Deletes the specified candidate.
 
 Format: `delete INDEX`
 
-* Deletes the person at the specified `INDEX`.
-* The index refers to the index number shown in the displayed person list.
+* Deletes the candidate at the specified `INDEX`.
+* The index refers to the index number shown in the displayed candidate list.
 * The index **must be a positive integer** 1, 2, 3, ...
 
 Examples:
-* `list` followed by `delete 2` deletes the 2nd person in the address book.
-* `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
+* `list` followed by `delete 2` deletes the 2nd candidate in RecruiterBuddy.
+* `find Betsy` followed by `delete 1` deletes the 1st candidate in the results of the `find` command.
 
 ### Clearing all entries: `clear`
 
-Clears all entries from the address book.
+Clears all candidates and roles from RecruiterBuddy.
 
 Format: `clear`
 
@@ -251,7 +257,7 @@ _Details coming soon ..._
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... ` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
+**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... ` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 r/Software Engineer t/referral t/java`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
