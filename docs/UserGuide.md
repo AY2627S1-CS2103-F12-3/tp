@@ -22,11 +22,20 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
 
 1. Download the latest `.jar` file from [here](https://github.com/AY2627S1-CS2103-F12-3/tp/releases).
 
-1. Copy the file to the folder you want to use as the _home folder_ for RecruiterBuddy.
+1. Copy the file to an empty folder you want to use for RecruiterBuddy.
 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
+
+   <box type="warning" seamless>
+
+   **Caution:**
+   Always launch RecruiterBuddy this way. RecruiterBuddy creates its data, preferences, and log files
+   in the folder it is launched from. Other ways of launching it, such as double-clicking the JAR file,
+   may launch it from a different folder, depending on your operating system. RecruiterBuddy would then
+   create and use files in that folder instead of the JAR file's folder.
+   </box>
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:
@@ -67,8 +76,8 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
-  For example, `help 123` is interpreted as `help`.
+* Extraneous parameters for `help`, `exit`, and `clear` are ignored.<br>
+  For example, `help 123` is interpreted as `help`. `list` accepts only `list` or `list role`; anything else is rejected.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </box>
@@ -90,6 +99,7 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
 
 * `ROLE` must be the title of an existing role that is `OPEN`. Use [`role add`](#adding-a-role-role-add) to create the role first.
 * `ROLE` is matched ignoring case; for example, `r/software engineer` matches the role `Software Engineer`. The candidate is saved with the role's own spelling of the title.
+* A candidate cannot be added if another candidate has exactly the same name. Names are case-sensitive, so `John Doe` and `john doe` are treated as different candidates. Candidates with different names may share a phone number or email address.
 * Newly added candidates are automatically assigned the status `Pending Resume Screening`.
 * The candidate's card shows the role as `Applying for: ROLE`.
 
@@ -235,9 +245,10 @@ Records a note for an existing candidate, such as an interview date and time.
 Format: `note INDEX [NOTE]`
 
 * Sets the note of the candidate at the specified `INDEX`. The index refers to the index number shown in the displayed candidate list. The index **must be a positive integer** 1, 2, 3, ...
-* Everything after the index is saved as the note, exactly as typed. The note can contain any text, including text that looks like a prefix, such as `t/` or `n/`.
+* Everything after the index is saved as the note, with leading and trailing spaces removed. The note can contain any text, including text that looks like a prefix, such as `t/` or `n/`.
 * A new note replaces the candidate's existing note.
 * To clear a candidate's note, enter `note INDEX` without a note after it.
+* To record or reschedule an interview, write its date and time in the note. RecruiterBuddy does not check that the date and time are valid.
 
 Examples:
 *  `note 1 Interview 2026-10-20 14:00` Sets the note of the 1st candidate to `Interview 2026-10-20 14:00`.
@@ -332,7 +343,9 @@ problem and run a successful command to retry saving before exiting.
 
 ### Editing the data file
 
-By default, RecruiterBuddy saves data in `[JAR file location]/data/addressbook.json`.
+RecruiterBuddy saves data in `data/addressbook.json`, inside the folder it was launched from. If you
+launched it as described in [Quick start](#quick-start), this is the folder containing the JAR file.
+The file is created after the first successfully executed command.
 Advanced users may edit this JSON file while the application is closed. Back it up first.
 
 The file contains a `persons` array for candidates and a `roles` array for role openings.
@@ -387,7 +400,7 @@ _Details coming soon ..._
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous RecruiterBuddy home folder.
+**A**: Install the app on the other computer and overwrite the data file it creates with `data/addressbook.json` from the folder containing your previous RecruiterBuddy JAR file.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -395,6 +408,7 @@ _Details coming soon ..._
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
 2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
+3. **If RecruiterBuddy is launched from a folder other than the JAR file's folder** (for example, by double-clicking the JAR file on some systems), it reads and writes `data/addressbook.json`, `preferences.json`, and `addressbook.log` in that other folder. It may then show sample data instead of your saved data. The remedy is to close the application, back up the `data/addressbook.json` files in both folders, decide which one to keep, copy it into the `data` folder beside the JAR file, and relaunch RecruiterBuddy as described in [Quick start](#quick-start).
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -413,5 +427,5 @@ Action     | Format, Examples
 **Role add** | `role add r/ROLE_TITLE x/EXPERIENCE_LEVEL`<br> e.g., `role add r/Software Engineer x/2 years`
 **Role close** | `role close INDEX`<br> e.g., `list role` followed by `role close 1`
 **Role delete** | `role delete INDEX`<br> e.g., `list role` followed by `role delete 1`
-**Status** | `status INDEX STATUS`<br> e.g., `status 1 accepted`
+**Status** | `status INDEX STATUS`<br> e.g., `status 1 HIRED`
 **Help**   | `help`
