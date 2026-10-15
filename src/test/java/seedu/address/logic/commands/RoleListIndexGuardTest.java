@@ -18,13 +18,13 @@ public class RoleListIndexGuardTest {
     private Model model;
 
     @BeforeEach
-    public void setUp() throws CommandException {
+    public void setUp() {
         model = new ModelManager(TypicalPersons.getTypicalAddressBook(), new UserPrefs());
-        new ListCommand(true).execute(model);
+        model.setRoleListDisplayed(true);
     }
 
     @Test
-    public void candidateIndexCommandsAfterRoleList_areRejected() {
+    public void candidateIndexCommandsWhileRoleListDisplayed_areRejected() {
         assertThrows(CommandException.class, () -> new DeleteCommand(INDEX_FIRST_PERSON).execute(model));
         assertThrows(CommandException.class, () -> new EditCommand(INDEX_FIRST_PERSON,
                 new EditCommand.EditPersonDescriptor()).execute(model));

@@ -116,6 +116,58 @@ Examples:
 
 New roles are created with status `OPEN`. To view all roles, use `list role`.
 
+### Closing a role: `role close`
+
+Ends recruitment while retaining the role and all its candidate records.
+
+Format: `role close INDEX`
+
+Run `list role` first. `INDEX` must be a positive integer shown in the current role list.
+The role must be `OPEN`. Every associated candidate must be `HIRED`, `REJECTED`, or `WITHDRAWN`,
+and at most one may be `HIRED`. A role with no candidates, or no hired candidate, may also be closed.
+Checks include candidates hidden by filters. Candidates loaded without a saved status receive
+`PENDING_RESUME_SCREENING` and must receive a final outcome before closure.
+
+Example: `list role`, followed by `role close 1`.
+
+Success shows `Closed role: ROLE_TITLE.` and changes the displayed status to `CLOSED`.
+The role and its candidates are saved automatically; candidate statuses remain unchanged.
+New candidates cannot be added to the closed role. A role is never closed automatically.
+
+If closure fails, no records change:
+
+* Pending candidates: `Cannot close role: ROLE_TITLE. N candidate(s) still pending.`
+* Multiple hired candidates: `Cannot close role: ROLE_TITLE. More than one candidate is marked HIRED.`
+* Already closed: `ROLE_TITLE is already closed.`
+* Invalid or missing index: `Role index must refer to a displayed role.`
+* Extra arguments: `The role close command takes only a role index.`
+* Candidate list displayed: `The role list is not displayed. Use list role first.`
+
+### Deleting a role: `role delete`
+
+Permanently removes a role entered by mistake. Run `list role` first.
+
+Format: `role delete INDEX`
+
+`INDEX` must be a positive integer shown in the current role list. An `OPEN` or `CLOSED` role
+can be deleted only when it has no associated candidates. All candidates are checked, including
+those hidden by filters and those marked `HIRED`, `REJECTED`, or `WITHDRAWN`.
+
+Example: `list role`, followed by `role delete 1`.
+
+Success shows `Deleted role: ROLE_TITLE.`. The role disappears, remaining displayed indices update,
+and the change is saved automatically. Its title can be used again with `role add`.
+Deletion is immediate and permanent. It never deletes, detaches, or reassigns candidates.
+
+If deletion fails, no records change:
+
+* Associated candidates: `Cannot delete role: ROLE_TITLE. It has N associated candidate(s).`
+* Invalid or missing index: `Role index must refer to a displayed role.`
+* Extra arguments: `The role delete command takes only a role index.`
+* Candidate list displayed: `The role list is not displayed. Use list role first.`
+
+Use `role close` to finish recruitment and retain its history; `role delete` removes an unused role.
+
 ### Listing all candidates: `list`
 
 Shows a list of all candidates.
@@ -127,6 +179,10 @@ Format: `list`
 Shows every unique role in the address book. Each role is displayed in its own box with its title, required experience level, and status.
 
 Format: `list role`
+
+Role indices can be used only while the role list is displayed. If a successful command such as
+adding or finding a candidate switches back to the candidate list, run `list role` again before
+using `role close` or `role delete`. Failed commands leave the current list displayed.
 
 ### Editing a candidate: `edit`
 
@@ -188,11 +244,24 @@ Format: `status INDEX STATUS`
 * The person's original status is replaced with the one specified in `STATUS`.
 * `STATUS` must be one of the following: `PENDING_RESUME_SCREENING`, `PENDING_RECRUITER_INTERVIEW`, `PENDING_OFFER_EXTENSION`, `PENDING_OFFER_DECISION`, `HIRED`, `REJECTED`, or `WITHDRAWN`.
 * `STATUS` is not case-sensitive; for example, `hired`, `Hired` and `hiRED` are treated as the same as `HIRED`.
+* Each role has one vacancy. Assigning `HIRED` fails if another candidate for the same role is already
+  `HIRED`, including candidates hidden by filters. Role titles are compared without case sensitivity.
+  The error is `ROLE_TITLE already has a hired candidate.` No candidate data changes.
+* Reapplying `HIRED` to the same candidate is allowed when no other candidate for that role is hired.
+  Marking a candidate `HIRED` does not close the role; use `role close` explicitly after all candidates
+  have final outcomes.
+* For an `OPEN` role, a candidate with a final outcome (`HIRED`, `REJECTED`, or `WITHDRAWN`) may return
+  to any of the four `PENDING_*` statuses to correct or resume their recruitment process.
+* For a `CLOSED` role, assigning any `PENDING_*` status is rejected with
+  `Cannot set a pending status for NAME because role ROLE_TITLE is closed.` The candidate, role,
+  current filter, and saved records remain unchanged. Corrections between final outcomes are still
+  allowed, subject to the one-hired-candidate rule. Reopening a role is not supported in the MVP.
 
 Example:
 
 * `status 1 pending_offer_extension`
 * `status 2 PENDING_RECRUITER_INTERVIEW`
+* `status 1 HIRED`
 
 ### Deleting a candidate: `delete`
 
@@ -268,5 +337,7 @@ Action     | Format, Examples
 **List roles** | `list role`
 **Note**   | `note INDEX [NOTE]`<br> e.g., `note 1 Interview 2026-10-20 14:00`
 **Role add** | `role add r/ROLE_TITLE x/EXPERIENCE_LEVEL`<br> e.g., `role add r/Software Engineer x/2 years`
+**Role close** | `role close INDEX`<br> e.g., `list role` followed by `role close 1`
+**Role delete** | `role delete INDEX`<br> e.g., `list role` followed by `role delete 1`
 **Status** | `status INDEX STATUS`<br> e.g., `status 1 accepted`
 **Help**   | `help`

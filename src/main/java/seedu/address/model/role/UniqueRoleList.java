@@ -69,6 +69,17 @@ public class UniqueRoleList implements Iterable<Role> {
     }
 
     /**
+     * Removes {@code role} from the list.
+     * The role must exist in the list.
+     */
+    public void remove(Role role) {
+        requireNonNull(role);
+        if (!internalList.remove(role)) {
+            throw new RoleNotFoundException();
+        }
+    }
+
+    /**
      * Replaces the list contents with {@code roles}.
      */
     public void setRoles(List<Role> roles) {

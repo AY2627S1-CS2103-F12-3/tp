@@ -317,6 +317,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *` | department recruiter | add a role opening with its title and required experience level | track an active recruitment need in my department |
 | `* * *` | department recruiter | view all role openings and whether they are open or closed | review the roles tracked by my department |
 | `* * *` | department recruiter | close a role opening | prevent new candidates from being added after recruitment ends while retaining existing candidate records |
+| `* * *` | department recruiter | delete a role with no associated candidates | remove an erroneous vacancy and reuse its title without losing candidate records |
 | `* * *` | department recruiter | add a candidate to a specific open role with their contact details and address | keep the candidate's recruitment information in one place |
 | `* * *` | department recruiter | be warned when a candidate's email address or phone number is already recorded | avoid creating duplicate candidate profiles |
 | `* * *` | department recruiter | view all candidates | review the department's recruitment pipeline |
@@ -480,12 +481,96 @@ UC07 — Close Role Opening
 System: RecruiterBuddy
 Actor: Recruiter
 MSS:
-1. Recruiter requests to close a role opening.
-2. RecruiterBuddy displays the active role openings.
-3. Recruiter selects the role opening to close.
-4. RecruiterBuddy closes the selected role opening.
-5. RecruiterBuddy confirms that the role opening has been closed.
+1. Recruiter displays the role list using `list role`.
+2. Recruiter selects a role using `role close INDEX`.
+3. RecruiterBuddy checks that the role is open, all associated candidates have final outcomes,
+   and at most one candidate is hired.
+4. RecruiterBuddy closes the role, retaining all candidate records and their statuses.
+5. RecruiterBuddy saves the change and confirms closure.
 Use case ends.
+
+Extensions:
+
+* 2a. The role list is not displayed, or the index is invalid.
+  * 2a1. RecruiterBuddy reports the error without changing records.
+* 3a. The role is already closed, candidates are pending, or multiple candidates are hired.
+  * 3a1. RecruiterBuddy reports the error without changing records.
+
+`RoleCommandParser` delegates the `close` subcommand to `CloseRoleCommandParser`.
+`CloseRoleCommand` resolves the index against `Model#getFilteredRoleList` but checks candidate
+outcomes against the complete `ReadOnlyAddressBook#getPersonList`, matching role titles without
+case sensitivity. `HIRED`, `REJECTED`, and `WITHDRAWN` are final outcomes; other statuses are pending.
+Missing saved statuses already default to `PENDING_RESUME_SCREENING` during loading.
+After validation, `Model#setRole` replaces the immutable role with a `CLOSED` copy.
+The observable role list updates its existing UI, and `LogicManager` saves the updated address book.
+The existing candidate-add guard rejects closed roles. No candidate is modified by closure.
+
+After successful execution and saving, `LogicManager` sets `Model#isRoleListDisplayed` from
+`CommandResult#isShowRoleList`, the same value `MainWindow` uses to select the visible list.
+Commands do not update that flag independently. Parsing, execution, and save failures leave the
+previous view flag unchanged, matching the UI's error path. Listing roles retains the candidate
+filter; candidate-index commands are protected by the view flag rather than an artificial empty list.
+Regression checks include `list role`, adding a candidate to another role, and attempting to close
+or delete a role while candidate indices are displayed; both role commands must reject the index.
+
+`Status#isPending` defines which statuses still require a final outcome. Both `CloseRoleCommand`
+and `StatusCommand` use that definition. Before a status change, `StatusCommand` looks up the
+candidate's role without case sensitivity and rejects pending statuses for a closed role.
+Corrections back to pending remain available for open roles. Corrections between final outcomes
+are allowed for closed roles, subject to the hiring guard. Rejection occurs before updating records
+or filters, and `LogicManager` does not save a rejected command.
+
+`StatusCommand` checks the complete stored candidate list before assigning `HIRED`.
+It excludes the selected candidate by candidate identity, then checks whether any other candidate
+with a case-insensitively matching role title is already hired. A conflict raises a command exception
+before updating any records or filters. Reapplying `HIRED` to the same candidate is allowed if there
+is no other hire for that role. Hiring never closes a role
+automatically; the close command separately validates final outcomes and the number of hires.
+
+Manual checks: add a role, run `list role`, close it with no candidates, and verify its displayed
+status and success message. Restart to verify persistence. Repeat with pending candidates (closure
+must fail), then with one hired candidate and the others rejected or withdrawn (closure must succeed).
+Check invalid indices, extra arguments, repeated closure, and attempting to add a candidate to the closed role.
+For hiring checks, assign `HIRED` to one candidate, filter the list to another candidate for the same
+role, then try assigning `HIRED` again. The command must fail without changing either record.
+Verify that reapplying `HIRED` to the first candidate succeeds, and that candidates for different
+roles can each be hired. Restart to verify that successful updates are saved and rejected updates are absent.
+After closing a role, display its candidates and try each `PENDING_*` status; each must be rejected
+without changing the final outcome or closed role. Repeat for an open role to verify that returning
+to pending succeeds and that closure is then rejected until the candidate receives a final outcome.
+
+UC07a — Delete Role Opening
+System: RecruiterBuddy
+Actor: Recruiter
+MSS:
+1. Recruiter displays the role list using `list role`.
+2. Recruiter selects the mistaken role using `role delete INDEX`.
+3. RecruiterBuddy checks that the role has no associated candidates.
+4. RecruiterBuddy removes the role and saves the updated records.
+5. RecruiterBuddy confirms deletion and updates the displayed role indices.
+Use case ends.
+
+Extensions:
+
+* 2a. The role list is not displayed, or the index is invalid.
+  * 2a1. RecruiterBuddy reports the error without changing records.
+* 3a. The role has associated candidates, regardless of their statuses or visibility.
+  * 3a1. RecruiterBuddy reports their count without changing records.
+
+`RoleCommandParser` delegates to `DeleteRoleCommandParser`. Close and delete share
+`ParserUtil#parseRoleIndex` so invalid indices and extra arguments are handled consistently.
+`DeleteRoleCommand` resolves the displayed role and counts associated candidates in the complete
+stored list, matching titles without case sensitivity. Only a role with no candidates is removed
+through `Model#deleteRole`, `AddressBook#removeRole`, and `UniqueRoleList#remove`.
+The observable role list updates automatically and the command result keeps the role view visible.
+`LogicManager` saves the removal. Removing the role releases its title for reuse; candidates are
+never deleted, detached, or reassigned by this command.
+
+Manual checks: create an unused role, run `list role`, then `role delete INDEX`.
+Verify the role disappears, remaining indices update, and it stays absent after restarting.
+Recreate the role using its previous title. Repeat with an empty closed role (deletion succeeds)
+and with a role containing candidates at any status (deletion fails without changing records).
+
 UC08 — Delete Candidate Record
 System: RecruiterBuddy
 Actor: User

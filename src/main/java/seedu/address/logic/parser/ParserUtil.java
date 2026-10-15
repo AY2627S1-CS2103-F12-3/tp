@@ -1,6 +1,7 @@
 package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_ROLE_DISPLAYED_INDEX;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -37,6 +38,25 @@ public class ParserUtil {
             throw new ParseException(MESSAGE_INVALID_INDEX);
         }
         return Index.fromOneBased(Integer.parseInt(trimmedIndex));
+    }
+
+    /**
+     * Parses the single displayed-role index, rejecting extra arguments with {@code extraTextMessage}.
+     *
+     * @throws ParseException if the index is invalid or extra arguments are present.
+     */
+    public static Index parseRoleIndex(String args, String extraTextMessage) throws ParseException {
+        requireNonNull(args);
+        requireNonNull(extraTextMessage);
+        String trimmedArgs = args.strip();
+        if (trimmedArgs.split("\\s+").length > 1) {
+            throw new ParseException(extraTextMessage);
+        }
+        try {
+            return parseIndex(trimmedArgs);
+        } catch (ParseException exception) {
+            throw new ParseException(MESSAGE_INVALID_ROLE_DISPLAYED_INDEX, exception);
+        }
     }
 
     /**

@@ -153,6 +153,11 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public void deleteRole(Role role) {
+        addressBook.removeRole(role);
+    }
+
+    @Override
     public ObservableList<Role> getFilteredRoleList() {
         return filteredRoles;
     }

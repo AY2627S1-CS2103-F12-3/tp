@@ -20,6 +20,7 @@ import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.Status;
+import seedu.address.model.role.Role;
 import seedu.address.model.role.RoleTitle;
 import seedu.address.model.tag.Tag;
 
@@ -37,15 +38,18 @@ public class StatusCommand extends Command {
             + "Example: " + COMMAND_WORD + " 1 " + Status.values()[0].name();
 
     public static final String MESSAGE_ADD_STATUS_SUCCESS = "Status of candidate: %1$s";
+    public static final String MESSAGE_ROLE_ALREADY_HAS_HIRED_CANDIDATE = "%1$s already has a hired candidate.";
+    public static final String MESSAGE_PENDING_STATUS_FOR_CLOSED_ROLE =
+            "Cannot set a pending status for %1$s because role %2$s is closed.";
 
     private final Index index;
     private final Status status;
 
     /**
-     * Creates a new StatusCommand that appends a Status to person's currently assigned tags.
+     * Creates a command that replaces the selected candidate's recruitment status.
      *
      * @param index of the person in the filtered person list to edit.
-     * @param status status (currently implemented as a tag) to assign to the candidate.
+     * @param status recruitment status to assign to the candidate.
      */
     public StatusCommand(Index index, Status status) {
         requireNonNull(index);
@@ -60,7 +64,9 @@ public class StatusCommand extends Command {
      *
      * @param model {@code Model} which the command should operate on.
      * @return {@code CommandResult} containing the success message.
-     * @throws CommandException if index is larger than size of displayed candidates list.
+     * @throws CommandException if no candidate list is displayed, the index is invalid, a pending status is
+     *     requested for a closed role, or another candidate for the same role is already hired when assigning
+     *     {@code HIRED}.
      */
     @Override
     public CommandResult execute(Model model) throws CommandException {
@@ -75,11 +81,40 @@ public class StatusCommand extends Command {
         }
 
         Person personToEdit = lastShownList.get(index.getZeroBased());
+        verifyPendingStatusAllowed(model, personToEdit);
+        verifyHiringAllowed(model, personToEdit);
         Person editedPerson = addStatusToPerson(personToEdit, status);
 
         model.setPerson(personToEdit, editedPerson);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
         return new CommandResult(String.format(MESSAGE_ADD_STATUS_SUCCESS, status));
+    }
+
+    /**
+     * Checks that a pending status will not resume recruitment for a closed role.
+     */
+    private void verifyPendingStatusAllowed(Model model, Person personToEdit) throws CommandException {
+        if (status.isPending() && model.findRole(personToEdit.getRole()).filter(Role::isClosed).isPresent()) {
+            throw new CommandException(String.format(MESSAGE_PENDING_STATUS_FOR_CLOSED_ROLE,
+                    personToEdit.getName(), personToEdit.getRole()));
+        }
+    }
+
+    /**
+     * Checks that assigning {@code HIRED} will not fill the same role more than once.
+     */
+    private void verifyHiringAllowed(Model model, Person personToEdit) throws CommandException {
+        if (status != Status.HIRED) {
+            return;
+        }
+        boolean hasOtherHiredCandidate = model.getAddressBook().getPersonList().stream()
+                .anyMatch(candidate -> !candidate.isSamePerson(personToEdit)
+                        && candidate.getStatus() == Status.HIRED
+                        && candidate.getRole().isSameTitle(personToEdit.getRole()));
+        if (hasOtherHiredCandidate) {
+            throw new CommandException(String.format(MESSAGE_ROLE_ALREADY_HAS_HIRED_CANDIDATE,
+                    personToEdit.getRole()));
+        }
     }
 
     /**

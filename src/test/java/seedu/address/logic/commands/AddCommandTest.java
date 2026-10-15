@@ -196,6 +196,11 @@ public class AddCommandTest {
         }
 
         @Override
+        public void deleteRole(Role role) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
         public void setRole(Role target, Role editedRole) {
             throw new AssertionError("This method should not be called.");
         }
