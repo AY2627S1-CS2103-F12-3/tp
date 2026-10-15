@@ -541,14 +541,19 @@ Use case ends.
   * 3d2a. Recruiter chooses to cancel adding the candidate.
     * Use case ends.
 
-UC03 — View Command Guide
-System: RecruiterBuddy
-Actor: User
-MSS:
+#### UC03 — View Command Guide
+
+**System:** RecruiterBuddy<br>
+**Actor:** User
+
+**Main success scenario:**
+
 1. User requests the command guide.
 2. RecruiterBuddy displays the commands and their features.
 3. User reviews the guide.
+
 Use case ends.
+
 #### UC04 — Record Interview Details
 
 **System:** RecruiterBuddy<br>
@@ -579,16 +584,21 @@ Use case ends.
   * 4a1. RecruiterBuddy replaces the earlier date and time with the new ones.
   * Use case resumes at step 5.
 
-UC05 — Save and Load Data
-System: RecruiterBuddy
-Actor: User
-MSS:
+#### UC05 — Save and Load Data
+
+**System:** RecruiterBuddy<br>
+**Actor:** User
+
+**Main success scenario:**
+
 1. User changes RecruiterBuddy data.
 2. RecruiterBuddy saves the updated data.
 3. User starts RecruiterBuddy.
 4. RecruiterBuddy loads the saved data.
 5. RecruiterBuddy displays the saved data to the user.
+
 Use case ends.
+
 #### UC06 — Add Candidate Notes
 
 **System:** RecruiterBuddy<br>
@@ -680,176 +690,266 @@ Use case ends.
 
 ## Optional
 
-UC10 — View Sample Data
-System: RecruiterBuddy
-Actor: User
-MSS:
+#### UC10 — View Sample Data
+
+**System:** RecruiterBuddy<br>
+**Actor:** User
+
+**Main success scenario:**
+
 1. User requests to view sample data.
 2. RecruiterBuddy displays sample roles and candidate records.
 3. User reviews the sample data.
-Extensions:
-- 2a. User requests to clear the sample data.
-  - 2a1. RecruiterBuddy removes all sample records.
-  - 2a2. RecruiterBuddy confirms that the sample data has been removed.
-  - Use case ends.
+
 Use case ends.
-UC11 — View Key Command Introduction
-System: RecruiterBuddy
-Actor: User
-MSS:
+
+**Extensions:**
+
+* 2a. User requests to clear the sample data.
+  * 2a1. RecruiterBuddy removes all sample records.
+  * 2a2. RecruiterBuddy confirms that the sample data has been removed.
+  * Use case ends.
+
+#### UC11 — View Key Command Introduction
+
+**System:** RecruiterBuddy<br>
+**Actor:** User
+
+**Main success scenario:**
+
 1. User requests an introduction to key commands.
 2. RecruiterBuddy displays an introduction to the main commands.
 3. User reviews the introduction.
+
 Use case ends.
-UC12 — View Status Definitions
-System: RecruiterBuddy
-Actor: User
-MSS:
+
+#### UC12 — View Status Definitions
+
+**System:** RecruiterBuddy<br>
+**Actor:** User
+
+**Main success scenario:**
+
 1. User requests candidate and role status definitions.
 2. RecruiterBuddy displays the status definitions.
 3. User reviews the definitions.
+
 Use case ends.
-UC13 — Get Guidance for Invalid Command
-System: RecruiterBuddy
-Actor: User
-MSS:
+
+#### UC13 — Get Guidance for Invalid Command
+
+**System:** RecruiterBuddy<br>
+**Actor:** User
+
+**Main success scenario:**
+
 1. User enters a command.
 2. RecruiterBuddy processes the command.
 3. RecruiterBuddy displays the result.
-Extensions:
-- 1a. User enters an invalid command.
-  - 1a1. RecruiterBuddy explains why the command is invalid and provides guidance for correcting it.
-  - 1a2. User corrects and resubmits the command.
-  - Use case resumes at step 2.
+
 Use case ends.
-UC14 — Undo Changes
-System: RecruiterBuddy
-Actor: User
-MSS:
+
+**Extensions:**
+
+* 1a. User enters an invalid command.
+  * 1a1. RecruiterBuddy explains why the command is invalid and provides guidance for correcting it.
+  * 1a2. User corrects and resubmits the command.
+  * Use case resumes at step 2.
+
+#### UC14 — Undo Changes
+
+**System:** RecruiterBuddy<br>
+**Actor:** User
+
+**Main success scenario:**
+
 1. User requests to undo the most recent n changes.
 2. RecruiterBuddy reverses the requested changes.
 3. RecruiterBuddy confirms that the changes have been undone.
+
 Use case ends.
-UC15 — Update Candidate Status
-System: RecruiterBuddy
-Actor: Recruiter
-MSS:
+
+#### UC15 — Update Candidate Status
+
+**System:** RecruiterBuddy<br>
+**Actor:** Recruiter
+
+**Main success scenario:**
+
 1. Recruiter requests to update a candidate’s status.
 2. RecruiterBuddy displays the candidate records.
 3. Recruiter selects a candidate and provides the new status.
 4. RecruiterBuddy updates the candidate’s status.
 5. RecruiterBuddy confirms that the status has been updated.
-Extensions:
-- 3a. Recruiter selects multiple candidates and chooses a status to apply to all of them.
-  - 3a1. RecruiterBuddy updates the selected candidates’ statuses.
-  - 3a2. RecruiterBuddy confirms that the statuses have been updated.
-  - Use case ends.
+
 Use case ends.
-UC16 — Update Candidate Details
-System: RecruiterBuddy
-Actor: Recruiter
-MSS:
+
+**Extensions:**
+
+* 3a. Recruiter selects multiple candidates and chooses a status to apply to all of them.
+  * 3a1. RecruiterBuddy updates the selected candidates’ statuses.
+  * 3a2. RecruiterBuddy confirms that the statuses have been updated.
+  * Use case ends.
+
+#### UC16 — Update Candidate Details
+
+**System:** RecruiterBuddy<br>
+**Actor:** Recruiter
+
+**Main success scenario:**
+
 1. Recruiter requests to update a candidate’s details.
 2. RecruiterBuddy displays the candidate records.
 3. Recruiter selects a candidate and provides the updated details.
 4. RecruiterBuddy updates the candidate’s profile.
 5. RecruiterBuddy confirms that the profile has been updated.
+
 Use case ends.
-UC17 — Filter Candidates
-System: RecruiterBuddy
-Actor: Recruiter
-MSS:
+
+#### UC17 — Filter Candidates
+
+**System:** RecruiterBuddy<br>
+**Actor:** Recruiter
+
+**Main success scenario:**
+
 1. Recruiter requests to filter candidates.
 2. RecruiterBuddy requests the filter criteria.
 3. Recruiter provides one or more criteria.
 4. RecruiterBuddy displays the candidates matching the criteria.
-Extensions:
-- 3a. Recruiter includes a role among the filter criteria.
-  - 3a1. RecruiterBuddy displays the candidates associated with the selected role.
-  - Use case ends.
+
 Use case ends.
-UC18 — Search for Candidate
-System: RecruiterBuddy
-Actor: User
-MSS:
+
+**Extensions:**
+
+* 3a. Recruiter includes a role among the filter criteria.
+  * 3a1. RecruiterBuddy displays the candidates associated with the selected role.
+  * Use case ends.
+
+#### UC18 — Search for Candidate
+
+**System:** RecruiterBuddy<br>
+**Actor:** User
+
+**Main success scenario:**
+
 1. User requests to search for a candidate.
 2. RecruiterBuddy requests the search details.
 3. User provides the candidate’s name or other relevant details.
 4. RecruiterBuddy displays matching candidate records.
+
 Use case ends.
-UC19 — Create Custom Candidate Status
-System: RecruiterBuddy
-Actor: User
-MSS:
+
+#### UC19 — Create Custom Candidate Status
+
+**System:** RecruiterBuddy<br>
+**Actor:** User
+
+**Main success scenario:**
+
 1. User requests to create a custom candidate status.
 2. RecruiterBuddy requests the status details.
 3. User provides the details.
 4. RecruiterBuddy creates the custom status.
 5. RecruiterBuddy confirms that the status has been created.
+
 Use case ends.
-UC20 — View Past Applicant Contact Information
-System: RecruiterBuddy
-Actor: Recruiter
-MSS:
+
+#### UC20 — View Past Applicant Contact Information
+
+**System:** RecruiterBuddy<br>
+**Actor:** Recruiter
+
+**Main success scenario:**
+
 1. Recruiter requests to view a past applicant’s contact information.
 2. RecruiterBuddy displays the past applicant records.
 3. Recruiter selects an applicant.
 4. RecruiterBuddy displays the applicant’s saved contact information.
+
 Use case ends.
-UC21 — Add Multiple Candidate Applications
-System: RecruiterBuddy
-Actor: User
-MSS:
+
+#### UC21 — Add Multiple Candidate Applications
+
+**System:** RecruiterBuddy<br>
+**Actor:** User
+
+**Main success scenario:**
+
 1. User requests to add candidate applications.
 2. RecruiterBuddy requests the application details.
 3. User provides the details for one or more applications.
 4. RecruiterBuddy records the applications.
 5. RecruiterBuddy confirms that the applications have been added.
+
 Use case ends.
-UC22 — Create Shortcut
-System: RecruiterBuddy
-Actor: User
-MSS:
+
+#### UC22 — Create Shortcut
+
+**System:** RecruiterBuddy<br>
+**Actor:** User
+
+**Main success scenario:**
+
 1. User requests to create a shortcut.
 2. RecruiterBuddy requests the task and shortcut details.
 3. User provides the details.
 4. RecruiterBuddy creates the shortcut.
 5. RecruiterBuddy confirms that the shortcut has been created.
+
 Use case ends.
-UC23 — Export All Data
-System: RecruiterBuddy
-Actor: User
-MSS:
+
+#### UC23 — Export All Data
+
+**System:** RecruiterBuddy<br>
+**Actor:** User
+
+**Main success scenario:**
+
 1. User requests to export role and candidate data.
 2. RecruiterBuddy exports the data to a local CSV file.
 3. RecruiterBuddy informs the user where the file has been saved.
-Extensions:
-- 1a. User requests to export only selected candidate records.
-  - 1a1. RecruiterBuddy displays the candidate records.
-  - 1a2. User selects the records to export.
-  - 1a3. RecruiterBuddy exports the selected records to a CSV file.
-  - 1a4. RecruiterBuddy informs the user where the file has been saved.
-  - Use case ends.
+
 Use case ends.
-UC24 — Import Data
-System: RecruiterBuddy
-Actor: User
-MSS:
+
+**Extensions:**
+
+* 1a. User requests to export only selected candidate records.
+  * 1a1. RecruiterBuddy displays the candidate records.
+  * 1a2. User selects the records to export.
+  * 1a3. RecruiterBuddy exports the selected records to a CSV file.
+  * 1a4. RecruiterBuddy informs the user where the file has been saved.
+  * Use case ends.
+
+#### UC24 — Import Data
+
+**System:** RecruiterBuddy<br>
+**Actor:** User
+
+**Main success scenario:**
+
 1. User requests to import role and candidate data.
 2. RecruiterBuddy requests the local CSV file.
 3. User provides the file.
 4. RecruiterBuddy imports the data.
 5. RecruiterBuddy confirms that the data has been imported.
+
 Use case ends.
-UC25 — View Candidate Status Audit Trail
-System: RecruiterBuddy
-Actor: User
-MSS:
+
+#### UC25 — View Candidate Status Audit Trail
+
+**System:** RecruiterBuddy<br>
+**Actor:** User
+
+**Main success scenario:**
+
 1. User requests to view a candidate’s status history.
 2. RecruiterBuddy displays the candidate records.
 3. User selects a candidate.
 4. RecruiterBuddy displays the candidate’s status changes and the time spent at each stage.
+
 Use case ends.
+
 *{More to be added}*
 
 ### Non-Functional Requirements
