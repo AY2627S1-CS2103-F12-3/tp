@@ -374,6 +374,29 @@ The following activity diagram summarizes what happens when a user executes a ne
 
 _{more aspects and alternatives to be added}_
 
+### Candidate notes
+
+Each `Person` has a `Note`, a free-text field for details such as an interview date and time. An empty note means the candidate has no note, and the candidate card hides it.
+
+#### Recording a note
+
+`NoteCommandParser` splits the arguments into the first word, which is parsed as the index, and the rest, which is trimmed and becomes the note. It does not use `ArgumentTokenizer`, so the note can contain text that looks like a prefix, such as `t/` or `n/`. An empty remainder gives an empty `Note`, so `note 1` clears the first candidate's note.
+
+`NoteCommand#execute` looks up the candidate in the displayed candidate list and replaces it with a copy that has the new note. Other commands that rebuild a `Person`, such as `edit` and `status`, copy the existing note across, so they never change it.
+
+Notes are stored as the `note` field of each candidate in the JSON data file. A candidate saved without a `note` field loads with an empty note.
+
+#### Design considerations
+
+**Aspect: How the note is entered**
+
+* **Alternative 1 (current choice):** A separate `note INDEX [NOTE]` command that takes everything after the index.
+  * Pros: Any text can be stored, including text that looks like a prefix.
+  * Cons: A note cannot be given when the candidate is first added, so it takes a second command.
+* **Alternative 2:** An `nt/NOTE` prefix on `add` and `edit`.
+  * Pros: Consistent with the other candidate fields.
+  * Cons: The tokenizer ends the note at the next prefix. For example, `nt/Discuss t/java` would save the note `Discuss` and add a `java` tag, so valid notes are silently changed. This alternative was implemented and then removed for this reason.
+
 ### \[Proposed\] Data archiving
 
 _{Explain here how the data archiving feature will be implemented}_
@@ -458,7 +481,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+(For all use cases below, the **System** is `RecruiterBuddy` and the **Actor** is the `Recruiter`, unless specified otherwise)
 
 ## Must-have
 
@@ -481,23 +504,40 @@ Use case ends.
   * 2a1. RecruiterBuddy reports the error without adding a role.
   * Use case ends.
 
-UC02 — Add Candidate to Role
-System: RecruiterBuddy
-Actor: Recruiter
-MSS:
+#### UC02 — Add Candidate to Role
+
+**System:** RecruiterBuddy<br>
+**Actor:** Recruiter<br>
+**Guarantees:** A candidate is recorded only under an existing open role.
+
+**Main success scenario:**
+
 1. Recruiter requests to add a candidate to an open role.
 2. RecruiterBuddy requests the candidate’s contact information and the role.
 3. Recruiter provides the requested information.
 4. RecruiterBuddy records the candidate under the selected role.
 5. RecruiterBuddy confirms that the candidate has been added.
-Extensions:
-- 3a. RecruiterBuddy detects a candidate with the same email address or phone number.
-  - 3a1. RecruiterBuddy warns the recruiter that a matching candidate record exists.
-  - 3a2. Recruiter chooses to cancel adding the candidate.
-  - Use case ends.
-  - 3a3. Recruiter chooses to proceed with adding the candidate.
-  - Use case resumes at step 4.
+
 Use case ends.
+
+**Extensions:**
+
+* 3a. Some contact information or the role is missing or invalid.
+  * 3a1. RecruiterBuddy reports the error without adding the candidate.
+  * Use case resumes at step 2.
+* 3b. No role with the given title exists.
+  * 3b1. RecruiterBuddy reports that the role must be created first (UC01).
+  * Use case ends.
+* 3c. The role is closed.
+  * 3c1. RecruiterBuddy reports that no new candidates can be added to the role.
+  * Use case ends.
+* 3d. RecruiterBuddy detects a candidate with the same email address or phone number.
+  * 3d1. RecruiterBuddy warns the recruiter that a matching candidate record exists.
+  * 3d2. Recruiter chooses to proceed with adding the candidate.
+  * Use case resumes at step 4.
+  * 3d2a. Recruiter chooses to cancel adding the candidate.
+    * Use case ends.
+
 UC03 — View Command Guide
 System: RecruiterBuddy
 Actor: User
@@ -506,16 +546,36 @@ MSS:
 2. RecruiterBuddy displays the commands and their features.
 3. User reviews the guide.
 Use case ends.
-UC04 — Record Interview Details
-System: RecruiterBuddy
-Actor: Recruiter
-MSS:
-1. Recruiter requests to record interview details for a candidate.
-2. RecruiterBuddy requests the scheduled time and assigned interviewers.
-3. Recruiter provides the interview details.
-4. RecruiterBuddy records the details in the candidate’s profile.
-5. RecruiterBuddy confirms that the interview details have been recorded.
+#### UC04 — Record Interview Details
+
+**System:** RecruiterBuddy<br>
+**Actor:** Recruiter
+
+**Main success scenario:**
+
+1. Recruiter requests to record an interview for a candidate.
+2. RecruiterBuddy requests the interview date and time.
+3. Recruiter provides the interview date and time.
+4. RecruiterBuddy records the interview in the candidate’s profile.
+5. RecruiterBuddy confirms that the interview has been recorded.
+
 Use case ends.
+
+**Extensions:**
+
+* 1a. The candidate does not exist.
+  * 1a1. RecruiterBuddy reports the error.
+  * Use case ends.
+* 3a. The date or time is invalid.
+  * 3a1. RecruiterBuddy reports the error without recording the interview.
+  * Use case resumes at step 2.
+* 3b. Recruiter also provides the assigned interviewers or the interview location.
+  * 3b1. RecruiterBuddy includes them in the interview record.
+  * Use case resumes at step 4.
+* 4a. The candidate already has an interview recorded, and the interview is being rescheduled.
+  * 4a1. RecruiterBuddy replaces the earlier date and time with the new ones.
+  * Use case resumes at step 5.
+
 UC05 — Save and Load Data
 System: RecruiterBuddy
 Actor: User
@@ -526,16 +586,33 @@ MSS:
 4. RecruiterBuddy loads the saved data.
 5. RecruiterBuddy displays the saved data to the user.
 Use case ends.
-UC06 — Add Candidate Notes
-System: RecruiterBuddy
-Actor: Recruiter
-MSS:
-1. Recruiter requests to add notes to a candidate’s profile.
-2. RecruiterBuddy requests the notes.
-3. Recruiter provides the notes.
-4. RecruiterBuddy records the notes in the candidate’s profile.
-5. RecruiterBuddy confirms that the notes have been added.
+#### UC06 — Add Candidate Notes
+
+**System:** RecruiterBuddy<br>
+**Actor:** Recruiter
+
+**Main success scenario:**
+
+1. Recruiter requests to add a note to a candidate’s profile.
+2. RecruiterBuddy requests the note.
+3. Recruiter provides the note.
+4. RecruiterBuddy adds the note to the candidate’s profile.
+5. RecruiterBuddy confirms that the note has been added.
+
 Use case ends.
+
+**Extensions:**
+
+* 1a. The candidate does not exist.
+  * 1a1. RecruiterBuddy reports the error.
+  * Use case ends.
+* 1b. Recruiter requests to remove the candidate’s existing notes.
+  * 1b1. RecruiterBuddy removes the notes and confirms that they have been removed.
+  * Use case ends.
+* 3a. Recruiter provides an empty note.
+  * 3a1. RecruiterBuddy reports that the note is empty, without changing the candidate’s profile.
+  * Use case resumes at step 2.
+
 #### UC07 — Close Role Opening
 
 **System:** RecruiterBuddy<br>
@@ -959,17 +1036,71 @@ Always switch back with `list` or `list role` before using indices for that list
    command-specific "takes only a role index" errors. Rejected commands preserve the displayed list
    and all records. After a successful `role close 2`, a repeated closure reports that it is already closed.
 
-### Deleting a person
+### Adding a candidate
 
-1. Deleting a person while all persons are being shown
+1. Adding a candidate to an existing role
 
-   1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
+   1. Prerequisites: Start with the sample data, which includes the roles `Software Engineer`, `Data Analyst` and `Product Manager`.
+
+   1. Test case: `add n/Jane Tan p/91234567 e/jane@example.com a/Clementi Ave 2 r/Data Analyst`<br>
+      Expected: Jane Tan is added to the end of the candidate list. The new card shows `Applying for: Data Analyst` and the status `Pending Resume Screening`.
+
+   1. Test case: `add n/Ben Lim p/92345678 e/ben@example.com a/Jurong West r/product manager`<br>
+      Expected: Ben Lim is added. The new card shows the role with the role's own spelling, `Applying for: Product Manager`.
+
+   1. Test case: `add n/Carl Ng p/93456789 e/carl@example.com a/Bedok r/Designer`<br>
+      Expected: No candidate is added. The error message says that no role named `Designer` exists and that the role must be added first.
+
+   1. Test case: `add n/Carl Ng p/93456789 e/carl@example.com a/Bedok`<br>
+      Expected: No candidate is added. The error message shows the correct `add` format, which includes `r/ROLE`.
+
+   1. Test case: `add n/Alex Yeoh p/94567890 e/alex2@example.com a/Bedok r/Data Analyst`<br>
+      Expected: No candidate is added, because a candidate named Alex Yeoh already exists.
+
+### Editing a candidate
+
+1. Editing a candidate's details
+
+   1. Prerequisites: Start with the sample data and run `list`. The 1st candidate, Alex Yeoh, has a role, a status and a note.
+
+   1. Test case: `edit 1 p/91112222`<br>
+      Expected: Alex Yeoh's phone number changes. The role, status and note are unchanged.
+
+   1. Test case: `edit 1 r/Data Analyst`<br>
+      Expected: The candidate is not changed. The error message says that a candidate's role cannot be edited.
+
+### Recording a note
+
+1. Setting and clearing a candidate's note
+
+   1. Prerequisites: Start with the sample data and run `list`.
+
+   1. Test case: `note 2 Interview 2026-10-20 14:00`<br>
+      Expected: The 2nd candidate's card shows the note `Interview 2026-10-20 14:00`.
+
+   1. Test case: `note 2 Discuss t/java experience`<br>
+      Expected: The note is replaced with `Discuss t/java experience`. No `java` tag is added.
+
+   1. Test case: `note 2`<br>
+      Expected: The 2nd candidate's note is cleared and no longer shown on the card.
+
+   1. Test case: `note 0 Interview tomorrow`<br>
+      Expected: No note is changed. The error message shows the correct `note` format.
+
+   1. Other incorrect note commands to try: `note`, `note x Interview` (where x is larger than the list size)<br>
+      Expected: No note is changed and an error message is shown.
+
+### Deleting a candidate
+
+1. Deleting a candidate while all candidates are being shown
+
+   1. Prerequisites: List all candidates using the `list` command, with multiple candidates in the list.
 
    1. Test case: `delete 1`<br>
-      Expected: The first contact is deleted from the list. The status message shows the deleted contact's details.
+      Expected: The first candidate is deleted from the list. The status message shows the deleted candidate's details.
 
    1. Test case: `delete 0`<br>
-      Expected: No person is deleted. The status message shows error details.
+      Expected: No candidate is deleted. The status message shows error details.
 
    1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
       Expected: Similar to previous.
