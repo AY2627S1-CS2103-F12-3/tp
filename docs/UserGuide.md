@@ -203,7 +203,7 @@ Format: `list`
 
 ### Listing all roles: `list role`
 
-Shows every unique role in the address book. Each role is displayed in its own box with its title, required experience level, and status.
+Shows every unique role in RecruiterBuddy. Each role is displayed in its own box with its title, required experience level, and status.
 
 Format: `list role`
 
@@ -267,8 +267,8 @@ Updates the recruitment status of the candidate at the specified index.
 
 Format: `status INDEX STATUS`
 
-* Updates the status of the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, ... and cannot exceed the length of the _displayed_ persons list.
-* The person's original status is replaced with the one specified in `STATUS`.
+* Updates the status of the candidate at the specified `INDEX`. The index refers to the index number shown in the displayed candidate list. The index **must be a positive integer** 1, 2, 3, ... and cannot exceed the length of the _displayed_ candidate list.
+* The candidate's original status is replaced with the one specified in `STATUS`.
 * `STATUS` must be one of the following: `PENDING_RESUME_SCREENING`, `PENDING_RECRUITER_INTERVIEW`, `PENDING_OFFER_EXTENSION`, `PENDING_OFFER_DECISION`, `HIRED`, `REJECTED`, or `WITHDRAWN`.
 * `STATUS` is not case-sensitive; for example, `hired`, `Hired` and `hiRED` are treated as the same as `HIRED`.
 * Each role has one vacancy. Assigning `HIRED` fails if another candidate for the same role is already
