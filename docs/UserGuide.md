@@ -67,8 +67,8 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
-  For example, `help 123` is interpreted as `help`.
+* Extraneous parameters for `help`, `exit`, and `clear` are ignored.<br>
+  For example, `help 123` is interpreted as `help`. `list` accepts only `list` or `list role`; anything else is rejected.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </box>
@@ -236,7 +236,7 @@ Records a note for an existing candidate, such as an interview date and time.
 Format: `note INDEX [NOTE]`
 
 * Sets the note of the candidate at the specified `INDEX`. The index refers to the index number shown in the displayed candidate list. The index **must be a positive integer** 1, 2, 3, ...
-* Everything after the index is saved as the note, exactly as typed. The note can contain any text, including text that looks like a prefix, such as `t/` or `n/`.
+* Everything after the index is saved as the note, with leading and trailing spaces removed. The note can contain any text, including text that looks like a prefix, such as `t/` or `n/`.
 * A new note replaces the candidate's existing note.
 * To clear a candidate's note, enter `note INDEX` without a note after it.
 * To record or reschedule an interview, write its date and time in the note. RecruiterBuddy does not check that the date and time are valid.
@@ -415,5 +415,5 @@ Action     | Format, Examples
 **Role add** | `role add r/ROLE_TITLE x/EXPERIENCE_LEVEL`<br> e.g., `role add r/Software Engineer x/2 years`
 **Role close** | `role close INDEX`<br> e.g., `list role` followed by `role close 1`
 **Role delete** | `role delete INDEX`<br> e.g., `list role` followed by `role delete 1`
-**Status** | `status INDEX STATUS`<br> e.g., `status 1 accepted`
+**Status** | `status INDEX STATUS`<br> e.g., `status 1 HIRED`
 **Help**   | `help`
