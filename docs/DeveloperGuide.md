@@ -231,6 +231,60 @@ after a load failure, without partially importing valid records or immediately o
 If the file is absent instead, it uses `SampleDataUtil#getSampleAddressBook`. The next successfully
 executed command saves the current state, so users must recover invalid files before issuing commands.
 
+### Role lifecycle and candidate safeguards
+
+#### Closing recruitment
+
+`RoleCommandParser` delegates `close` to `CloseRoleCommandParser`. Close and delete share
+`ParserUtil#parseRoleIndex` to reject missing, invalid, or extra index arguments consistently.
+`CloseRoleCommand` first checks `Model#isRoleListDisplayed`, then resolves the index against
+`Model#getFilteredRoleList` and rejects an already closed role.
+
+Candidate checks use the complete `ReadOnlyAddressBook#getPersonList`, not the filtered candidate
+list, matching role titles without case sensitivity. `Status#isPending` classifies every status
+except `HIRED`, `REJECTED`, and `WITHDRAWN` as pending. Closure rejects pending candidates with their
+count, then rejects more than one hired candidate. No candidates, or no hired candidate, is allowed.
+After validation, `Model#setRole` replaces the immutable role with a `CLOSED` copy. Candidate records
+and statuses remain unchanged. The observable role list refreshes, the command result keeps it
+displayed, and `LogicManager` saves the change. `AddCommand` rejects new candidates for closed roles.
+
+#### Deleting an unused role
+
+`RoleCommandParser` delegates `delete` to `DeleteRoleCommandParser`. `DeleteRoleCommand` applies the
+same displayed-list and index guards, then counts associated candidates across all stored records.
+Any associated candidate blocks deletion, irrespective of status or visibility; the error includes
+their count. An empty role may be deleted whether `OPEN` or `CLOSED`.
+
+Deletion goes through `Model#deleteRole`, `AddressBook#removeRole`, and `UniqueRoleList#remove`.
+The observable list refreshes and its indices update; the result keeps the role list displayed.
+`LogicManager` saves the removal. Deletion releases the title for reuse but never deletes, detaches,
+or reassigns candidates. It is immediate and has no undo operation in the MVP.
+
+#### Status changes and one hire per role
+
+Before assigning `HIRED`, `StatusCommand` checks all stored candidates for another hire with a
+case-insensitively matching role title, excluding the selected candidate by candidate identity.
+Reapplying `HIRED` to that candidate is allowed if there is no other hire. Moving an existing hire to
+another permitted status frees the vacancy; hiring a candidate never closes the role automatically.
+
+Before assigning a pending status, the command looks up the candidate's role and rejects the change
+if the role is closed. Final-to-pending corrections remain available for open roles. Corrections
+between final outcomes remain available for closed roles, subject to the hiring guard. Both guards
+run before replacing a candidate or changing filters. Rejected commands do not trigger saving.
+
+#### Keeping displayed indices aligned with the UI
+
+After successful execution and saving, `LogicManager` sets `Model#isRoleListDisplayed` from
+`CommandResult#isShowRoleList`, the same value `MainWindow` uses to select the visible list.
+Commands do not update that flag independently. Parsing, execution, and save failures leave the
+previous flag unchanged, matching the UI's error path. A save failure does not roll back an earlier
+in-memory mutation, as explained in [Saving and restoring associations](#saving-and-restoring-associations).
+
+Listing roles retains the candidate filter. Candidate-index commands use the view flag rather than
+an artificial empty candidate list. If a successful candidate addition switches the UI to candidates,
+both role commands reject indices until `list role` is run again. See the
+[role management manual checks](#role-management) for reproducible regression scenarios.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
@@ -408,15 +462,25 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ## Must-have
 
-UC01 — Create Role Opening
-System: RecruiterBuddy
-Actor: Recruiter
-MSS:
-1. Recruiter requests to create a role opening.
-2. RecruiterBuddy requests the role title and required experience level.
-3. Recruiter provides the requested details.
-4. RecruiterBuddy records the role opening and confirms its creation.
+#### UC01 — Create Role Opening
+
+**System:** RecruiterBuddy<br>
+**Actor:** Recruiter
+
+**Main success scenario:**
+
+1. Recruiter requests a role opening with its title and required experience level.
+2. RecruiterBuddy validates the supplied details and checks for an existing title.
+3. RecruiterBuddy records one open vacancy, saves the data, and confirms creation.
+
 Use case ends.
+
+**Extensions:**
+
+* 2a. A required field is absent, repeated, or invalid, or the title already exists.
+  * 2a1. RecruiterBuddy reports the error without adding a role.
+  * Use case ends.
+
 UC02 — Add Candidate to Role
 System: RecruiterBuddy
 Actor: Recruiter
@@ -472,99 +536,51 @@ MSS:
 4. RecruiterBuddy records the notes in the candidate’s profile.
 5. RecruiterBuddy confirms that the notes have been added.
 Use case ends.
-UC07 — Close Role Opening
-System: RecruiterBuddy
-Actor: Recruiter
-MSS:
-1. Recruiter displays the role list using `list role`.
-2. Recruiter selects a role using `role close INDEX`.
-3. RecruiterBuddy checks that the role is open, all associated candidates have final outcomes,
+#### UC07 — Close Role Opening
+
+**System:** RecruiterBuddy<br>
+**Actor:** Recruiter
+
+**Main success scenario:**
+
+1. Recruiter requests closure of a role selected from the displayed role list.
+2. RecruiterBuddy checks that the role is open, all associated candidates have final outcomes,
    and at most one candidate is hired.
-4. RecruiterBuddy closes the role, retaining all candidate records and their statuses.
-5. RecruiterBuddy saves the change and confirms closure.
+3. RecruiterBuddy closes the role, retaining all candidate records and their statuses.
+4. RecruiterBuddy saves the change and confirms closure.
+
 Use case ends.
 
-Extensions:
+**Extensions:**
 
-* 2a. The role list is not displayed, or the index is invalid.
-  * 2a1. RecruiterBuddy reports the error without changing records.
-* 3a. The role is already closed, candidates are pending, or multiple candidates are hired.
-  * 3a1. RecruiterBuddy reports the error without changing records.
+* 1a. The role list is not displayed, or the selection is missing, invalid, or accompanied by extra text.
+  * 1a1. RecruiterBuddy reports the error without changing records.
+  * Use case ends.
+* 2a. The role is already closed, candidates are pending, or multiple candidates are hired.
+  * 2a1. RecruiterBuddy reports the error, including the pending count where applicable, without changing records.
+  * Use case ends.
 
-`RoleCommandParser` delegates the `close` subcommand to `CloseRoleCommandParser`.
-`CloseRoleCommand` resolves the index against `Model#getFilteredRoleList` but checks candidate
-outcomes against the complete `ReadOnlyAddressBook#getPersonList`, matching role titles without
-case sensitivity. `HIRED`, `REJECTED`, and `WITHDRAWN` are final outcomes; other statuses are pending.
-Missing saved statuses already default to `PENDING_RESUME_SCREENING` during loading.
-After validation, `Model#setRole` replaces the immutable role with a `CLOSED` copy.
-The observable role list updates its existing UI, and `LogicManager` saves the updated address book.
-The existing candidate-add guard rejects closed roles. No candidate is modified by closure.
+#### UC07a — Delete Role Opening
 
-After successful execution and saving, `LogicManager` sets `Model#isRoleListDisplayed` from
-`CommandResult#isShowRoleList`, the same value `MainWindow` uses to select the visible list.
-Commands do not update that flag independently. Parsing, execution, and save failures leave the
-previous view flag unchanged, matching the UI's error path. Listing roles retains the candidate
-filter; candidate-index commands are protected by the view flag rather than an artificial empty list.
-Regression checks include `list role`, adding a candidate to another role, and attempting to close
-or delete a role while candidate indices are displayed; both role commands must reject the index.
+**System:** RecruiterBuddy<br>
+**Actor:** Recruiter
 
-`Status#isPending` defines which statuses still require a final outcome. Both `CloseRoleCommand`
-and `StatusCommand` use that definition. Before a status change, `StatusCommand` looks up the
-candidate's role without case sensitivity and rejects pending statuses for a closed role.
-Corrections back to pending remain available for open roles. Corrections between final outcomes
-are allowed for closed roles, subject to the hiring guard. Rejection occurs before updating records
-or filters, and `LogicManager` does not save a rejected command.
+**Main success scenario:**
 
-`StatusCommand` checks the complete stored candidate list before assigning `HIRED`.
-It excludes the selected candidate by candidate identity, then checks whether any other candidate
-with a case-insensitively matching role title is already hired. A conflict raises a command exception
-before updating any records or filters. Reapplying `HIRED` to the same candidate is allowed if there
-is no other hire for that role. Hiring never closes a role
-automatically; the close command separately validates final outcomes and the number of hires.
+1. Recruiter requests deletion of a mistaken role selected from the displayed role list.
+2. RecruiterBuddy checks that the role has no associated candidates.
+3. RecruiterBuddy removes the role, saves the data, and confirms deletion.
 
-Manual checks: add a role, run `list role`, close it with no candidates, and verify its displayed
-status and success message. Restart to verify persistence. Repeat with pending candidates (closure
-must fail), then with one hired candidate and the others rejected or withdrawn (closure must succeed).
-Check invalid indices, extra arguments, repeated closure, and attempting to add a candidate to the closed role.
-For hiring checks, assign `HIRED` to one candidate, filter the list to another candidate for the same
-role, then try assigning `HIRED` again. The command must fail without changing either record.
-Verify that reapplying `HIRED` to the first candidate succeeds, and that candidates for different
-roles can each be hired. Restart to verify that successful updates are saved and rejected updates are absent.
-After closing a role, display its candidates and try each `PENDING_*` status; each must be rejected
-without changing the final outcome or closed role. Repeat for an open role to verify that returning
-to pending succeeds and that closure is then rejected until the candidate receives a final outcome.
-
-UC07a — Delete Role Opening
-System: RecruiterBuddy
-Actor: Recruiter
-MSS:
-1. Recruiter displays the role list using `list role`.
-2. Recruiter selects the mistaken role using `role delete INDEX`.
-3. RecruiterBuddy checks that the role has no associated candidates.
-4. RecruiterBuddy removes the role and saves the updated records.
-5. RecruiterBuddy confirms deletion and updates the displayed role indices.
 Use case ends.
 
-Extensions:
+**Extensions:**
 
-* 2a. The role list is not displayed, or the index is invalid.
-  * 2a1. RecruiterBuddy reports the error without changing records.
-* 3a. The role has associated candidates, regardless of their statuses or visibility.
-  * 3a1. RecruiterBuddy reports their count without changing records.
-
-`RoleCommandParser` delegates to `DeleteRoleCommandParser`. Close and delete share
-`ParserUtil#parseRoleIndex` so invalid indices and extra arguments are handled consistently.
-`DeleteRoleCommand` resolves the displayed role and counts associated candidates in the complete
-stored list, matching titles without case sensitivity. Only a role with no candidates is removed
-through `Model#deleteRole`, `AddressBook#removeRole`, and `UniqueRoleList#remove`.
-The observable role list updates automatically and the command result keeps the role view visible.
-`LogicManager` saves the removal. Removing the role releases its title for reuse; candidates are
-never deleted, detached, or reassigned by this command.
-
-Manual checks: create an unused role, run `list role`, then `role delete INDEX`.
-Verify the role disappears, remaining indices update, and it stays absent after restarting.
-Recreate the role using its previous title. Repeat with an empty closed role (deletion succeeds)
-and with a role containing candidates at any status (deletion fails without changing records).
+* 1a. The role list is not displayed, or the selection is missing, invalid, or accompanied by extra text.
+  * 1a1. RecruiterBuddy reports the error without changing records.
+  * Use case ends.
+* 2a. The role has associated candidates, regardless of their statuses or visibility.
+  * 2a1. RecruiterBuddy reports their count without changing records.
+  * Use case ends.
 
 UC08 — Delete Candidate Record
 System: RecruiterBuddy
@@ -576,16 +592,8 @@ MSS:
 4. RecruiterBuddy deletes the selected records.
 5. RecruiterBuddy confirms that the records have been deleted.
 Use case ends.
-UC09 — Update Number of Openings
-System: RecruiterBuddy
-Actor: Recruiter
-MSS:
-1. Recruiter requests to update the number of openings for a role.
-2. RecruiterBuddy requests the role and the updated number of openings.
-3. Recruiter provides the requested information.
-4. RecruiterBuddy updates the number of openings for the role.
-5. RecruiterBuddy confirms that the information has been updated.
-Use case ends.
+
+**MVP scope:** Each role represents exactly one vacancy. Updating an opening count is not supported.
 
 ## Optional
 
@@ -835,7 +843,7 @@ testers are expected to do more *exploratory* testing.
    1. Download the JAR file and copy it into an empty folder.
 
    1. Double-click the JAR file.<br>
-      Expected: The GUI opens with a set of sample contacts. The window size may not be optimal.
+      Expected: The GUI opens with sample candidates and roles. The window size may not be optimal.
 
 1. Saving window preferences
 
@@ -844,7 +852,112 @@ testers are expected to do more *exploratory* testing.
    1. Relaunch the app by double-clicking the JAR file.<br>
        Expected: The most recent window size and location are retained.
 
-1. _{ more test cases … }_
+### Role management
+
+Use a **disposable copy of the JAR in a separate empty folder**, with Java 25. Do not use real
+recruitment data: `clear` and deletion commands below permanently remove records. Run each command
+on its own line. Unless stated otherwise, reset to this fixture before each numbered scenario:
+
+```text
+clear
+role add r/QA Engineer x/2 years
+role add r/QA Analyst x/Entry level
+add n/Alice Test p/91234561 e/alice@example.com a/1 Test Road r/QA Engineer
+add n/Ben Test p/91234562 e/ben@example.com a/2 Test Road r/QA Engineer
+```
+
+Expected fixture: `list role` shows `QA Engineer` at index 1 and `QA Analyst` at index 2, both `OPEN`.
+`list` shows Alice at index 1 and Ben at index 2, both `Pending Resume Screening`.
+Always switch back with `list` or `list role` before using indices for that list.
+
+#### Role creation and validation
+
+1. Run `role add x/Entry level r/QA Designer`.<br>
+   Expected: `Added open role: QA Designer.` Run `list role` to see it at index 3 with experience
+   `Entry level` and status `OPEN`. Restart the app and run `list role`; the role is unchanged.
+
+1. Run `role add r/  qa engineer  x/Senior`.<br>
+   Expected: `A role named “qa engineer” already exists.` There are still two roles.
+   Run `list role`, `role close 2`, then `role add r/qa analyst x/Senior`.<br>
+   Expected: The empty analyst role closes successfully, but its title is still rejected as a duplicate.
+
+1. Try the following rejected commands. Check that the role list still has only the fixture's two roles:
+
+   * `role add r/QA Designer` → `Missing required field: x/.`
+   * `role add x/Senior` → `Missing required field: r/.`
+   * `role add r/QA Designer x/Senior x/Senior` → repeated-prefix error naming `x/`.
+   * `role add r/123 x/Senior` → role-title constraint error.
+   * `role add r/QA@Designer x/Senior` → role-title constraint error.
+   * `role add r/QA Designer x/` → experience-level constraint error.
+   * `role add extra r/QA Designer x/Senior` → invalid-format error with usage and example.
+
+   Also check a title of exactly 100 letters versus 101, and an experience level of exactly 50
+   printable characters versus 51. The boundary values succeed; the longer values fail.
+   Use different valid titles for the experience checks so duplicate rejection does not mask validation.
+
+#### Closure and candidate outcomes
+
+1. Run `find Alice`, `list role`, then `role close 1`.<br>
+   Expected: `Cannot close role: QA Engineer. 2 candidate(s) still pending.` Both candidates count
+   even though Ben was hidden by the candidate filter. The role stays `OPEN`, with no record changes.
+
+1. Run `status 1 HIRED`, then `find Ben` and `status 1 HIRED`.<br>
+   Expected: `QA Engineer already has a hired candidate.` Alice remains hired and Ben remains pending.
+   Run `find Alice` and `status 1 HIRED` again; reapplying the same status succeeds.
+   Run `list`, `status 2 REJECTED`, `list role`, and `role close 1`.<br>
+   Expected: `Closed role: QA Engineer.` The role is `CLOSED`; Alice and Ben are retained with their
+   respective final statuses. Restart and verify the same roles and candidates are restored.
+
+1. Run `status 1 REJECTED`, `status 2 WITHDRAWN`, `list role`, and `role close 1`.<br>
+   Expected: Closure succeeds even with no hire. Separately, `list role` followed by `role close 2`
+   closes the empty analyst role. No candidate is automatically hired, rejected, or removed.
+
+1. Run `status 1 HIRED`, then `status 1 PENDING_RECRUITER_INTERVIEW`.<br>
+   Expected: Returning to pending succeeds while the role is open. Repeat with each of the four
+   `PENDING_*` statuses after assigning a final outcome. `list role` followed by `role close 1`
+   fails while a pending candidate remains. Run `list`, `status 1 HIRED`, `status 2 REJECTED`,
+   `list role`, and `role close 1`, then run `list` and `status 1 PENDING_RECRUITER_INTERVIEW`.<br>
+   Expected: `Cannot set a pending status for Alice Test because role QA Engineer is closed.`
+   Each of the other pending statuses is rejected too. Final-to-final corrections still succeed,
+   provided they do not create a second hire; the role remains closed.
+
+1. Close the empty analyst role using `list role` then `role close 2`. Try
+   `add n/Cara Test p/91234563 e/cara@example.com a/3 Test Road r/QA Analyst`.<br>
+   Expected: `The role “QA Analyst” is closed, so no new candidates can be added to it.`
+   Cara is not added. Run `role close 2` again; it reports `QA Analyst is already closed.`
+
+1. Run `status 1 HIRED`, then
+   `add n/Cara Test p/91234563 e/cara@example.com a/3 Test Road r/QA Analyst`, and `status 3 HIRED`.<br>
+   Expected: Both Alice and Cara may be hired because they apply to different roles. `list role`
+   still shows both roles as `OPEN`; hiring does not close either role automatically.
+
+#### Deletion and displayed-index safeguards
+
+1. Add a third role with `role add r/QA Designer x/Senior`. Run `list role` then `role delete 2`.<br>
+   Expected: `Deleted role: QA Analyst.` The engineer role remains at index 1; the designer moves
+   from index 3 to index 2. Restart and verify the deletion persists. Run
+   `role add r/qa analyst x/Senior`; the released title can be used again.
+   With the fixture restored, also close the empty analyst role and delete it; this succeeds too.
+
+1. Run `find Alice`, `list role`, then `role delete 1`.<br>
+   Expected: `Cannot delete role: QA Engineer. It has 2 associated candidate(s).`
+   No candidate or role changes. Run `list`, `status 1 HIRED`, `status 2 REJECTED`, `list role`,
+   `role close 1`, then `role delete 1`; deletion remains blocked even with a closed role and final
+   candidate outcomes. It never deletes candidates to make the role eligible.
+
+1. Run `list role`, then
+   `add n/Cara Test p/91234563 e/cara@example.com a/3 Test Road r/QA Analyst`.<br>
+   Expected: The successful addition displays candidates. Try `role close 1` and `role delete 1`.<br>
+   Expected for each: `The role list is not displayed. Use list role first.` No role changes.
+   Run `list role`; the same commands can now resolve role indices, but both still fail their
+   candidate checks for the engineer role.
+
+1. Run `list role`. Try `role close`, `role close 0`, `role close -1`, `role close x`, and
+   `role close 999`.<br>
+   Expected: `Role index must refer to a displayed role.` Repeat with `role delete` instead of
+   `role close`; the same error appears. `role close 1 extra` and `role delete 1 extra` report their
+   command-specific "takes only a role index" errors. Rejected commands preserve the displayed list
+   and all records. After a successful `role close 2`, a repeated closure reports that it is already closed.
 
 ### Deleting a person
 
@@ -861,12 +974,33 @@ testers are expected to do more *exploratory* testing.
    1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
       Expected: Similar to previous.
 
-1. _{ more test cases … }_
-
 ### Saving data
 
-1. Dealing with missing/corrupted data files
+Use the disposable test folder above and restore the fixture before each numbered scenario.
+Close the application window before editing or moving data files.
 
-   1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
+1. Save/load round trip: create the fixture, close the empty analyst role, and delete it. Restart.<br>
+   Expected: Only the open engineer role and its two pending candidates remain. Recreate the analyst
+   role and restart again; the new role is restored with its new experience level and `OPEN` status.
 
-1. _{ more test cases … }_
+1. Missing file: while the app is closed, move `data/addressbook.json` to a backup location within the
+   test folder. Restart.<br>
+   Expected: Sample roles and candidates appear, not empty lists. Close the window and restore the
+   backup before continuing with the other scenarios.
+
+1. Invalid file: back up the fixture file while the app is closed. Replace the JSON with `{` and restart.<br>
+   Expected: Empty lists; the invalid file is unchanged by startup. Close the window without entering
+   commands, including `exit`. Restore the backup. Repeat separately with a duplicated role title,
+   a role status of `open` instead of `OPEN`, and a candidate whose `role` names a nonexistent role.<br>
+   Expected: Each invalid file prevents the whole data set from loading; valid records are not imported
+   separately. Recover from the backup between attempts. A successful command such as `list` would
+   overwrite the invalid file, so do not issue commands before recovering it.
+
+1. Default candidate status: remove only Alice's `status` field from a valid fixture file, then restart.<br>
+   Expected: Alice loads with `Pending Resume Screening`; `list role` then `role close 1` reports two
+   pending candidates. Removing a role's `status` or a candidate's `role` field instead prevents loading.
+
+1. Legacy inconsistency guard: in a fixture backup, set both candidate statuses to `HIRED` and restart.<br>
+   Expected: The records load, but `list role` then `role close 1` reports
+   `Cannot close role: QA Engineer. More than one candidate is marked HIRED.` The role stays open.
+   Use a separate fixture copy for this check; do not create inconsistent real recruitment data.
