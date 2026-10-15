@@ -14,7 +14,7 @@ public class ListCommand extends Command {
     public static final String COMMAND_WORD = "list";
     public static final String MESSAGE_USAGE = COMMAND_WORD + " [role]";
 
-    public static final String MESSAGE_SUCCESS = "Listed all persons.";
+    public static final String MESSAGE_SUCCESS = "Listed all candidates.";
     public static final String MESSAGE_ROLE_SUCCESS = "Listed all roles.";
 
     private final boolean listRoles;
