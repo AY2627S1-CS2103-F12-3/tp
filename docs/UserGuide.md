@@ -22,11 +22,20 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
 
 1. Download the latest `.jar` file from [here](https://github.com/AY2627S1-CS2103-F12-3/tp/releases).
 
-1. Copy the file to the folder you want to use as the _home folder_ for RecruiterBuddy.
+1. Copy the file to an empty folder you want to use for RecruiterBuddy.
 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
+
+   <box type="warning" seamless>
+
+   **Caution:**
+   Always launch RecruiterBuddy this way. RecruiterBuddy creates its data, preferences, and log files
+   in the folder it is launched from. Other ways of launching it, such as double-clicking the JAR file,
+   may launch it from a different folder, depending on your operating system. RecruiterBuddy would then
+   create and use files in that folder instead of the JAR file's folder.
+   </box>
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:
@@ -334,7 +343,9 @@ problem and run a successful command to retry saving before exiting.
 
 ### Editing the data file
 
-By default, RecruiterBuddy saves data in `[JAR file location]/data/addressbook.json`.
+RecruiterBuddy saves data in `data/addressbook.json`, inside the folder it was launched from. If you
+launched it as described in [Quick start](#quick-start), this is the folder containing the JAR file.
+The file is created after the first successfully executed command.
 Advanced users may edit this JSON file while the application is closed. Back it up first.
 
 The file contains a `persons` array for candidates and a `roles` array for role openings.
@@ -389,7 +400,7 @@ _Details coming soon ..._
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous RecruiterBuddy home folder.
+**A**: Install the app on the other computer and overwrite the data file it creates with `data/addressbook.json` from the folder containing your previous RecruiterBuddy JAR file.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -397,6 +408,7 @@ _Details coming soon ..._
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
 2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
+3. **If RecruiterBuddy is launched from a folder other than the JAR file's folder** (for example, by double-clicking the JAR file on some systems), it reads and writes `data/addressbook.json`, `preferences.json`, and `addressbook.log` in that other folder. It may then show sample data instead of your saved data. The remedy is to close the application, back up the `data/addressbook.json` files in both folders, decide which one to keep, copy it into the `data` folder beside the JAR file, and relaunch RecruiterBuddy as described in [Quick start](#quick-start).
 
 --------------------------------------------------------------------------------------------------------------------
 

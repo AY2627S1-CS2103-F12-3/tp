@@ -1002,14 +1002,15 @@ testers are expected to do more *exploratory* testing.
 
    1. Download the JAR file and copy it into an empty folder.
 
-   1. Double-click the JAR file.<br>
+   1. Open a terminal in that folder and run `java -jar addressbook.jar`.<br>
       Expected: The GUI opens with sample candidates and roles. The window size may not be optimal.
+      `preferences.json` and `addressbook.log` are created in that folder.
 
 1. Saving window preferences
 
    1. Resize the window to an optimal size. Move the window to a different location. Close the window.
 
-   1. Relaunch the app by double-clicking the JAR file.<br>
+   1. Relaunch the app by running the same command from the same folder.<br>
        Expected: The most recent window size and location are retained.
 
 ### Role management
