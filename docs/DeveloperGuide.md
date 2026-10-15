@@ -445,15 +445,17 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *` | department recruiter | close a role opening | prevent new candidates from being added after recruitment ends while retaining existing candidate records |
 | `* * *` | department recruiter | delete a role with no associated candidates | remove an erroneous vacancy and reuse its title without losing candidate records |
 | `* * *` | department recruiter | add a candidate to a specific open role with their contact details and address | keep the candidate's recruitment information in one place |
-| `* * *` | department recruiter | be warned when a candidate's email address or phone number is already recorded | avoid creating duplicate candidate profiles |
+| `* * *` | department recruiter | be stopped from adding a candidate who is already recorded | avoid creating duplicate candidate profiles |
 | `* * *` | department recruiter | view all candidates | review the department's recruitment pipeline |
 | `* * *` | department recruiter | assign a candidate one controlled recruitment status | record where the candidate stands in the recruitment process |
-| `* * *` | department recruiter | remove a candidate's existing status and assign a new one | update the candidate as they progress through the recruitment process |
-| `* * *` | department recruiter | record or reschedule a candidate's recruiter interview date and time | keep track of upcoming interviews |
+| `* * *` | department recruiter | update a candidate's recruitment status | reflect their progress through the recruitment process |
+| `* * *` | department recruiter | record a candidate's interview date and time | refer to when each candidate is being interviewed |
 | `* * *` | department recruiter | add notes to a candidate's record | retain relevant recruitment and interview information |
 | `* * *` | department recruiter | remove a candidate | correct an erroneous entry or remove a record that is no longer required |
 | `* * *` | user | have successful changes saved automatically and restored when RecruiterBuddy starts | avoid losing candidate and role information |
 | `* * *` | user | access a guide covering all supported commands and their formats | understand and correctly use RecruiterBuddy's features |
+| `* *` | department recruiter | be warned when a new candidate's email address or phone number matches an existing candidate | catch the same person entered under a different or misspelled name |
+| `* *` | department recruiter | have an interview's date and time checked when I record or reschedule it | avoid saving an impossible or mistyped interview slot |
 | `* *` | potential user | see sample roles and candidates | understand how RecruiterBuddy looks when populated with department-specific information |
 | `* *` | first-time user | be greeted with a brief guide to key commands | begin using the most important features without feeling lost or overwhelmed |
 | `* *` | first-time user | display definitions of all candidate and role statuses with one command | understand what each recruitment stage represents |
@@ -478,6 +480,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *` | department recruiter | sort candidates by name, interview time, or status | review candidates in a useful order |
 | `* *` | department recruiter | filter roles by whether they are open or closed | focus on roles that require attention |
 | `* *` | department recruiter | reopen a closed role | resume recruitment when a vacancy becomes available again |
+| `*` | department recruiter | search or filter candidates by interview date and time | quickly see who is being interviewed on a given day |
 
 ### Use cases
 

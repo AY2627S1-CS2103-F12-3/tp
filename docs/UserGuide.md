@@ -90,6 +90,7 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
 
 * `ROLE` must be the title of an existing role that is `OPEN`. Use [`role add`](#adding-a-role-role-add) to create the role first.
 * `ROLE` is matched ignoring case; for example, `r/software engineer` matches the role `Software Engineer`. The candidate is saved with the role's own spelling of the title.
+* A candidate cannot be added if another candidate has exactly the same name. Names are case-sensitive, so `John Doe` and `john doe` are treated as different candidates. Candidates with different names may share a phone number or email address.
 * Newly added candidates are automatically assigned the status `Pending Resume Screening`.
 * The candidate's card shows the role as `Applying for: ROLE`.
 
@@ -238,6 +239,7 @@ Format: `note INDEX [NOTE]`
 * Everything after the index is saved as the note, exactly as typed. The note can contain any text, including text that looks like a prefix, such as `t/` or `n/`.
 * A new note replaces the candidate's existing note.
 * To clear a candidate's note, enter `note INDEX` without a note after it.
+* To record or reschedule an interview, write its date and time in the note. RecruiterBuddy does not check that the date and time are valid.
 
 Examples:
 *  `note 1 Interview 2026-10-20 14:00` Sets the note of the 1st candidate to `Interview 2026-10-20 14:00`.
