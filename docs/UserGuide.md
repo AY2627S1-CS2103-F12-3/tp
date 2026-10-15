@@ -4,9 +4,11 @@
   pageNav: 3
 ---
 
-# AB-3 User Guide
+# RecruiterBuddy User Guide
 
-AddressBook Level 3 (AB3) is a **desktop application for managing contacts, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, AB3 can help you manage contacts faster than traditional GUI applications.
+RecruiterBuddy is a **desktop application for department recruiters who fill a small number of vacancies within one department**. It helps you keep candidate details, track the role each candidate is applying for, record upcoming interviews, and see where each candidate stands in the recruitment process.
+
+RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, RecruiterBuddy can help you update recruitment records faster than traditional GUI applications.
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -18,9 +20,9 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 1. Ensure that Java `25` or later is installed on your computer.<br>
    **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
-1. Download the latest `.jar` file from [here](https://github.com/se-edu/addressbook-level3/releases).
+1. Download the latest `.jar` file from [here](https://github.com/AY2627S1-CS2103-F12-3/tp/releases).
 
-1. Copy the file to the folder you want to use as the _home folder_ for your AddressBook.
+1. Copy the file to the folder you want to use as the _home folder_ for RecruiterBuddy.
 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
@@ -29,15 +31,17 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:
 
-   * `list` : Lists all contacts.
+   * `list` : Lists all candidates.
    * `list role` : Lists all unique roles, with each role shown in its own box.
    * `role add r/Software Engineer x/2 years` : Adds an open role.
 
-   * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to the Address Book.
+   * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 r/Data Analyst` : Adds a candidate named `John Doe` who is applying for the sample `Data Analyst` role.
 
-   * `delete 3` : Deletes the 3rd contact shown in the current list.
+   * `note 1 Interview 2026-10-20 14:00` : Records an interview date and time for the 1st candidate.
 
-   * `clear` : Deletes all contacts.
+   * `delete 3` : Deletes the 3rd candidate shown in the current list.
+
+   * `clear` : Deletes all candidates and roles.
 
    * `exit` : Exits the app.
 
@@ -78,36 +82,66 @@ Shows a message explaining how to access the help page.
 Format: `help`
 
 
-### Adding a person: `add`
+### Adding a candidate: `add`
 
-Adds a person to the address book.
+Adds a candidate who is applying for a role.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... `
+Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
 
-* Newly added persons are automatically assigned the status `Pending Resume Screening`.
+* `ROLE` must be the title of an existing role that is `OPEN`. Use [`role add`](#adding-a-role-role-add) to create the role first.
+* `ROLE` is matched ignoring case; for example, `r/software engineer` matches the role `Software Engineer`. The candidate is saved with the role's own spelling of the title.
+* Newly added candidates are automatically assigned the status `Pending Resume Screening`.
+* The candidate's card shows the role as `Applying for: ROLE`.
 
 <box type="tip" seamless>
 
-**Tip:** A person can have any number of tags, including zero.
+**Tip:** A candidate can have any number of tags, including zero.
 </box>
 
 Examples:
-* `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
-* `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
+* `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 r/Software Engineer`
+* `add n/Betsy Crowe t/referral e/betsycrowe@example.com a/Newgate Prison p/1234567 r/product manager t/java`
 
 ### Adding a role: `role add`
 
-Adds an open role to the address book. Role titles are unique, ignoring case.
+Records a vacancy with its title and required experience level. Each role represents exactly one
+vacancy; there is no opening-count field.
 
 Format: `role add r/ROLE_TITLE x/EXPERIENCE_LEVEL`
+
+Both `r/` and `x/` are required, must appear exactly once, and may appear in either order.
+Leading and trailing whitespace is removed from each value before validation and storage.
+
+* `ROLE_TITLE`: 1–100 characters after trimming, with at least one letter. It may contain letters,
+  digits, spaces, apostrophes (`'`), ampersands (`&`), hyphens (`-`), slashes (`/`), and full stops (`.`).
+* `EXPERIENCE_LEVEL`: 1–50 printable characters after trimming, with no embedded newlines, tabs,
+  or other control characters. Examples include `Entry level`, `2 years`, and `Senior`.
+* Role titles must be unique across both `OPEN` and `CLOSED` roles, ignoring case and surrounding
+  whitespace. Changing the experience level does not make a title distinct. Internal spaces are
+  significant: a title with one space between words differs from one with two consecutive spaces.
 
 Examples:
 
 * `role add r/Software Engineer x/2 years`
-* `role add r/Product Manager x/5 years`
-* `role add r/UX Designer x/3 years`
+* `role add x/Entry level r/Product Analyst`
 
-New roles are created with status `OPEN`. To view all roles, use `list role`.
+On success, RecruiterBuddy shows `Added open role: ROLE_TITLE.` and saves the role with status `OPEN`.
+Run `list role` to display it; `role add` itself returns to the candidate list.
+
+If validation fails, no role is created:
+
+* Missing title prefix: `Missing required field: r/.`
+* Missing experience prefix: `Missing required field: x/.`
+* Repeated prefix: `Multiple values specified for the following single-valued field(s): PREFIX`.
+  For example, repeating `x/` reports that prefix even if both values are identical.
+* Empty or invalid title: `Role title must be 1–100 characters and contain a letter.`
+* Empty or invalid experience level:
+  `Required experience level must be 1–50 characters and must not contain a new line.`
+* Duplicate title: `A role named “ROLE_TITLE” already exists.`
+* Text before the first prefix: `Invalid command format!`, followed by the command's usage and example.
+
+Closing a role does not release its title. An unused role can instead be removed with `role delete`
+before creating another role with that title.
 
 ### Closing a role: `role close`
 
@@ -161,9 +195,9 @@ If deletion fails, no records change:
 
 Use `role close` to finish recruitment and retain its history; `role delete` removes an unused role.
 
-### Listing all persons: `list`
+### Listing all candidates: `list`
 
-Shows a list of all persons in the address book.
+Shows a list of all candidates.
 
 Format: `list`
 
@@ -177,41 +211,42 @@ Role indices can be used only while the role list is displayed. If a successful 
 adding or finding a candidate switches back to the candidate list, run `list role` again before
 using `role close` or `role delete`. Failed commands leave the current list displayed.
 
-### Editing a person: `edit`
+### Editing a candidate: `edit`
 
-Edits an existing person in the address book.
+Edits an existing candidate.
 
 Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
 
-* Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, ...
+* Edits the candidate at the specified `INDEX`. The index refers to the index number shown in the displayed candidate list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
-* When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
-* To remove all of a person's tags, enter `t/` without a tag after it.
+* When editing tags, all of the candidate's existing tags are removed; adding tags is not cumulative.
+* To remove all of a candidate's tags, enter `t/` without a tag after it.
+* A candidate's role cannot be edited, so `r/` is rejected. The candidate's status and note are also kept; use `status` or `note` to change them.
 
 Examples:
-*  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
-*  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
+*  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st candidate to be `91234567` and `johndoe@example.com` respectively.
+*  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd candidate to be `Betsy Crower` and clears all existing tags.
 
 ### Adding or clearing a note: `note`
 
-Records a note for an existing person, such as interview details.
+Records a note for an existing candidate, such as an interview date and time.
 
 Format: `note INDEX [NOTE]`
 
-* Sets the note of the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, ...
+* Sets the note of the candidate at the specified `INDEX`. The index refers to the index number shown in the displayed candidate list. The index **must be a positive integer** 1, 2, 3, ...
 * Everything after the index is saved as the note, exactly as typed. The note can contain any text, including text that looks like a prefix, such as `t/` or `n/`.
-* A new note replaces the person's existing note.
-* To clear a person's note, enter `note INDEX` without a note after it.
+* A new note replaces the candidate's existing note.
+* To clear a candidate's note, enter `note INDEX` without a note after it.
 
 Examples:
-*  `note 1 Interview 2026-10-20 14:00` Sets the note of the 1st person to `Interview 2026-10-20 14:00`.
-*  `note 2 Discuss t/java experience` Sets the note of the 2nd person to `Discuss t/java experience`.
-*  `note 3` Clears the note of the 3rd person.
+*  `note 1 Interview 2026-10-20 14:00` Sets the note of the 1st candidate to `Interview 2026-10-20 14:00`.
+*  `note 2 Discuss t/java experience` Sets the note of the 2nd candidate to `Discuss t/java experience`.
+*  `note 3` Clears the note of the 3rd candidate.
 
-### Locating persons by name: `find`
+### Locating candidates by name: `find`
 
-Finds persons whose names contain any of the given keywords.
+Finds candidates whose names contain any of the given keywords.
 
 Format: `find KEYWORD [MORE_KEYWORDS]`
 
@@ -219,7 +254,7 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 * Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
 * The search considers only names.
 * Only full words match; for example, `Han` does not match `Hans`.
-* Persons matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
+* Candidates matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
 
 Examples:
 * `find John` returns `john` and `John Doe`
@@ -255,23 +290,23 @@ Example:
 * `status 2 PENDING_RECRUITER_INTERVIEW`
 * `status 1 HIRED`
 
-### Deleting a person: `delete`
+### Deleting a candidate: `delete`
 
-Deletes the specified person from the address book.
+Deletes the specified candidate.
 
 Format: `delete INDEX`
 
-* Deletes the person at the specified `INDEX`.
-* The index refers to the index number shown in the displayed person list.
+* Deletes the candidate at the specified `INDEX`.
+* The index refers to the index number shown in the displayed candidate list.
 * The index **must be a positive integer** 1, 2, 3, ...
 
 Examples:
-* `list` followed by `delete 2` deletes the 2nd person in the address book.
-* `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
+* `list` followed by `delete 2` deletes the 2nd candidate in RecruiterBuddy.
+* `find Betsy` followed by `delete 1` deletes the 1st candidate in the results of the `find` command.
 
 ### Clearing all entries: `clear`
 
-Clears all entries from the address book.
+Clears all candidates and roles from RecruiterBuddy.
 
 Format: `clear`
 
@@ -283,17 +318,64 @@ Format: `exit`
 
 ### Saving the data
 
-AddressBook automatically saves data after every command. You do not need to save manually.
+RecruiterBuddy automatically saves the complete candidate and role data after a command executes
+successfully, including commands such as `list` that do not change records. You do not need to save
+manually. Commands rejected during parsing or validation do not trigger a save.
+
+Saved roles retain their titles, required experience levels, and `OPEN` or `CLOSED` statuses after
+restarting. Candidates associated with closed roles are retained too. If no data file exists,
+RecruiterBuddy starts with sample roles and candidates, not an empty data set.
+
+If saving fails, an error reports the file-access problem instead of the normal success message.
+Changes already made may remain in the current session without being saved. Resolve the file-access
+problem and run a successful command to retry saving before exiting.
 
 ### Editing the data file
 
-AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+By default, RecruiterBuddy saves data in `[JAR file location]/data/addressbook.json`.
+Advanced users may edit this JSON file while the application is closed. Back it up first.
+
+The file contains a `persons` array for candidates and a `roles` array for role openings.
+For example, this complete file contains one role and no candidates:
+
+```json
+{
+  "persons": [],
+  "roles": [
+    {
+      "title": "Software Engineer",
+      "experienceLevel": "2 years",
+      "status": "OPEN"
+    }
+  ]
+}
+```
+
+When editing roles and their candidate associations:
+
+* Every role needs `title`, `experienceLevel`, and `status`. Title and experience values must satisfy
+  the same constraints as `role add`; role status must be exactly `OPEN` or `CLOSED` in uppercase.
+* Do not repeat role titles, even with different capitalisation or experience levels.
+* Each candidate's `role` field must name an existing role, ignoring case. It may name a closed role,
+  because closing preserves candidates. On loading, the role's stored capitalisation is used for
+  its candidates. If you rename a role in the file, update every associated candidate's `role` too.
+* A candidate's saved `status` uses an uppercase status name, such as `HIRED`. If absent, it defaults
+  to `PENDING_RESUME_SCREENING`. A missing candidate `role` has no default and prevents loading;
+  older contact-only files therefore need role information added before they can be used.
+* Keep recruitment outcomes consistent: at most one candidate per role should be `HIRED`, and closed
+  roles should have no pending candidates. The status and close commands enforce these rules during
+  normal use; do not rely on the loader to detect every inconsistent outcome introduced by hand.
 
 <box type="warning" seamless>
 
 **Caution:**
-If your changes make the data file invalid, AddressBook starts with an empty address book at the next run. The invalid file remains on disk until you run a command (AddressBook saves after every command). Still, we recommend backing up the file before editing it.<br>
-Furthermore, certain edits can cause the AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
+Malformed JSON, invalid role fields, duplicate role titles, or a candidate referring to a nonexistent
+role prevent the whole file from loading; valid records are not loaded separately.
+RecruiterBuddy then starts with empty lists. Startup alone does not overwrite the invalid data file,
+but the next successfully executed command, including `list`, can overwrite it with the current data.
+If the lists unexpectedly appear empty, close the application window without entering any commands
+(including `exit`), then restore your backup or fix the file before restarting. No automatic backup
+or migration of old contact-only files is provided.
 </box>
 
 ### Archiving data files `[coming in v2.0]`
@@ -305,7 +387,7 @@ _Details coming soon ..._
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous AddressBook home folder.
+**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous RecruiterBuddy home folder.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -320,7 +402,7 @@ _Details coming soon ..._
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... ` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
+**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... ` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 r/Software Engineer t/referral t/java`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`

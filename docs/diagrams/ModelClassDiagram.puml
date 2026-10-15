@@ -14,13 +14,11 @@ Class UserPrefs
 
 Class UniquePersonList
 Class Person
-Class Address
-Class Email
-Class Name
-Class Phone
-Class Tag
-
-Class I #FFFFFF
+Class UniqueRoleList
+Class Role
+Class RoleTitle
+Class ExperienceLevel
+Enum RoleStatus <<enumeration>>
 }
 
 Class HiddenOutside #FFFFFF
@@ -36,19 +34,16 @@ ModelManager -right-> "1" UserPrefs
 UserPrefs .up.|> ReadOnlyUserPrefs
 
 AddressBook *--> "1" UniquePersonList
-UniquePersonList --> "~* all" Person
-Person *--> Name
-Person *--> Phone
-Person *--> Email
-Person *--> Address
-Person *--> "*" Tag
+UniquePersonList --> "*" Person
+AddressBook *--> "1" UniqueRoleList
+UniqueRoleList --> "*" Role
+Role --> "1" RoleTitle
+Role --> "1" ExperienceLevel
+Role --> "1" RoleStatus
+Person --> "1" RoleTitle : applies for
 
-Person -[hidden]up--> I
-UniquePersonList -[hidden]right-> I
+Person -[hidden]right-> Role
+RoleTitle -[hidden]right-> ExperienceLevel
+ExperienceLevel -[hidden]right-> RoleStatus
 
-Name -[hidden]right-> Phone
-Phone -[hidden]right-> Address
-Address -[hidden]right-> Email
-
-ModelManager --> "~* filtered" Person
 @enduml
