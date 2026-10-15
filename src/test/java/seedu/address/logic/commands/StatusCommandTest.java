@@ -11,6 +11,7 @@ import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
+import static seedu.address.testutil.TypicalRoles.CLOSED_DESIGNER;
 import static seedu.address.testutil.TypicalRoles.PRODUCT_ANALYST;
 import static seedu.address.testutil.TypicalRoles.SOFTWARE_ENGINEER;
 import static seedu.address.testutil.TypicalRoles.getTypicalRoleAddressBook;
@@ -33,6 +34,72 @@ import seedu.address.testutil.PersonBuilder;
 public class StatusCommandTest {
 
     private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+
+    @Test
+    public void execute_finalToPendingForOpenRole_allowsAllTransitions() throws Exception {
+        for (Status original : new Status[]{Status.HIRED, Status.REJECTED, Status.WITHDRAWN}) {
+            for (Status pending : new Status[]{Status.PENDING_RESUME_SCREENING, Status.PENDING_RECRUITER_INTERVIEW,
+                Status.PENDING_OFFER_EXTENSION, Status.PENDING_OFFER_DECISION}) {
+                Person candidate = new PersonBuilder().withStatus(original).build();
+                setHiringCandidates(candidate);
+                new StatusCommand(INDEX_FIRST_PERSON, pending).execute(model);
+                Person expected = new PersonBuilder(candidate).withStatus(pending).build();
+                assertEquals(expected, model.getFilteredPersonList().getFirst());
+                assertFalse(model.findRole(candidate.getRole()).orElseThrow().isClosed());
+            }
+        }
+    }
+
+    @Test
+    public void execute_finalToPendingForClosedRole_rejectsAllTransitions() {
+        for (Status original : new Status[]{Status.HIRED, Status.REJECTED, Status.WITHDRAWN}) {
+            Person candidate = new PersonBuilder().withRole(CLOSED_DESIGNER.getTitle().value)
+                    .withStatus(original).withNote("Retain history").withTags("referral").build();
+            setHiringCandidates(new PersonBuilder().withName("Other Candidate").build(), candidate);
+            model.updateFilteredPersonList(person -> person.isSamePerson(candidate));
+            for (Status pending : new Status[]{Status.PENDING_RESUME_SCREENING, Status.PENDING_RECRUITER_INTERVIEW,
+                Status.PENDING_OFFER_EXTENSION, Status.PENDING_OFFER_DECISION}) {
+                assertCommandFailure(new StatusCommand(INDEX_FIRST_PERSON, pending), model,
+                        String.format(StatusCommand.MESSAGE_PENDING_STATUS_FOR_CLOSED_ROLE,
+                                candidate.getName(), candidate.getRole()));
+            }
+        }
+    }
+
+    @Test
+    public void execute_closedRoleTitleWithDifferentCase_rejectsPendingStatus() {
+        Person candidate = new PersonBuilder().withRole("product designer").withStatus(Status.REJECTED).build();
+        setHiringCandidates(candidate);
+        assertCommandFailure(new StatusCommand(INDEX_FIRST_PERSON, Status.PENDING_RESUME_SCREENING), model,
+                String.format(StatusCommand.MESSAGE_PENDING_STATUS_FOR_CLOSED_ROLE,
+                        candidate.getName(), candidate.getRole()));
+    }
+
+    @Test
+    public void execute_finalToFinalForClosedRole_allowsCorrections() throws Exception {
+        for (Status original : new Status[]{Status.HIRED, Status.REJECTED, Status.WITHDRAWN}) {
+            for (Status outcome : new Status[]{Status.HIRED, Status.REJECTED, Status.WITHDRAWN}) {
+                Person candidate = new PersonBuilder().withRole(CLOSED_DESIGNER.getTitle().value)
+                        .withStatus(original).build();
+                setHiringCandidates(candidate);
+                new StatusCommand(INDEX_FIRST_PERSON, outcome).execute(model);
+                assertEquals(new PersonBuilder(candidate).withStatus(outcome).build(),
+                        model.getFilteredPersonList().getFirst());
+                assertTrue(model.findRole(candidate.getRole()).orElseThrow().isClosed());
+            }
+        }
+    }
+
+    @Test
+    public void execute_secondHireForClosedRole_rejectsChange() {
+        Person hired = new PersonBuilder().withName("Hired Candidate").withRole(CLOSED_DESIGNER.getTitle().value)
+                .withStatus(Status.HIRED).build();
+        Person rejected = new PersonBuilder().withRole(CLOSED_DESIGNER.getTitle().value)
+                .withStatus(Status.REJECTED).build();
+        setHiringCandidates(rejected, hired);
+        assertCommandFailure(new StatusCommand(INDEX_FIRST_PERSON, Status.HIRED), model,
+                String.format(StatusCommand.MESSAGE_ROLE_ALREADY_HAS_HIRED_CANDIDATE, rejected.getRole()));
+    }
 
     @Test
     public void execute_firstHire_preservesOtherFieldsAndKeepsRoleOpen() {

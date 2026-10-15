@@ -308,6 +308,41 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_pendingStatusAfterClosure_keepsRecordsAndSavedDataUnchanged() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
+        model.addPerson(new PersonBuilder().withStatus(Status.REJECTED).withTags("referral").build());
+        logic.execute("list role");
+        logic.execute("role close 1");
+        logic.execute("find Amy");
+        ReadOnlyAddressBook saved = addressBookStorage.readAddressBook().orElseThrow();
+        Person candidate = saved.getPersonList().getFirst();
+
+        for (Status pending : new Status[]{Status.PENDING_RESUME_SCREENING, Status.PENDING_RECRUITER_INTERVIEW,
+            Status.PENDING_OFFER_EXTENSION, Status.PENDING_OFFER_DECISION}) {
+            assertThrows(CommandException.class, String.format(StatusCommand.MESSAGE_PENDING_STATUS_FOR_CLOSED_ROLE,
+                    candidate.getName(), candidate.getRole()), () -> logic.execute("status 1 " + pending.name()));
+            assertEquals(saved, model.getAddressBook());
+            assertEquals(saved, addressBookStorage.readAddressBook().orElseThrow());
+            assertEquals(List.of(candidate), model.getFilteredPersonList());
+            assertFalse(model.isRoleListDisplayed());
+        }
+    }
+
+    @Test
+    public void execute_pendingCorrectionForOpenRole_persistsAndPreventsClosure() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
+        model.addPerson(new PersonBuilder().withStatus(Status.HIRED).build());
+        logic.execute("status 1 PENDING_OFFER_DECISION");
+        ReadOnlyAddressBook saved = addressBookStorage.readAddressBook().orElseThrow();
+        assertEquals(Status.PENDING_OFFER_DECISION, saved.getPersonList().getFirst().getStatus());
+        assertEquals(RoleStatus.OPEN, saved.getRoleList().getFirst().getStatus());
+        logic.execute("list role");
+        assertThrows(CommandException.class, String.format(CloseRoleCommand.MESSAGE_PENDING_CANDIDATES,
+                SOFTWARE_ENGINEER.getTitle(), 1), () -> logic.execute("role close 1"));
+        assertEquals(saved, addressBookStorage.readAddressBook().orElseThrow());
+    }
+
+    @Test
     public void execute_storageThrowsIoException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, String.format(
                 LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));

@@ -436,11 +436,18 @@ filter; candidate-index commands are protected by the view flag rather than an a
 Regression checks include `list role`, adding a candidate to another role, and attempting to close
 or delete a role while candidate indices are displayed; both role commands must reject the index.
 
+`Status#isPending` defines which statuses still require a final outcome. Both `CloseRoleCommand`
+and `StatusCommand` use that definition. Before a status change, `StatusCommand` looks up the
+candidate's role without case sensitivity and rejects pending statuses for a closed role.
+Corrections back to pending remain available for open roles. Corrections between final outcomes
+are allowed for closed roles, subject to the hiring guard. Rejection occurs before updating records
+or filters, and `LogicManager` does not save a rejected command.
+
 `StatusCommand` checks the complete stored candidate list before assigning `HIRED`.
 It excludes the selected candidate by candidate identity, then checks whether any other candidate
 with a case-insensitively matching role title is already hired. A conflict raises a command exception
 before updating any records or filters. Reapplying `HIRED` to the same candidate is allowed if there
-is no other hire for that role. Other status changes remain available. Hiring never closes a role
+is no other hire for that role. Hiring never closes a role
 automatically; the close command separately validates final outcomes and the number of hires.
 
 Manual checks: add a role, run `list role`, close it with no candidates, and verify its displayed
@@ -451,6 +458,9 @@ For hiring checks, assign `HIRED` to one candidate, filter the list to another c
 role, then try assigning `HIRED` again. The command must fail without changing either record.
 Verify that reapplying `HIRED` to the first candidate succeeds, and that candidates for different
 roles can each be hired. Restart to verify that successful updates are saved and rejected updates are absent.
+After closing a role, display its candidates and try each `PENDING_*` status; each must be rejected
+without changing the final outcome or closed role. Repeat for an open role to verify that returning
+to pending succeeds and that closure is then rejected until the candidate receives a final outcome.
 
 UC07a — Delete Role Opening
 System: RecruiterBuddy

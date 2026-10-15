@@ -67,7 +67,7 @@ public class CloseRoleCommand extends Command {
         List<Person> candidates = model.getAddressBook().getPersonList().stream()
                 .filter(person -> role.getTitle().isSameTitle(person.getRole()))
                 .toList();
-        long pendingCount = candidates.stream().filter(person -> isPending(person.getStatus())).count();
+        long pendingCount = candidates.stream().filter(person -> person.getStatus().isPending()).count();
         if (pendingCount > 0) {
             throw new CommandException(String.format(MESSAGE_PENDING_CANDIDATES, role.getTitle(), pendingCount));
         }
@@ -75,10 +75,6 @@ public class CloseRoleCommand extends Command {
         if (hiredCount > 1) {
             throw new CommandException(String.format(MESSAGE_MULTIPLE_HIRED, role.getTitle()));
         }
-    }
-
-    private static boolean isPending(Status status) {
-        return status != Status.HIRED && status != Status.REJECTED && status != Status.WITHDRAWN;
     }
 
     @Override
