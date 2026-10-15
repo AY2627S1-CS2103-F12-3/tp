@@ -131,6 +131,14 @@ public class AddressBook implements ReadOnlyAddressBook {
         roles.setRole(target, editedRole);
     }
 
+    /**
+     * Removes {@code role} from the address book.
+     * The role must exist and have no associated candidates.
+     */
+    public void removeRole(Role role) {
+        roles.remove(role);
+    }
+
     //// util methods
 
     @Override

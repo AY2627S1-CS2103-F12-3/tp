@@ -23,6 +23,13 @@ public enum Status {
     }
 
     /**
+     * Returns true if the candidate still needs a final recruitment outcome.
+     */
+    public boolean isPending() {
+        return this != HIRED && this != REJECTED && this != WITHDRAWN;
+    }
+
+    /**
      * Returns an error message listing for when a status does not match any of the existing values.
      *
      * @return String listing values of Status.
