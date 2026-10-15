@@ -612,9 +612,6 @@ Use case ends.
 * 1b. Recruiter requests to remove the candidate’s existing notes.
   * 1b1. RecruiterBuddy removes the notes and confirms that they have been removed.
   * Use case ends.
-* 3a. Recruiter provides an empty note.
-  * 3a1. RecruiterBuddy reports that the note is empty, without changing the candidate’s profile.
-  * Use case resumes at step 2.
 
 #### UC07 — Close Role Opening
 
@@ -662,16 +659,24 @@ Use case ends.
   * 2a1. RecruiterBuddy reports their count without changing records.
   * Use case ends.
 
-UC08 — Delete Candidate Record
-System: RecruiterBuddy
-Actor: User
-MSS:
-1. User requests to delete candidate record(s).
-2. RecruiterBuddy displays the candidate records.
-3. User selects one or more records to delete.
-4. RecruiterBuddy deletes the selected records.
-5. RecruiterBuddy confirms that the records have been deleted.
+#### UC08 — Delete Candidate Record
+
+**System:** RecruiterBuddy<br>
+**Actor:** Recruiter
+
+**Main success scenario:**
+
+1. Recruiter requests to delete a candidate selected from the displayed candidate list.
+2. RecruiterBuddy deletes the candidate.
+3. RecruiterBuddy confirms that the candidate has been deleted.
+
 Use case ends.
+
+**Extensions:**
+
+* 1a. The selected candidate does not exist in the displayed list.
+  * 1a1. RecruiterBuddy reports the error without changing records.
+  * Use case ends.
 
 **MVP scope:** Each role represents exactly one vacancy. Updating an opening count is not supported.
 
