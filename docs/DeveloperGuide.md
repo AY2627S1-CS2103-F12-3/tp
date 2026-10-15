@@ -428,6 +428,14 @@ After validation, `Model#setRole` replaces the immutable role with a `CLOSED` co
 The observable role list updates its existing UI, and `LogicManager` saves the updated address book.
 The existing candidate-add guard rejects closed roles. No candidate is modified by closure.
 
+After successful execution and saving, `LogicManager` sets `Model#isRoleListDisplayed` from
+`CommandResult#isShowRoleList`, the same value `MainWindow` uses to select the visible list.
+Commands do not update that flag independently. Parsing, execution, and save failures leave the
+previous view flag unchanged, matching the UI's error path. Listing roles retains the candidate
+filter; candidate-index commands are protected by the view flag rather than an artificial empty list.
+Regression checks include `list role`, adding a candidate to another role, and attempting to close
+or delete a role while candidate indices are displayed; both role commands must reject the index.
+
 `StatusCommand` checks the complete stored candidate list before assigning `HIRED`.
 It excludes the selected candidate by candidate identity, then checks whether any other candidate
 with a case-insensitively matching role title is already hired. A conflict raises a command exception

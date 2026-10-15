@@ -173,6 +173,10 @@ Shows every unique role in the address book. Each role is displayed in its own b
 
 Format: `list role`
 
+Role indices can be used only while the role list is displayed. If a successful command such as
+adding or finding a candidate switches back to the candidate list, run `list role` again before
+using `role close` or `role delete`. Failed commands leave the current list displayed.
+
 ### Editing a person: `edit`
 
 Edits an existing person in the address book.
