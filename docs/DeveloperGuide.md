@@ -637,7 +637,7 @@ Use case ends.
   * 2a1. RecruiterBuddy reports the error, including the pending count where applicable, without changing records.
   * Use case ends.
 
-#### UC07a — Delete Role Opening
+#### UC08 — Delete Role Opening
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter
@@ -659,7 +659,7 @@ Use case ends.
   * 2a1. RecruiterBuddy reports their count without changing records.
   * Use case ends.
 
-#### UC08 — Delete Candidate Record
+#### UC09 — Delete Candidate Record
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter
@@ -677,8 +677,6 @@ Use case ends.
 * 1a. The selected candidate does not exist in the displayed list.
   * 1a1. RecruiterBuddy reports the error without changing records.
   * Use case ends.
-
-**MVP scope:** Each role represents exactly one vacancy. Updating an opening count is not supported.
 
 ## Optional
 
