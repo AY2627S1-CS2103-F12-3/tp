@@ -15,14 +15,6 @@
       "headingKeywords": {}
     },
     {
-      "src": "Configuration.md",
-      "title": "Configuration guide",
-      "headings": {
-        "configuration-guide": "Configuration guide"
-      },
-      "headingKeywords": {}
-    },
-    {
       "src": "DevOps.md",
       "title": "DevOps guide",
       "headings": {
@@ -50,7 +42,10 @@
         "storage-component": "Storage component",
         "common-classes": "Common classes",
         "implementation": "Implementation",
+        "role-creation-and-persistence": "Role creation and persistence",
+        "role-lifecycle-and-candidate-safeguards": "Role lifecycle and candidate safeguards",
         "proposed-undo-redo-feature": "[Proposed] Undo/redo feature",
+        "candidate-notes": "Candidate notes",
         "proposed-data-archiving": "[Proposed] Data archiving",
         "documentation-logging-testing-dev-ops": "Documentation, logging, testing, dev-ops",
         "appendix-requirements": "Appendix: Requirements",
@@ -63,7 +58,11 @@
         "glossary": "Glossary",
         "appendix-instructions-for-manual-testing": "Appendix: Instructions for manual testing",
         "launch-and-shutdown": "Launch and shutdown",
-        "deleting-a-person": "Deleting a person",
+        "role-management": "Role management",
+        "adding-a-candidate": "Adding a candidate",
+        "editing-a-candidate": "Editing a candidate",
+        "recording-a-note-2": "Recording a note",
+        "deleting-a-candidate": "Deleting a candidate",
         "saving-data": "Saving data"
       },
       "headingKeywords": {}
@@ -108,19 +107,21 @@
       "src": "UserGuide.md",
       "title": "User Guide",
       "headings": {
-        "ab-3-user-guide": "AB-3 User Guide",
+        "recruiterbuddy-user-guide": "RecruiterBuddy User Guide",
         "quick-start": "Quick start",
         "features": "Features",
         "viewing-help-help": "Viewing help: help",
-        "adding-a-person-add": "Adding a person: add",
+        "adding-a-candidate-add": "Adding a candidate: add",
         "adding-a-role-role-add": "Adding a role: role add",
-        "listing-all-persons-list": "Listing all persons: list",
+        "closing-a-role-role-close": "Closing a role: role close",
+        "deleting-a-role-role-delete": "Deleting a role: role delete",
+        "listing-all-candidates-list": "Listing all candidates: list",
         "listing-all-roles-list-role": "Listing all roles: list role",
-        "editing-a-person-edit": "Editing a person: edit",
+        "editing-a-candidate-edit": "Editing a candidate: edit",
         "adding-or-clearing-a-note-note": "Adding or clearing a note: note",
-        "locating-persons-by-name-find": "Locating persons by name: find",
+        "locating-candidates-by-name-find": "Locating candidates by name: find",
         "updating-a-candidate-s-status-status": "Updating a candidate's status: status",
-        "deleting-a-person-delete": "Deleting a person: delete",
+        "deleting-a-candidate-delete": "Deleting a candidate: delete",
         "clearing-all-entries-clear": "Clearing all entries: clear",
         "exiting-the-program-exit": "Exiting the program: exit",
         "saving-the-data": "Saving the data",
@@ -137,7 +138,7 @@
       "title": "",
       "headings": {
         "recruiterbuddy": "RecruiterBuddy",
-        "planned-mvp-features": "Planned MVP features",
+        "mvp-features": "MVP features",
         "acknowledgements": "Acknowledgements"
       },
       "headingKeywords": {}
