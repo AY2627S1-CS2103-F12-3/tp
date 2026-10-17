@@ -163,7 +163,7 @@ Run `list role` first. `INDEX` must be a positive integer shown in the current r
 The role must be `OPEN`. Every associated candidate must be `HIRED`, `REJECTED`, or `WITHDRAWN`,
 and at most one may be `HIRED`. A role with no candidates, or no hired candidate, may also be closed.
 Checks include candidates hidden by filters. Candidates loaded without a saved status receive
-`PENDING_RESUME_SCREENING` and must receive a final outcome before closure.
+`RESUME` and must receive a final outcome before closure.
 
 Example: `list role`, followed by `role close 1`.
 
@@ -280,7 +280,7 @@ Format: `status INDEX STATUS`
 
 * Updates the status of the candidate at the specified `INDEX`. The index refers to the index number shown in the displayed candidate list. The index **must be a positive integer** 1, 2, 3, ... and cannot exceed the length of the _displayed_ candidate list.
 * The candidate's original status is replaced with the one specified in `STATUS`.
-* `STATUS` must be one of the following: `PENDING_RESUME_SCREENING`, `PENDING_RECRUITER_INTERVIEW`, `PENDING_OFFER_EXTENSION`, `PENDING_OFFER_DECISION`, `HIRED`, `REJECTED`, or `WITHDRAWN`.
+* `STATUS` must be one of the following: `RESUME`, `INTERVIEW`, `OFFER`, `DECISION`, `HIRED`, `REJECTED`, or `WITHDRAWN`.
 * `STATUS` is not case-sensitive; for example, `hired`, `Hired` and `hiRED` are treated as the same as `HIRED`.
 * Each role has one vacancy. Assigning `HIRED` fails if another candidate for the same role is already
   `HIRED`, including candidates hidden by filters. Role titles are compared without case sensitivity.
@@ -297,9 +297,8 @@ Format: `status INDEX STATUS`
 
 Example:
 
-* `status 1 pending_offer_extension`
-* `status 2 PENDING_RECRUITER_INTERVIEW`
-* `status 1 HIRED`
+* `status 1 offer`
+* `status 2 INTERVIEW`
 
 ### Deleting a candidate: `delete`
 
@@ -373,7 +372,7 @@ When editing roles and their candidate associations:
   because closing preserves candidates. On loading, the role's stored capitalisation is used for
   its candidates. If you rename a role in the file, update every associated candidate's `role` too.
 * A candidate's saved `status` uses an uppercase status name, such as `HIRED`. If absent, it defaults
-  to `PENDING_RESUME_SCREENING`. A missing candidate `role` has no default and prevents loading;
+  to `RESUME`. A missing candidate `role` has no default and prevents loading;
   older contact-only files therefore need role information added before they can be used.
 * Keep recruitment outcomes consistent: at most one candidate per role should be `HIRED`, and closed
   roles should have no pending candidates. The status and close commands enforce these rules during
