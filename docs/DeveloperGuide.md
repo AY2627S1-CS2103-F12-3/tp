@@ -17,9 +17,9 @@
   [SE-EDU initiative](https://se-education.org). Its existing architecture and documentation form the
   starting point for RecruiterBuddy.
 * Kavin Parthipan (`kpkavin04`) used OpenAI Codex to assist with requirements analysis, implementation,
-  tests, review, and documentation for the persistent role model, role commands, and associated
-  candidate-status and displayed-list safeguards. This acknowledgement covers that contribution,
-  not other team members' tool usage.
+  tests, review, and documentation for candidate role reassignment, the persistent role model,
+  role commands, and associated candidate-status and displayed-list safeguards.
+  This acknowledgement covers that contribution, not other team members' tool usage.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -262,8 +262,9 @@ or reassigns candidates. It is immediate and has no undo operation in the MVP.
 
 #### Status changes and one hire per role
 
-Before assigning `HIRED`, `StatusCommand` checks all stored candidates for another hire with a
-case-insensitively matching role title, excluding the selected candidate by candidate identity.
+Before assigning `HIRED`, `StatusCommand` uses `CandidateRoleChecks` to check all stored candidates
+for another hire with a case-insensitively matching role title, excluding the selected candidate by
+candidate identity.
 Reapplying `HIRED` to that candidate is allowed if there is no other hire. Moving an existing hire to
 another permitted status frees the vacancy; hiring a candidate never closes the role automatically.
 
@@ -284,6 +285,30 @@ Listing roles retains the candidate filter. Candidate-index commands use the vie
 an artificial empty candidate list. If a successful candidate addition switches the UI to candidates,
 both role commands reject indices until `list role` is run again. See the
 [role management manual checks](#role-management) for reproducible regression scenarios.
+
+### Correcting a candidate's role
+
+`EditCommandParser` accepts `r/` as an optional, non-repeatable edit field. It uses
+`ParserUtil#parseRoleTitle` for the existing title constraints and stores the result in
+`EditPersonDescriptor`, including its copy, equality and diagnostic-string behaviour.
+
+`EditCommand` resolves an explicitly requested role through `Model#findRole` before replacing any
+records or changing filters. A missing role is rejected; a different role must be open. The source
+may be open or closed, and selecting the existing role remains a permitted no-op. Resolution uses
+case-insensitive matching and the stored role's canonical spelling. Omitting `r/` preserves the role.
+
+The edited immutable `Person` keeps its status and note, and keeps every other field not explicitly
+edited. The existing candidate-identity duplicate check is unchanged. For a real role transfer,
+`CandidateRoleChecks#verifyHiringAllowed` rejects a `HIRED` candidate if another stored candidate
+for the destination is hired. It uses all records, not the filtered list, and excludes the original
+candidate by identity rather than the edited name. `StatusCommand` shares this check to prevent the
+two workflows from implementing different single-vacancy rules.
+
+After validation succeeds, `Model#setPerson` updates the observable candidate collection and the
+candidate filter resets to show all records. The existing `Edited candidate: ...` result formats the
+updated candidate, including the new name and canonical role. Normal `LogicManager` saving persists
+the association without a JSON schema change. Validation failures leave records and filters
+unchanged and do not save. Neither role's status changes automatically.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -445,6 +470,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *` | department recruiter | close a role opening | prevent new candidates from being added after recruitment ends while retaining existing candidate records |
 | `* * *` | department recruiter | delete a role with no associated candidates | remove an erroneous vacancy and reuse its title without losing candidate records |
 | `* * *` | department recruiter | add a candidate to a specific open role with their contact details and address | keep the candidate's recruitment information in one place |
+| `* * *` | department recruiter | correct a candidate's role without recreating their record | preserve their recruitment progress, notes and contact information |
 | `* * *` | department recruiter | be stopped from adding a candidate who is already recorded | avoid creating duplicate candidate profiles |
 | `* * *` | department recruiter | view all candidates | review the department's recruitment pipeline |
 | `* * *` | department recruiter | assign a candidate one controlled recruitment status | record where the candidate stands in the recruitment process |
@@ -1150,8 +1176,35 @@ Always switch back with `list` or `list role` before using indices for that list
    1. Test case: `edit 1 p/91112222`<br>
       Expected: Alex Yeoh's phone number changes. The role, status and note are unchanged.
 
-   1. Test case: `edit 1 r/Data Analyst`<br>
-      Expected: The candidate is not changed. The error message says that a candidate's role cannot be edited.
+   1. Test case: `edit 1 r/  data analyst  `<br>
+      Expected: The card shows `Data Analyst`, preserving the status and note. The success message
+      names Alex Yeoh. Restart and confirm the role remains Data Analyst.
+
+   1. Test case: `edit 1 n/Alex Tan r/Software Engineer`<br>
+      Expected: Both fields change; the success message names Alex Tan, not Alex Yeoh.
+
+1. Role-transfer safeguards
+
+   1. Prerequisites: Use the disposable role-management fixture above with Alice and Ben for QA
+      Engineer and an empty, open QA Analyst role. Restore the fixture between independent checks.
+
+   1. Run `status 1 HIRED`, `status 2 REJECTED`, then `list role` and `role close 1`. Run `list`, then
+      `edit 1 r/QA Analyst`.<br>
+      Expected: Alice transfers from the closed engineer role to the open analyst role and stays hired.
+      The engineer role stays closed. Ben remains rejected and associated with the engineer role.
+
+   1. From the same closed-source setup, run `edit 1 n/Alice Corrected r/qa engineer` before transferring.<br>
+      Expected: The same-role edit succeeds and uses `QA Engineer` spelling without reopening it.
+      Selecting a different closed role instead is rejected with `Cannot move candidate to closed role: ROLE_TITLE.`
+
+   1. From the closed-source setup before transferring Alice, give QA Analyst another candidate with
+      status `HIRED`. Alice must still be hired for QA Engineer. Filter to Alice using `find Alice`
+      and try `edit 1 r/QA Analyst`.<br>
+      Expected: The hidden hire still blocks Alice's transfer. Records, filters and saved bytes stay unchanged.
+      A non-hired candidate may transfer to the same open role; their status is preserved.
+
+   1. Try `edit 1 r/Unknown Role`, `edit 1 r/`, and `edit 1 r/QA Analyst r/QA Engineer`.<br>
+      Expected: Unknown, empty and repeated role fields are rejected. No partial edits are applied.
 
 ### Recording a note
 

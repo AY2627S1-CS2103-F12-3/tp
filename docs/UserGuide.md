@@ -225,18 +225,39 @@ using `role close` or `role delete`. Failed commands leave the current list disp
 
 Edits an existing candidate.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
+Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITLE] [t/TAG]...`
 
 * Edits the candidate at the specified `INDEX`. The index refers to the index number shown in the displayed candidate list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
 * When editing tags, all of the candidate's existing tags are removed; adding tags is not cumulative.
 * To remove all of a candidate's tags, enter `t/` without a tag after it.
-* A candidate's role cannot be edited, so `r/` is rejected. The candidate's status and note are also kept; use `status` or `note` to change them.
+* Use `r/ROLE_TITLE` to correct the candidate's role, on its own or with other edits. The title must
+  match an existing role, ignoring case and surrounding spaces; the saved title uses that role's spelling.
+* A transfer can leave an open or closed role, but the destination must be **OPEN**. Selecting the
+  existing role is allowed without transferring, even when it is closed.
+* The candidate's status and note are preserved. Use `status` or `note` to change them separately.
+  A `HIRED` candidate cannot transfer to a role that already has another hired candidate, including
+  one hidden by the current candidate filter. Non-hired candidates can transfer to an open role
+  even when it already has a hire. A transfer never opens or closes either role automatically.
+* Each field except `t/` may appear only once. Empty or invalid role titles are rejected using the
+  same [role-title rules](#adding-a-role-role-add) as role creation.
+* Success shows `Edited candidate: ...` with the updated name and details, refreshes the candidate
+  list to show all candidates, and saves the change. Validation failures leave records and filters unchanged.
+
+Role-related errors:
+
+* Unknown role: `No role named “ROLE_TITLE” exists. Add the role first.`
+* Closed destination: `Cannot move candidate to closed role: ROLE_TITLE.`
+* Destination already has a hire: `ROLE_TITLE already has a hired candidate.`
 
 Examples:
+
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st candidate to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd candidate to be `Betsy Crower` and clears all existing tags.
+*  `edit 1 r/Data Analyst` Moves the 1st candidate to the existing open Data Analyst role, preserving
+   their status, note and other details.
+*  `edit 1 n/Alex Tan r/Data Analyst` Corrects the name and role together; the success message names Alex Tan.
 
 ### Adding or clearing a note: `note`
 
@@ -419,7 +440,7 @@ Action     | Format, Examples
 **Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... ` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 r/Software Engineer t/referral t/java`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
+**Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITLE] [t/TAG]...`<br> e.g.,`edit 2 n/James Lee r/Data Analyst`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List**   | `list`
 **List roles** | `list role`
