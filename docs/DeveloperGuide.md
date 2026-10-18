@@ -376,13 +376,13 @@ _{more aspects and alternatives to be added}_
 
 ### Candidate notes
 
-Each `Person` has a `Note`, a free-text field for details such as an interview date and time. An empty note means the candidate has no note, and the candidate card hides it.
+Each `Person` has a `Note`, a free-text field for details such as a candidate's skills or availability. Interview dates and times have their own field, described in [Candidate interviews](#candidate-interviews). An empty note means the candidate has no note, and the candidate card hides it.
 
 #### Recording a note
 
 `NoteCommandParser` splits the arguments into the first word, which is parsed as the index, and the rest, which is trimmed and becomes the note. It does not use `ArgumentTokenizer`, so the note can contain text that looks like a prefix, such as `t/` or `n/`. An empty remainder gives an empty `Note`, so `note 1` clears the first candidate's note.
 
-`NoteCommand#execute` looks up the candidate in the displayed candidate list and replaces it with a copy that has the new note. Other commands that rebuild a `Person`, such as `edit` and `status`, copy the existing note across, so they never change it.
+`NoteCommand#execute` looks up the candidate in the displayed candidate list and replaces it with a copy that has the new note. Other commands that rebuild a `Person`, such as `edit`, `status`, and `interview`, copy the existing note across, so they never change it.
 
 Notes are stored as the `note` field of each candidate in the JSON data file. A candidate saved without a `note` field loads with an empty note.
 
@@ -396,6 +396,51 @@ Notes are stored as the `note` field of each candidate in the JSON data file. A 
 * **Alternative 2:** An `nt/NOTE` prefix on `add` and `edit`.
   * Pros: Consistent with the other candidate fields.
   * Cons: The tokenizer ends the note at the next prefix. For example, `nt/Discuss t/java` would save the note `Discuss` and add a `java` tag, so valid notes are silently changed. This alternative was implemented and then removed for this reason.
+
+### Candidate interviews
+
+Each `Person` has an `Interview`, which holds the date and time of the candidate's interview, to the minute. A candidate with no interview has `Interview.NONE`, so no code needs to handle a `null` interview. The candidate card shows the interview as `Interview: YYYY-MM-DD HH:MM`, and hides the line for `Interview.NONE`.
+
+#### Validating a date and time
+
+`Interview` accepts only zero-padded `YYYY-MM-DD HH:MM` values that are real dates and valid 24-hour times. It checks a value in two steps, so that each kind of mistake gets its own error message:
+
+1. `Interview#isValidFormat` checks the shape with a regular expression. A value such as `2026-10-20 9:00` fails here, and the user is told the expected format.
+2. `Interview#isValidDateTime` parses the value with the pattern `uuuu-MM-dd HH:mm` and `ResolverStyle.STRICT`. A value with the right shape but an impossible date or time, such as `2026-02-30` or `24:00`, fails here, and the user is told the value does not exist.
+
+Strict resolving is needed because the default resolver silently adjusts `2026-02-30` to `2026-02-28`. The pattern uses `uuuu` (year) instead of `yyyy` (year of era), because strict resolving rejects every `yyyy` year that has no era. The `Interview` constructor enforces both checks with `checkArgument`, so an invalid interview cannot be created even when assertions are disabled. Past dates are allowed, so recruiters can record interviews that have already happened.
+
+#### Scheduling or clearing an interview
+
+`InterviewCommandParser` tokenizes the arguments with the `d/` prefix. The preamble must be exactly one index. If `d/` is present, `ParserUtil#parseInterview` runs the two checks above and creates the `Interview`. If `d/` is left out, the parser uses `Interview.NONE`, so `interview 1` clears the first candidate's interview. An empty `d/` is rejected with the format error instead of clearing the interview, so a user who forgets to type the date does not lose the existing one.
+
+`InterviewCommand#execute` looks up the candidate in the displayed candidate list and replaces it with `Person#withInterview`, a copy that has the new interview. Unlike `note`, it does not reset the candidate filter, so a recruiter can schedule interviews for a filtered list by its displayed numbers. Clearing a candidate with no interview, or giving the same date and time again, succeeds without changing the data, as `note` does for notes.
+
+Other commands that rebuild a `Person`, such as `edit`, `note`, and `status`, copy the existing interview across, so they never change it.
+
+#### Saving and loading interviews
+
+Interviews are stored as the `interview` field of each candidate in the JSON data file, in the same `YYYY-MM-DD HH:MM` form. `Interview.NONE` is saved as an empty string. When loading, a missing, `null`, or empty `interview` field gives `Interview.NONE`, so data files saved before interviews existed still load. Any other value goes through the same two checks, and an invalid value stops the file from loading, as an invalid phone number does.
+
+#### Design considerations
+
+**Aspect: Where the interview is stored**
+
+* **Alternative 1 (current choice):** A separate `Interview` field with its own command.
+  * Pros: The date and time are checked, so impossible or mistyped slots are rejected. The value can later be used to sort candidates by interview time.
+  * Cons: Every place that rebuilds a `Person` must copy the new field, or that command would silently clear the interview.
+* **Alternative 2:** Keep interviews in the free-text note.
+  * Pros: No new field or command.
+  * Cons: Nothing checks the date, and the date cannot be compared or sorted.
+
+**Aspect: How "no interview" is represented**
+
+* **Alternative 1 (current choice):** An `Interview.NONE` value, whose date and time is held in a private nullable field and returned as an `Optional<LocalDateTime>`.
+  * Pros: `Person` fields are never `null`, and the `null` never leaves the `Interview` class.
+  * Cons: Code that needs the date and time must handle the empty `Optional`.
+* **Alternative 2:** A sentinel date, such as `0000-01-01 00:00`.
+  * Pros: Every interview has a real `LocalDateTime`.
+  * Cons: The sentinel could be shown or sorted as if it were a real interview, and a user could enter the same value.
 
 ### \[Proposed\] Data archiving
 
@@ -574,12 +619,15 @@ Use case ends.
 * 1a. The candidate does not exist.
   * 1a1. RecruiterBuddy reports the error.
   * Use case ends.
-* 3a. The date or time is invalid.
-  * 3a1. RecruiterBuddy reports the error without recording the interview.
+* 1b. Recruiter requests to clear the candidate's interview.
+  * 1b1. RecruiterBuddy removes the candidate's interview, if any, and confirms that it has been cleared.
+  * Use case ends.
+* 3a. The date and time are not in the required format.
+  * 3a1. RecruiterBuddy reports the required format without recording the interview.
   * Use case resumes at step 2.
-* 3b. Recruiter also provides the assigned interviewers or the interview location.
-  * 3b1. RecruiterBuddy includes them in the interview record.
-  * Use case resumes at step 4.
+* 3b. The date or time does not exist, such as 30 February or 24:00.
+  * 3b1. RecruiterBuddy reports the error without recording the interview.
+  * Use case resumes at step 2.
 * 4a. The candidate already has an interview recorded, and the interview is being rescheduled.
   * 4a1. RecruiterBuddy replaces the earlier date and time with the new ones.
   * Use case resumes at step 5.
@@ -1145,10 +1193,10 @@ Always switch back with `list` or `list role` before using indices for that list
 
 1. Editing a candidate's details
 
-   1. Prerequisites: Start with the sample data and run `list`. The 1st candidate, Alex Yeoh, has a role, a status and a note.
+   1. Prerequisites: Start with the sample data and run `list`. The 1st candidate, Alex Yeoh, has a role, a status, a note and an interview.
 
    1. Test case: `edit 1 p/91112222`<br>
-      Expected: Alex Yeoh's phone number changes. The role, status and note are unchanged.
+      Expected: Alex Yeoh's phone number changes. The role, status, note and interview are unchanged.
 
    1. Test case: `edit 1 r/Data Analyst`<br>
       Expected: The candidate is not changed. The error message says that a candidate's role cannot be edited.
@@ -1159,8 +1207,8 @@ Always switch back with `list` or `list role` before using indices for that list
 
    1. Prerequisites: Start with the sample data and run `list`.
 
-   1. Test case: `note 2 Interview 2026-10-20 14:00`<br>
-      Expected: The 2nd candidate's card shows the note `Interview 2026-10-20 14:00`.
+   1. Test case: `note 2 Prefers hybrid work`<br>
+      Expected: The 2nd candidate's card shows the note `Prefers hybrid work`.
 
    1. Test case: `note 2 Discuss t/java experience`<br>
       Expected: The note is replaced with `Discuss t/java experience`. No `java` tag is added.
@@ -1168,11 +1216,65 @@ Always switch back with `list` or `list role` before using indices for that list
    1. Test case: `note 2`<br>
       Expected: The 2nd candidate's note is cleared and no longer shown on the card.
 
-   1. Test case: `note 0 Interview tomorrow`<br>
+   1. Test case: `note 0 Prefers hybrid work`<br>
       Expected: No note is changed. The error message shows the correct `note` format.
 
-   1. Other incorrect note commands to try: `note`, `note x Interview` (where x is larger than the list size)<br>
+   1. Other incorrect note commands to try: `note`, `note x Prefers hybrid work` (where x is larger than the list size)<br>
       Expected: No note is changed and an error message is shown.
+
+### Scheduling an interview
+
+1. Scheduling, rescheduling and clearing an interview
+
+   1. Prerequisites: Start with the sample data and run `list`. The 1st candidate, Alex Yeoh, has an interview on `2026-10-20 14:00`. The 2nd candidate, Bernice Yu, has no interview, and their card has no interview line.
+
+   1. Test case: `interview 2 d/2026-10-21 09:30`<br>
+      Expected: Bernice Yu's card shows `Interview: 2026-10-21 09:30`. The result message names Bernice Yu, and the note is unchanged.
+
+   1. Test case: `interview 2 d/2026-10-22 15:00`<br>
+      Expected: The interview is replaced with `2026-10-22 15:00`.
+
+   1. Test case: `interview 2`<br>
+      Expected: Bernice Yu's interview is cleared, and the card no longer has an interview line.
+
+   1. Test case: `interview 2` again<br>
+      Expected: The command succeeds and nothing changes.
+
+   1. Test case: `interview 1 d/2020-01-15 09:30`<br>
+      Expected: The past date is accepted and shown on Alex Yeoh's card.
+
+1. Rejecting invalid dates and times
+
+   1. Prerequisites: Start with the sample data and run `list`.
+
+   1. Test case: `interview 1 d/2026-10-20 9:00`<br>
+      Expected: No interview is changed. The error message shows the required format `YYYY-MM-DD HH:MM`.
+
+   1. Test case: `interview 1 d/2026-02-30 14:00`<br>
+      Expected: No interview is changed. The error message says the date and time must be a real date and a valid 24-hour time.
+
+   1. Other invalid dates and times to try: `2026-02-29 14:00` (not a leap year), `2026-10-20 24:00`, `20/10/2026 14:00`<br>
+      Expected: No interview is changed and an error message is shown.
+
+   1. Test case: `interview 1 d/`<br>
+      Expected: Alex Yeoh's interview is not cleared. The error message shows the required format.
+
+   1. Other incorrect interview commands to try: `interview`, `interview 0 d/2026-10-20 14:00`, `interview x d/2026-10-20 14:00` (where x is larger than the list size), `interview 1 d/2026-10-20 14:00 d/2026-10-21 14:00`<br>
+      Expected: No interview is changed and an error message is shown.
+
+1. Keeping the filter
+
+   1. Prerequisites: Start with the sample data and run `find Bernice`, so only Bernice Yu is shown.
+
+   1. Test case: `interview 1 d/2026-10-21 09:30`<br>
+      Expected: Bernice Yu's interview is set, and the list still shows only Bernice Yu.
+
+1. Saving interviews
+
+   1. Prerequisites: Schedule an interview, e.g. `interview 2 d/2026-10-21 09:30`.
+
+   1. Close and relaunch the app.<br>
+      Expected: The interview is still shown on Bernice Yu's card.
 
 ### Deleting a candidate
 
