@@ -52,6 +52,8 @@ public class Messages {
                 .append(person.getRole())
                 .append("; Note: ")
                 .append(person.getNote())
+                .append("; Interview: ")
+                .append(person.getInterview())
                 .append("; Tags: ");
         person.getTags().forEach(builder::append);
         return builder.toString();
