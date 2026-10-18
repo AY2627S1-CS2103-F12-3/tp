@@ -217,6 +217,17 @@ Shows every unique role in RecruiterBuddy. Each role is displayed in its own box
 
 Format: `list role`
 
+Each role card also shows `Pending`, `Hired`, `Rejected`, and `Withdrawn` candidate totals, including
+zeros. For example: `Pending: 3`, `Hired: 1`, `Rejected: 2`, `Withdrawn: 0`.
+
+* Totals include every candidate associated with that role, even when a candidate-name filter hides
+  some records. Filtering candidates does not change the totals.
+* `Pending` combines all recruitment stages before a final outcome. `Hired`, `Rejected`, and
+  `Withdrawn` count their respective final outcomes; each candidate contributes to exactly one total.
+* Both `OPEN` and `CLOSED` roles show totals. An empty role shows zero for all four categories.
+* Totals refresh from the current records after additions, removals, and status changes, and are
+  reconstructed when data is loaded. They do not change candidate statuses or close roles automatically.
+
 Role indices can be used only while the role list is displayed. If a successful command such as
 adding or finding a candidate switches back to the candidate list, run `list role` again before
 using `role close` or `role delete`. Failed commands leave the current list displayed.

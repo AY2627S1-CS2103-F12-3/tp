@@ -17,7 +17,7 @@
   [SE-EDU initiative](https://se-education.org). Its existing architecture and documentation form the
   starting point for RecruiterBuddy.
 * Kavin Parthipan (`kpkavin04`) used OpenAI Codex to assist with requirements analysis, implementation,
-  tests, review, and documentation for the persistent role model, role commands, and associated
+  tests, review, and documentation for the persistent role model, role commands, role-card summaries, and associated
   candidate-status and displayed-list safeguards. This acknowledgement covers that contribution,
   not other team members' tool usage.
 
@@ -141,6 +141,8 @@ The `Model` component,
   `CLOSED`). One role is one vacancy; no opening count is stored.
 * stores each candidate's association as a `RoleTitle`, not a separate copy of a `Role`. Role lookups
   match titles without case sensitivity.
+* derives role-card summaries through `RoleCandidateCounts`, an immutable snapshot of candidate-status
+  totals. This helper is omitted from the partial association diagram and is not part of stored role data.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
@@ -284,6 +286,34 @@ Listing roles retains the candidate filter. Candidate-index commands use the vie
 an artificial empty candidate list. If a successful candidate addition switches the UI to candidates,
 both role commands reject indices until `list role` is run again. See the
 [role management manual checks](#role-management) for reproducible regression scenarios.
+
+### Candidate-status totals on role cards
+
+`RoleCandidateCounts` scans a supplied candidate collection for a case-insensitively matching
+`RoleTitle`, then snapshots counts by `Status`. Pending totals use `Status#isPending` rather than
+hard-coded pending-status names. Each candidate contributes once, and an absent category returns
+zero. The summary reports actual records, including any inconsistent hand-edited hire counts;
+it never changes statuses or enforces command-level recruitment rules.
+
+`Logic#getPersonList` exposes the address book's unmodifiable observable candidate list, not the
+filtered list used by the candidate panel. `MainWindow` passes it to `RoleListPanel` alongside the
+existing observable role list. A panel-lifetime candidate listener refreshes the role list after
+additions, replacements, removals, and resets. List cells construct fresh summaries when rendering
+their roles, including when scrolling or returning from the candidate view. Listeners are not
+attached to individual recycled cells. Role replacements still use the existing role-list binding.
+
+`RoleCard` displays four explicit labels in a wrapping `FlowPane`. Cards bind their width to the
+available list-cell width, so long role details wrap without forcing horizontal scrolling. Role
+indices retain their full width beside wrapped titles. Both open and closed roles use the same
+calculation. Counts are not cached in `Role` or saved to JSON, so loading data reconstructs
+them without a schema migration or a second source of truth. Candidate filters, role order, indices,
+and command feedback are unchanged.
+
+Unit tests cover classification, title matching, empty states, snapshots, and mixed-role data.
+Logic integration tests check unfiltered observation, status changes, additions, deletion, role
+reassignment through the existing model API, resets, and reload. The existing Codecov exclusions for
+`RoleCard`, `RoleListPanel`, and `MainWindow` remain unchanged; manual packaged-JAR tests cover their
+rendering and refresh wiring rather than treating excluded UI code as automatically verified.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -442,6 +472,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 |----------|--------|-------------|-----------------|
 | `* * *` | department recruiter | add a role opening with its title and required experience level | track an active recruitment need in my department |
 | `* * *` | department recruiter | view all role openings and whether they are open or closed | review the roles tracked by my department |
+| `* *` | department recruiter | see pending and final-outcome totals for each role | assess recruitment progress without inspecting every candidate |
 | `* * *` | department recruiter | close a role opening | prevent new candidates from being added after recruitment ends while retaining existing candidate records |
 | `* * *` | department recruiter | delete a role with no associated candidates | remove an erroneous vacancy and reuse its title without losing candidate records |
 | `* * *` | department recruiter | add a candidate to a specific open role with their contact details and address | keep the candidate's recruitment information in one place |
@@ -1030,6 +1061,29 @@ add n/Ben Test p/91234562 e/ben@example.com a/2 Test Road r/QA Engineer
 Expected fixture: `list role` shows `QA Engineer` at index 1 and `QA Analyst` at index 2, both `OPEN`.
 `list` shows Alice at index 1 and Ben at index 2, both `Pending Resume Screening`.
 Always switch back with `list` or `list role` before using indices for that list.
+
+#### Role-card candidate totals
+
+1. Run `list role` with the fixture above.<br>
+   Expected: `QA Engineer` shows `Pending: 2`, `Hired: 0`, `Rejected: 0`, `Withdrawn: 0`.
+   `QA Analyst` shows zero in every category. Run `find Alice`, then `list role`; the engineer
+   totals remain unchanged because Ben is still included despite the candidate filter.
+
+1. Run `status 1 HIRED`, `status 2 REJECTED`, then `list role`.<br>
+   Expected: The engineer totals are `Pending: 0`, `Hired: 1`, `Rejected: 1`, `Withdrawn: 0`.
+   Run `role close 1`; the role becomes `CLOSED` without changing its counts. Run `list`,
+   `status 2 WITHDRAWN`, then `list role`; rejected becomes zero and withdrawn becomes one.
+   Restart and run `list role`; the same totals are reconstructed.
+
+1. Run `delete 2`, then `list role`.<br>
+   Expected: The engineer pending total drops to one; other totals remain zero. Run `list` and add
+   another candidate to `QA Engineer`; the pending total increases when roles are listed again.
+   Run `clear`, then `list role`; no old role cards remain. Adding a new empty role shows four zeros.
+
+1. Scroll through enough roles to recycle list cells, then return to the original roles.<br>
+   Expected: Their totals remain associated with the correct titles. Resize the window and verify
+   that all four labelled counts wrap without clipping, with the existing title, experience, status,
+   command field, and scrolling still usable. Check the course-required screen sizes and scaling.
 
 #### Role creation and validation
 
