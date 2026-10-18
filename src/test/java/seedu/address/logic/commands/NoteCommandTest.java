@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_INTERVIEW_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NOTE_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NOTE_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
@@ -79,6 +80,24 @@ public class NoteCommandTest {
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(hiredPerson, editedPerson);
+
+        assertCommandSuccess(noteCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_personWithInterview_interviewPreserved() {
+        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person personWithInterview = new PersonBuilder(firstPerson).withInterview(VALID_INTERVIEW_BOB).build();
+        model.setPerson(firstPerson, personWithInterview);
+
+        Person editedPerson = new PersonBuilder(personWithInterview).withNote(VALID_NOTE_AMY).build();
+        NoteCommand noteCommand = new NoteCommand(INDEX_FIRST_PERSON, new Note(VALID_NOTE_AMY));
+
+        String expectedMessage = String.format(NoteCommand.MESSAGE_UPDATE_NOTE_SUCCESS,
+                Messages.format(editedPerson));
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(personWithInterview, editedPerson);
 
         assertCommandSuccess(noteCommand, model, expectedMessage, expectedModel);
     }

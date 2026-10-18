@@ -40,6 +40,8 @@ public class CommandTestUtil {
     public static final String VALID_ROLE_BOB = "Product Analyst";
     public static final String VALID_NOTE_AMY = "Prefers morning interviews";
     public static final String VALID_NOTE_BOB = "Referred by Alice";
+    public static final String VALID_INTERVIEW_AMY = "2026-10-20 14:00";
+    public static final String VALID_INTERVIEW_BOB = "2026-11-03 09:30";
     public static final String VALID_TAG_HUSBAND = "husband";
     public static final String VALID_TAG_FRIEND = "friend";
     public static final String VALID_STATUS_1_STRING = "PENDING_RECRUITER_INTERVIEW";

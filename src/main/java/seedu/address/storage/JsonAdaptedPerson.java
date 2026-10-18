@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Interview;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
@@ -34,6 +35,7 @@ class JsonAdaptedPerson {
     private final String address;
     private final String role;
     private final String note;
+    private final String interview;
     private final String status;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
 
@@ -44,13 +46,15 @@ class JsonAdaptedPerson {
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("address") String address,
             @JsonProperty("role") String role, @JsonProperty("note") String note,
-            @JsonProperty("status") String status, @JsonProperty("tags") List<JsonAdaptedTag> tags) {
+            @JsonProperty("interview") String interview, @JsonProperty("status") String status,
+            @JsonProperty("tags") List<JsonAdaptedTag> tags) {
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
         this.role = role;
         this.note = note;
+        this.interview = interview;
         this.status = status;
         if (tags != null) {
             this.tags.addAll(tags);
@@ -67,6 +71,7 @@ class JsonAdaptedPerson {
         address = source.getAddress().value;
         role = source.getRole().value;
         note = source.getNote().value;
+        interview = source.getInterview().toString();
         status = source.getStatus().name();
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
@@ -121,11 +126,32 @@ class JsonAdaptedPerson {
         // Notes are optional, so a missing note (e.g., in a file saved before notes existed) means no note.
         final Note modelNote = (note == null) ? new Note("") : new Note(note);
 
+        final Interview modelInterview = toModelInterview();
+
         final Status modelStatus = toModelStatus();
 
         final Set<Tag> modelTags = new HashSet<>(personTags);
-        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelRole, modelNote, modelStatus,
-                modelTags);
+        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelRole, modelNote, modelInterview,
+                modelStatus, modelTags);
+    }
+
+    /**
+     * Converts the stored interview into the model's {@code Interview} object.
+     * A missing interview (e.g., in a file saved before interviews existed) or an empty one means no interview.
+     *
+     * @throws IllegalValueException if the stored interview has the wrong format or is not a real date and time.
+     */
+    private Interview toModelInterview() throws IllegalValueException {
+        if (interview == null || interview.isEmpty()) {
+            return Interview.NONE;
+        }
+        if (!Interview.isValidFormat(interview)) {
+            throw new IllegalValueException(Interview.MESSAGE_INVALID_FORMAT);
+        }
+        if (!Interview.isValidDateTime(interview)) {
+            throw new IllegalValueException(Interview.MESSAGE_INVALID_DATE_TIME);
+        }
+        return new Interview(interview);
     }
 
     /**

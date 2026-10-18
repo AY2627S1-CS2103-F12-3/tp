@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_BOB;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_INTERVIEW_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NOTE_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
@@ -101,6 +102,10 @@ public class PersonTest {
         editedAlice = new PersonBuilder(ALICE).withNote(VALID_NOTE_BOB).build();
         assertFalse(ALICE.equals(editedAlice));
 
+        // different interview -> returns false
+        editedAlice = new PersonBuilder(ALICE).withInterview(VALID_INTERVIEW_BOB).build();
+        assertFalse(ALICE.equals(editedAlice));
+
         // different status -> returns false
         editedAlice = new PersonBuilder(ALICE).withStatus(Status.HIRED).build();
         assertFalse(ALICE.equals(editedAlice));
@@ -128,10 +133,24 @@ public class PersonTest {
     }
 
     @Test
+    public void withRole_personWithInterview_interviewPreserved() {
+        Person aliceWithInterview = new PersonBuilder(ALICE).withInterview(VALID_INTERVIEW_BOB).build();
+        Person expectedPerson = new PersonBuilder(aliceWithInterview).withRole(VALID_ROLE_BOB).build();
+        assertEquals(expectedPerson, aliceWithInterview.withRole(new RoleTitle(VALID_ROLE_BOB)));
+    }
+
+    @Test
+    public void withInterview_newInterview_changesOnlyInterview() {
+        Person expectedPerson = new PersonBuilder(ALICE).withInterview(VALID_INTERVIEW_BOB).build();
+        assertEquals(expectedPerson, ALICE.withInterview(new Interview(VALID_INTERVIEW_BOB)));
+    }
+
+    @Test
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", role=" + ALICE.getRole()
-                + ", note=" + ALICE.getNote() + ", status=" + ALICE.getStatus() + ", tags=" + ALICE.getTags() + "}";
+                + ", note=" + ALICE.getNote() + ", interview=" + ALICE.getInterview() + ", status=" + ALICE.getStatus()
+                + ", tags=" + ALICE.getTags() + "}";
         assertEquals(expected, ALICE.toString());
     }
 }
