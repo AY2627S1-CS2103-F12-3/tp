@@ -49,7 +49,7 @@ public class SampleDataUtil {
         return new Person[] {
             new Person(new Name("Alex Yeoh"), new Phone("87438807"), new Email("alexyeoh@example.com"),
                 new Address("Blk 30 Geylang Street 29, #06-40"), SOFTWARE_ENGINEER,
-                new Note("Interview 2026-10-20 14:00 with the hiring manager"),
+                new Note("Interview with the hiring manager"),
                 Status.PENDING_RECRUITER_INTERVIEW, getTagSet("java")),
             new Person(new Name("Bernice Yu"), new Phone("99272758"), new Email("berniceyu@example.com"),
                 new Address("Blk 30 Lorong 3 Serangoon Gardens, #07-18"), SOFTWARE_ENGINEER,
@@ -70,7 +70,7 @@ public class SampleDataUtil {
                 new Address("Blk 45 Aljunied Street 85, #11-31"), PRODUCT_MANAGER,
                 new Note("Accepted an offer elsewhere"),
                 Status.WITHDRAWN, getTagSet("startup")),
-            new Person(new Name("Nur Aisyah"), new Phone("98765432"), new Email("nuraisyah@example.com"),
+            new Person(new Name("Nur Aisyah"), new Phone("96543210"), new Email("nuraisyah@example.com"),
                 new Address("Blk 12 Bedok North Avenue 4, #03-21"), UX_DESIGNER, new Note(""),
                 Status.HIRED, getTagSet("figma")),
             new Person(new Name("Marcus Tan"), new Phone("81234567"), new Email("marcustan@example.com"),
