@@ -1,0 +1,24 @@
+@startuml
+skin rose
+start
+:Initialize preferences and storage;
+:Read recruitment data;
+if (Read and validation succeed?) then (yes)
+    if (Data file is missing?) then (yes)
+        :Use sample recruitment data;
+    else (no)
+        :Use all validated records;
+    endif
+    :Initialize model and logic;
+    :Open command window;
+    stop
+else (no)
+    :Record startup failure;
+    :Show error with data-file path
+    on the JavaFX thread;
+    :Wait for error dismissal;
+    :Shut down without opening
+    commands or saving recruitment data;
+    stop
+endif
+@enduml

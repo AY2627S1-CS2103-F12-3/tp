@@ -58,6 +58,20 @@ public class UiManager implements Ui {
         return new Image(MainApp.class.getResourceAsStream(imagePath));
     }
 
+    /**
+     * Shows a startup error identifying the unreadable recruitment file, then stops JavaFX.
+     * Does not require a main window or command layer to have been initialized.
+     */
+    public static void showDataLoadingErrorAndShutdown(Path dataFilePath) {
+        // The primary stage has no scene yet, so it cannot own this startup dialog.
+        showAlertDialogAndWait(null, AlertType.ERROR, "Unable to load recruitment data",
+                "Recruitment data could not be read or validated.",
+                "Data file: " + dataFilePath.toAbsolutePath().normalize()
+                        + "\n\nRecruiterBuddy will close without changing this file. "
+                        + "Restore a backup or correct the file before restarting.");
+        Platform.exit();
+    }
+
     void showAlertDialogAndWait(Alert.AlertType type, String title, String headerText, String contentText) {
         showAlertDialogAndWait(mainWindow.getPrimaryStage(), type, title, headerText, contentText);
     }

@@ -18,7 +18,8 @@
   starting point for RecruiterBuddy.
 * Kavin Parthipan (`kpkavin04`) used OpenAI Codex to assist with requirements analysis, implementation,
   tests, review, and documentation for the persistent role model, role commands, and associated
-  candidate-status and displayed-list safeguards. This acknowledgement covers that contribution,
+  candidate-status and displayed-list safeguards, and safe startup after recruitment-data loading
+  failures. This acknowledgement covers that contribution,
   not other team members' tool usage.
 
 --------------------------------------------------------------------------------------------------------------------
@@ -226,10 +227,27 @@ a missing role status is invalid. There is no automatic migration from old conta
 Loading validates fields, duplicate records, and references; it does not enforce all command-level
 recruitment rules, such as the maximum number of hired candidates in hand-edited data.
 
-Invalid data is reported as `DataLoadingException`. `MainApp` starts with an empty `AddressBook`
-after a load failure, without partially importing valid records or immediately overwriting the file.
-If the file is absent instead, it uses `SampleDataUtil#getSampleAddressBook`. The next successfully
-executed command saves the current state, so users must recover invalid files before issuing commands.
+#### Protecting unreadable recruitment data
+
+Invalid data is reported as `DataLoadingException`. JSON `null` roots and null candidate, role or tag
+entries also fail loading rather than bypassing the failure path with a null-pointer exception.
+`JsonUtil#readJsonFile` returns an empty optional only when the file is known not to exist; an
+indeterminate existence check does not silently treat an inaccessible file as missing.
+
+`MainApp#init` records a recruitment-data loading failure and returns before creating the model,
+logic or command UI. `MainApp#start` then asks `UiManager` to display a startup error on the JavaFX
+thread. The dialog names the absolute data-file path and explains how to recover manually. Once it
+is dismissed, JavaFX shuts down. `MainApp#stop` skips preference saving if no model was initialized,
+so failed initialization does not cause a second exception during shutdown. The existing preference
+loading/defaulting policy is unchanged and runs before recruitment data is loaded.
+
+<puml src="diagrams/RecruitmentDataStartupActivityDiagram.puml" width="550"
+  alt="Startup branches for valid, missing and unreadable recruitment data" />
+
+Failing closed prevents any command, including a read-only command, from reaching the normal save
+path and replacing unreadable recruitment data. No partial records are exposed and no automatic
+backup or recovery is performed. If the file is absent instead, startup still uses
+`SampleDataUtil#getSampleAddressBook`. A valid empty file loads empty lists, not sample data.
 
 ### Role lifecycle and candidate safeguards
 
@@ -1204,12 +1222,25 @@ Close the application window before editing or moving data files.
    backup before continuing with the other scenarios.
 
 1. Invalid file: back up the fixture file while the app is closed. Replace the JSON with `{` and restart.<br>
-   Expected: Empty lists; the invalid file is unchanged by startup. Close the window without entering
-   commands, including `exit`. Restore the backup. Repeat separately with a duplicated role title,
+   Expected: An `Unable to load recruitment data` error identifies the full file path. There is no
+   command window; dismissing the error closes the application. The invalid file remains byte-for-byte
+   unchanged, and no backup or replacement file is created. Restore your backup. Repeat separately
+   with JSON `null`, null role or candidate records, a duplicated role title,
    a role status of `open` instead of `OPEN`, and a candidate whose `role` names a nonexistent role.<br>
-   Expected: Each invalid file prevents the whole data set from loading; valid records are not imported
-   separately. Recover from the backup between attempts. A successful command such as `list` would
-   overwrite the invalid file, so do not issue commands before recovering it.
+   Expected: Each invalid file produces the startup error; valid records are not imported separately
+   and commands cannot be entered. Recover from your backup between attempts.
+
+1. Unreadable path: move the fixture file to your backup location, then create a directory named
+   `data/addressbook.json` containing a small marker file. Restart.<br>
+   Expected: The startup error identifies the data path and the app closes after dismissal. The
+   directory and marker file are unchanged. Remove only the disposable marker and directory, then
+   restore the fixture file. A file without read permission should produce the same result when
+   tested under an account that cannot bypass those permissions.
+
+1. Valid empty file: save a copy of the fixture, replace its contents with
+   `{"persons":[],"roles":[]}`, then restart.<br>
+   Expected: The normal command window opens with empty lists and no startup error. Close the window
+   and restore the fixture.
 
 1. Default candidate status: remove only Alice's `status` field from a valid fixture file, then restart.<br>
    Expected: Alice loads with `Pending Resume Screening`; `list role` then `role close 1` reports two

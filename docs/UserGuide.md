@@ -384,11 +384,13 @@ When editing roles and their candidate associations:
 **Caution:**
 Malformed JSON, invalid role fields, duplicate role titles, or a candidate referring to a nonexistent
 role prevent the whole file from loading; valid records are not loaded separately.
-RecruiterBuddy then starts with empty lists. Startup alone does not overwrite the invalid data file,
-but the next successfully executed command, including `list`, can overwrite it with the current data.
-If the lists unexpectedly appear empty, close the application window without entering any commands
-(including `exit`), then restore your backup or fix the file before restarting. No automatic backup
-or migration of old contact-only files is provided.
+If the file cannot be read or validated, RecruiterBuddy shows an **Unable to load recruitment data**
+error containing the file's full path. After you dismiss the error, the application closes without
+opening the command window or changing the recruitment-data file. Restore your own backup, correct
+the invalid data, or resolve the file-access problem before restarting. If you intentionally want
+to start again with sample data, first move the original file to a safe location yourself.
+No automatic backup, recovery, or migration of old contact-only files is provided. A genuinely missing
+file still starts the application with sample data; a valid file containing empty lists stays empty.
 </box>
 
 ### Archiving data files `[coming in v2.0]`

@@ -1,5 +1,7 @@
 package seedu.address;
 
+import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -13,7 +15,6 @@ import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.Logic;
 import seedu.address.logic.LogicManager;
-import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
@@ -43,17 +44,44 @@ public class MainApp extends Application {
     protected Storage storage;
     protected Model model;
 
+    private final Path userPrefsFilePath;
+    private final Path addressBookFilePath;
+    private boolean hasDataLoadingFailed;
+
+    /**
+     * Creates the application using the default local file paths.
+     */
+    public MainApp() {
+        this(USER_PREFS_FILE_PATH, ADDRESS_BOOK_FILE_PATH);
+    }
+
+    /**
+     * Creates the application using the given preference and recruitment-data paths.
+     */
+    MainApp(Path userPrefsFilePath, Path addressBookFilePath) {
+        requireAllNonNull(userPrefsFilePath, addressBookFilePath);
+        this.userPrefsFilePath = userPrefsFilePath;
+        this.addressBookFilePath = addressBookFilePath;
+    }
+
     @Override
     public void init() throws Exception {
         logger.info("=============================[ Initializing AddressBook ]===========================");
         super.init();
 
-        JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(USER_PREFS_FILE_PATH);
+        JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(userPrefsFilePath);
         UserPrefs userPrefs = initPrefs(userPrefsStorage);
-        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(ADDRESS_BOOK_FILE_PATH);
+        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(addressBookFilePath);
         storage = new StorageManager(addressBookStorage, userPrefsStorage);
 
-        model = initModelManager(storage, userPrefs);
+        try {
+            model = initModelManager(storage, userPrefs);
+        } catch (DataLoadingException e) {
+            hasDataLoadingFailed = true;
+            logger.severe("Recruitment data at " + addressBookFilePath
+                    + " could not be loaded. Stopping startup to preserve the original file.");
+            return;
+        }
 
         logic = new LogicManager(model, storage);
 
@@ -62,26 +90,19 @@ public class MainApp extends Application {
 
     /**
      * Returns a {@code ModelManager} with the data from {@code storage}'s address book and {@code userPrefs}. <br>
-     * The data from the sample address book will be used instead if {@code storage}'s address book is not found,
-     * or an empty address book will be used instead if errors occur when reading {@code storage}'s address book.
+     * The sample address book is used only if the stored address book is not found.
+     *
+     * @throws DataLoadingException if the stored data cannot be read or validated.
      */
-    private Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
+    private Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) throws DataLoadingException {
         logger.info("Using data file : " + storage.getAddressBookFilePath());
 
-        Optional<ReadOnlyAddressBook> addressBookOptional;
-        ReadOnlyAddressBook initialData;
-        try {
-            addressBookOptional = storage.readAddressBook();
-            if (addressBookOptional.isEmpty()) {
-                logger.info("Creating a new data file " + storage.getAddressBookFilePath()
-                        + " populated with a sample AddressBook.");
-            }
-            initialData = addressBookOptional.orElseGet(SampleDataUtil::getSampleAddressBook);
-        } catch (DataLoadingException e) {
-            logger.warning("Data file at " + storage.getAddressBookFilePath() + " could not be loaded."
-                    + " Will be starting with an empty AddressBook.");
-            initialData = new AddressBook();
+        Optional<ReadOnlyAddressBook> addressBookOptional = storage.readAddressBook();
+        if (addressBookOptional.isEmpty()) {
+            logger.info("Creating a new data file " + storage.getAddressBookFilePath()
+                    + " populated with a sample AddressBook.");
         }
+        ReadOnlyAddressBook initialData = addressBookOptional.orElseGet(SampleDataUtil::getSampleAddressBook);
 
         return new ModelManager(initialData, userPrefs);
     }
@@ -121,12 +142,26 @@ public class MainApp extends Application {
     @Override
     public void start(Stage primaryStage) {
         logger.info("Starting AddressBook " + MainApp.VERSION);
+        if (hasDataLoadingFailed) {
+            showDataLoadingErrorAndShutdown();
+            return;
+        }
         ui.start(primaryStage);
+    }
+
+    /**
+     * Shows the data-loading failure on the JavaFX thread and stops the application.
+     */
+    protected void showDataLoadingErrorAndShutdown() {
+        UiManager.showDataLoadingErrorAndShutdown(addressBookFilePath);
     }
 
     @Override
     public void stop() {
         logger.info("============================ [ Stopping AddressBook ] =============================");
+        if (model == null) {
+            return;
+        }
         try {
             storage.saveUserPrefs(model.getUserPrefs());
         } catch (IOException e) {
