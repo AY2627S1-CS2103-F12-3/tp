@@ -1124,7 +1124,7 @@ Always switch back with `list` or `list role` before using indices for that list
 
 1. Adding a candidate to an existing role
 
-   1. Prerequisites: Start with the sample data, which includes the roles `Software Engineer`, `Data Analyst` and `Product Manager`.
+   1. Prerequisites: Start with the sample data, which includes the open roles `Software Engineer`, `Data Analyst` and `Product Manager`, and the closed role `UX Designer`.
 
    1. Test case: `add n/Jane Tan p/91234567 e/jane@example.com a/Clementi Ave 2 r/Data Analyst`<br>
       Expected: Jane Tan is added to the end of the candidate list. The new card shows `Applying for: Data Analyst` and the status `Pending Resume Screening`.
