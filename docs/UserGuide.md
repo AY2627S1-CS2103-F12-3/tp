@@ -153,6 +153,35 @@ If validation fails, no role is created:
 Closing a role does not release its title. An unused role can instead be removed with `role delete`
 before creating another role with that title.
 
+### Editing a role's experience level: `role edit`
+
+Corrects the required experience level without removing the role or changing its recruitment history.
+
+Format: `role edit INDEX x/EXPERIENCE_LEVEL`
+
+* Run `list role` first. `INDEX` must be a positive integer shown in the current role list.
+* Specify `x/` exactly once. The value must meet the same 1–50 printable-character constraints as
+  [`role add`](#adding-a-role-role-add); surrounding whitespace is removed before validation and storage.
+* Both `OPEN` and `CLOSED` roles may be corrected. The title, status, and all candidates remain unchanged;
+  editing a closed role does not reopen it.
+* Supplying the current experience level succeeds without changing the stored data.
+* Title editing with `r/` is not supported in this version.
+
+Example: `list role`, followed by `role edit 1 x/5 years`.
+
+Success shows `Edited role: ROLE_TITLE.`. The role card displays the new experience level, the role
+list stays displayed, and the change is saved automatically. Candidate filters are preserved.
+
+Validation failures leave all records, filters, and the saved data unchanged:
+
+* Invalid or missing index: `Role index must refer to a displayed role.`
+* Candidate list displayed: `The role list is not displayed. Use list role first.`
+* Missing `x/`: `Missing required field: x/.`
+* Repeated `x/`: `Multiple values specified for the following single-valued field(s): x/`.
+* Empty or invalid value:
+  `Required experience level must be 1–50 characters and must not contain a new line.`
+* Extra text before `x/`, or a title edit with `r/`: `Invalid command format!`, followed by usage and an example.
+
 ### Closing a role: `role close`
 
 Ends recruitment while retaining the role and all its candidate records.
@@ -219,7 +248,7 @@ Format: `list role`
 
 Role indices can be used only while the role list is displayed. If a successful command such as
 adding or finding a candidate switches back to the candidate list, run `list role` again before
-using `role close` or `role delete`. Failed commands leave the current list displayed.
+using `role edit`, `role close`, or `role delete`. Failed commands leave the current list displayed.
 
 ### Editing a candidate: `edit`
 
@@ -425,6 +454,7 @@ Action     | Format, Examples
 **List roles** | `list role`
 **Note**   | `note INDEX [NOTE]`<br> e.g., `note 1 Interview 2026-10-20 14:00`
 **Role add** | `role add r/ROLE_TITLE x/EXPERIENCE_LEVEL`<br> e.g., `role add r/Software Engineer x/2 years`
+**Role edit** | `role edit INDEX x/EXPERIENCE_LEVEL`<br> e.g., `list role` followed by `role edit 1 x/5 years`
 **Role close** | `role close INDEX`<br> e.g., `list role` followed by `role close 1`
 **Role delete** | `role delete INDEX`<br> e.g., `list role` followed by `role delete 1`
 **Status** | `status INDEX STATUS`<br> e.g., `status 1 HIRED`

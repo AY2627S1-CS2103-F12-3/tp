@@ -206,6 +206,27 @@ observable collection and resets the role filter to show all roles. The command 
 `Added open role: TITLE.` with the default candidate-list view; `list role` displays the updated roles.
 Parsing or duplicate rejection leaves the stored records unchanged.
 
+#### Correcting a role's required experience
+
+`RoleCommandParser` delegates `edit` to `EditRoleCommandParser`. The parser reads the displayed-role
+index with `ParserUtil#parseRoleIndex`, requires exactly one `x/` using the existing duplicate-prefix
+check, and validates its value with `ParserUtil#parseExperienceLevel`. It also recognises `r/` so an
+unsupported title edit cannot silently become part of the experience description. An invalid index
+is reported first, followed by unsupported title input, missing/repeated experience prefixes, and
+experience-value validation.
+
+`EditRoleCommand` requires the role view, resolves the index against `Model#getFilteredRoleList`,
+and replaces the immutable role through `Model#setRole`, retaining its title and `RoleStatus`.
+Corrections are allowed for both open and closed roles and never reopen recruitment. All candidate
+objects and their associations remain unchanged. Selecting the current experience level is a
+successful no-op. The role filter and candidate filter are preserved.
+
+The existing observable-role-list binding refreshes the role card without a new UI component.
+The result shows `Edited role: TITLE.` and keeps the role view; `LogicManager` logs the command and
+saves the complete state through the existing path. Parsing and command-validation failures do not
+save or mutate records. The existing save-error behaviour described below remains unchanged.
+Title editing is deliberately separate because it also needs to update candidate associations.
+
 #### Saving and restoring associations
 
 After a command executes successfully, `LogicManager#execute` asks `Storage` to save the complete
@@ -282,7 +303,7 @@ in-memory mutation, as explained in [Saving and restoring associations](#saving-
 
 Listing roles retains the candidate filter. Candidate-index commands use the view flag rather than
 an artificial empty candidate list. If a successful candidate addition switches the UI to candidates,
-both role commands reject indices until `list role` is run again. See the
+role edit, close, and delete reject indices until `list role` is run again. See the
 [role management manual checks](#role-management) for reproducible regression scenarios.
 
 ### \[Proposed\] Undo/redo feature
@@ -441,6 +462,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | Priority | As a … | I want to … | So that I can … |
 |----------|--------|-------------|-----------------|
 | `* * *` | department recruiter | add a role opening with its title and required experience level | track an active recruitment need in my department |
+| `* *` | department recruiter | correct a role's required experience without recreating it | keep its candidates and recruitment history intact |
 | `* * *` | department recruiter | view all role openings and whether they are open or closed | review the roles tracked by my department |
 | `* * *` | department recruiter | close a role opening | prevent new candidates from being added after recruitment ends while retaining existing candidate records |
 | `* * *` | department recruiter | delete a role with no associated candidates | remove an erroneous vacancy and reuse its title without losing candidate records |
@@ -1055,6 +1077,29 @@ Always switch back with `list` or `list role` before using indices for that list
    Also check a title of exactly 100 letters versus 101, and an experience level of exactly 50
    printable characters versus 51. The boundary values succeed; the longer values fail.
    Use different valid titles for the experience checks so duplicate rejection does not mask validation.
+
+#### Role experience corrections
+
+1. Run `list role`, then `role edit 1 x/5 years`.<br>
+   Expected: `Edited role: QA Engineer.` The role card shows `5 years`, with the title and `OPEN`
+   status unchanged. Both candidates are retained with their original details and statuses.
+   Restart and run `list role`; the updated experience is restored.
+
+1. Run `list role`, `role close 2`, then `role edit 2 x/Senior`.<br>
+   Expected: `Edited role: QA Analyst.` Its experience changes to `Senior` but its status stays
+   `CLOSED`. Repeating the same edit succeeds without changing the data.
+
+1. Run `find Alice`, then `role edit 1 x/Senior`.<br>
+   Expected: The role-view guard asks for `list role`; no data changes. Run `list role`, then
+   `role edit 1 x/Senior`. The role card updates. Run `help` to return to the candidate view without
+   changing its filter; only Alice is still displayed. Run `list` to restore all candidates.
+
+1. Run `list role` and try `role edit 0 x/Senior`, `role edit 99 x/Senior`, `role edit 1`,
+   `role edit 1 x/`, `role edit 1 x/Junior x/Senior`, and `role edit 1 x/Senior r/New title`.<br>
+   Expected: Respectively, invalid-index errors, missing `x/`, invalid experience, repeated `x/`,
+   and invalid-format errors. Records, current filters, and saved data remain unchanged.
+   An experience of exactly 50 printable characters succeeds; 51 is rejected. Embedded tabs,
+   line separators, and control characters are not valid experience descriptions.
 
 #### Closure and candidate outcomes
 
