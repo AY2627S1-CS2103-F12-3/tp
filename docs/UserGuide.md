@@ -30,7 +30,9 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
    Some example commands you can try:
 
    * `list` : Lists all contacts.
-   * `list role` : Lists all unique roles, with each role shown in its own box.
+* `list role` : Lists all unique roles, with each role shown in its own box.
+   * `undo` : Undoes the most recent data-changing command in this session.
+   * `redo` : Redoes the most recently undone data-changing command.
    * `role add r/Software Engineer x/2 years` : Adds an open role.
 
    * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to the Address Book.

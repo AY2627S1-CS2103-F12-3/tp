@@ -43,6 +43,24 @@ public interface Model {
      */
     void setAddressBook(ReadOnlyAddressBook addressBook);
 
+    /** Records a snapshot before a mutating command is executed. */
+    default void recordAddressBookState() {
+    }
+
+    /** Restores the previous recorded address book state. */
+    default boolean undoAddressBook() {
+        return false;
+    }
+
+    /** Restores the next address book state after an undo. */
+    default boolean redoAddressBook() {
+        return false;
+    }
+
+    /** Removes the most recently recorded snapshot when command execution fails. */
+    default void discardAddressBookState() {
+    }
+
     /** Returns the AddressBook */
     ReadOnlyAddressBook getAddressBook();
 

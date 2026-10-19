@@ -12,6 +12,8 @@ import seedu.address.model.person.NameContainsKeywordsPredicate;
  * Keyword matching is case insensitive.
  */
 public class FindCommand extends Command {
+    @Override
+    public boolean isUndoable() { return false; }
 
     public static final String COMMAND_WORD = "find";
 

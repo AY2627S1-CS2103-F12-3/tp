@@ -23,6 +23,7 @@ import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.AddRoleCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.RedoCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
@@ -72,6 +73,34 @@ public class LogicManagerTest {
     public void execute_validCommand_success() throws Exception {
         String listCommand = ListCommand.COMMAND_WORD;
         assertCommandSuccess(listCommand, ListCommand.MESSAGE_SUCCESS, model);
+    }
+
+    @Test
+    public void execute_undoRedoRestoresAndPersistsHistory() throws Exception {
+        String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
+                + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
+
+        logic.execute(addCommand);
+        assertEquals(1, model.getAddressBook().getPersonList().size());
+
+        logic.execute("list");
+        logic.execute("undo");
+        assertEquals(0, model.getAddressBook().getPersonList().size());
+        assertEquals(0, addressBookStorage.readAddressBook().orElseThrow().getPersonList().size());
+
+        logic.execute("redo");
+        assertEquals(1, model.getAddressBook().getPersonList().size());
+    }
+
+    @Test
+    public void execute_newChangeAfterUndo_clearsRedoHistory() throws Exception {
+        String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
+                + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
+        logic.execute(addCommand);
+        logic.execute("undo");
+        logic.execute(addCommand);
+        logic.execute("redo");
+        assertEquals(RedoCommand.MESSAGE_EMPTY, logic.execute("redo").getFeedbackToUser());
     }
 
     @Test

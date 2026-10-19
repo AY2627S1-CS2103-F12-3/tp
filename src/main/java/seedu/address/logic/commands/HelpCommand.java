@@ -6,6 +6,8 @@ import seedu.address.model.Model;
  * Formats full help instructions for every command for display.
  */
 public class HelpCommand extends Command {
+    @Override
+    public boolean isUndoable() { return false; }
 
     public static final String COMMAND_WORD = "help";
 
