@@ -31,10 +31,12 @@ public class FileSavingTestDriver {
      */
     private static class HeadlessApp extends MainApp {
         private void exercise(String mode, Path expectedDirectory) throws Exception {
+            // Expand Windows short-path aliases before comparing with the code-source-based storage paths.
+            Path realDirectory = expectedDirectory.toRealPath();
             init();
             if (mode.equals("development")) {
-                if (storage.getAddressBookFilePath().startsWith(expectedDirectory)
-                        || storage.getUserPrefsFilePath().startsWith(expectedDirectory)) {
+                if (storage.getAddressBookFilePath().startsWith(realDirectory)
+                        || storage.getUserPrefsFilePath().startsWith(realDirectory)) {
                     throw new AssertionError("Persistent files must not be saved inside the build directory: "
                             + storage.getAddressBookFilePath());
                 }
@@ -42,8 +44,8 @@ public class FileSavingTestDriver {
                 return;
             }
 
-            if (!storage.getAddressBookFilePath().equals(expectedDirectory.resolve("data/addressbook.json"))
-                    || !storage.getUserPrefsFilePath().equals(expectedDirectory.resolve("preferences.json"))) {
+            if (!storage.getAddressBookFilePath().equals(realDirectory.resolve("data/addressbook.json"))
+                    || !storage.getUserPrefsFilePath().equals(realDirectory.resolve("preferences.json"))) {
                 throw new AssertionError("Storage paths must resolve beside the JAR");
             }
 
