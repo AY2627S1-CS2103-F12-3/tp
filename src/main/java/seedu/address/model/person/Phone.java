@@ -34,12 +34,14 @@ public class Phone {
         requireNonNull(phone);
         checkArgument(isValidPhone(phone), MESSAGE_CONSTRAINTS);
         value = removeSeparators(phone);
+        assert value.matches(VALIDATION_REGEX) : "Stored phone should contain only an optional + and digits";
     }
 
     /**
      * Returns true if a given string is a valid phone number once its spaces and hyphens are ignored.
      */
     public static boolean isValidPhone(String test) {
+        requireNonNull(test);
         return removeSeparators(test).matches(VALIDATION_REGEX);
     }
 
