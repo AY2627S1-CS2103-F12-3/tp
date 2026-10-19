@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import javafx.application.Application;
@@ -15,6 +16,7 @@ import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.Logic;
 import seedu.address.logic.LogicManager;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
@@ -23,8 +25,10 @@ import seedu.address.model.UserPrefs;
 import seedu.address.model.util.SampleDataUtil;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
+import seedu.address.storage.RecruitmentDataRecovery;
 import seedu.address.storage.Storage;
 import seedu.address.storage.StorageManager;
+import seedu.address.ui.StartupDataNotice;
 import seedu.address.ui.Ui;
 import seedu.address.ui.UiManager;
 
@@ -46,7 +50,9 @@ public class MainApp extends Application {
 
     private final Path userPrefsFilePath;
     private final Path addressBookFilePath;
-    private boolean hasDataLoadingFailed;
+    private final RecruitmentDataRecovery dataRecovery;
+    private final Consumer<StartupDataNotice> startupNoticeConsumer;
+    private StartupDataNotice startupNotice;
 
     /**
      * Creates the application using the default local file paths.
@@ -59,9 +65,26 @@ public class MainApp extends Application {
      * Creates the application using the given preference and recruitment-data paths.
      */
     MainApp(Path userPrefsFilePath, Path addressBookFilePath) {
-        requireAllNonNull(userPrefsFilePath, addressBookFilePath);
+        this(userPrefsFilePath, addressBookFilePath, new RecruitmentDataRecovery());
+    }
+
+    /**
+     * Creates the application with the given paths and recruitment-data recovery operations.
+     */
+    MainApp(Path userPrefsFilePath, Path addressBookFilePath, RecruitmentDataRecovery dataRecovery) {
+        this(userPrefsFilePath, addressBookFilePath, dataRecovery, UiManager::showStartupDataNotice);
+    }
+
+    /**
+     * Creates the application with explicit recovery and startup-notification boundaries.
+     */
+    MainApp(Path userPrefsFilePath, Path addressBookFilePath, RecruitmentDataRecovery dataRecovery,
+            Consumer<StartupDataNotice> startupNoticeConsumer) {
+        requireAllNonNull(userPrefsFilePath, addressBookFilePath, dataRecovery, startupNoticeConsumer);
         this.userPrefsFilePath = userPrefsFilePath;
         this.addressBookFilePath = addressBookFilePath;
+        this.dataRecovery = dataRecovery;
+        this.startupNoticeConsumer = startupNoticeConsumer;
     }
 
     @Override
@@ -77,15 +100,33 @@ public class MainApp extends Application {
         try {
             model = initModelManager(storage, userPrefs);
         } catch (DataLoadingException e) {
-            hasDataLoadingFailed = true;
-            logger.severe("Recruitment data at " + addressBookFilePath
-                    + " could not be loaded. Stopping startup to preserve the original file.");
-            return;
+            logger.warning("Recruitment data at " + addressBookFilePath + " could not be loaded: " + e);
+            if (!recoverRecruitmentData(userPrefs)) {
+                return;
+            }
         }
 
         logic = new LogicManager(model, storage);
 
         ui = new UiManager(logic, storage.getAddressBookFilePath());
+    }
+
+    /**
+     * Starts with empty records only after preserving the original and saving a replacement.
+     */
+    private boolean recoverRecruitmentData(ReadOnlyUserPrefs userPrefs) {
+        Path dataBackupPath = null;
+        try {
+            dataBackupPath = dataRecovery.backUp(addressBookFilePath);
+            dataRecovery.createEmptyDataFile(addressBookFilePath);
+            model = new ModelManager(new AddressBook(), userPrefs);
+            startupNotice = StartupDataNotice.recovered(addressBookFilePath, dataBackupPath);
+            return true;
+        } catch (IOException | SecurityException e) {
+            startupNotice = StartupDataNotice.failed(addressBookFilePath, dataBackupPath, e.toString());
+            logger.severe("Safe recruitment-data recovery failed: " + e);
+            return false;
+        }
     }
 
     /**
@@ -142,18 +183,13 @@ public class MainApp extends Application {
     @Override
     public void start(Stage primaryStage) {
         logger.info("Starting AddressBook " + MainApp.VERSION);
-        if (hasDataLoadingFailed) {
-            showDataLoadingErrorAndShutdown();
-            return;
+        if (startupNotice != null) {
+            startupNoticeConsumer.accept(startupNotice);
+            if (startupNotice.isFatal()) {
+                return;
+            }
         }
         ui.start(primaryStage);
-    }
-
-    /**
-     * Shows the data-loading failure on the JavaFX thread and stops the application.
-     */
-    protected void showDataLoadingErrorAndShutdown() {
-        UiManager.showDataLoadingErrorAndShutdown(addressBookFilePath);
     }
 
     @Override

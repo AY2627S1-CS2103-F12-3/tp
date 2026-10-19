@@ -6,10 +6,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.function.Consumer;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,6 +25,8 @@ import seedu.address.model.UserPrefs;
 import seedu.address.model.util.SampleDataUtil;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
+import seedu.address.storage.RecruitmentDataRecovery;
+import seedu.address.ui.StartupDataNotice;
 
 public class MainAppTest {
 
@@ -47,6 +53,15 @@ public class MainAppTest {
         assertNull(app.model);
         assertNull(app.logic);
         assertNull(app.ui);
+    }
+
+    @Test
+    public void constructor_nullArguments_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new MainApp(null, dataPath));
+        assertThrows(NullPointerException.class, () -> new MainApp(prefsPath, null));
+        assertThrows(NullPointerException.class, () -> new MainApp(prefsPath, dataPath, null));
+        assertThrows(NullPointerException.class, () -> new MainApp(
+                prefsPath, dataPath, new RecruitmentDataRecovery(), null));
     }
 
     @Test
@@ -88,26 +103,26 @@ public class MainAppTest {
     }
 
     @Test
-    public void init_malformedData_blocksStartupAndPreservesFile() throws Exception {
+    public void init_malformedData_backsUpAndStartsEmpty() throws Exception {
         Files.writeString(dataPath, "{");
-        assertFailedStartupPreservesFile();
+        assertRecoveredStartupPreservesFile();
     }
 
     @Test
-    public void init_nullDataOrRecords_blocksStartupAndPreservesFile() throws Exception {
+    public void init_nullDataOrRecords_backsUpAndStartsEmpty() throws Exception {
         for (String json : new String[] {"null", "{\"persons\":[null]}", "{\"roles\":[null]}",
             "{\"persons\":[{\"tags\":[null]}]}"}) {
             Files.writeString(dataPath, json);
-            assertFailedStartupPreservesFile();
+            assertRecoveredStartupPreservesFile();
         }
     }
 
     @Test
-    public void init_invalidRecords_blocksStartupAndPreservesFile() throws Exception {
+    public void init_invalidRecords_backsUpAndStartsEmpty() throws Exception {
         for (String fileName : new String[] {"invalidPersonAddressBook.json", "invalidRoleAddressBook.json",
             "duplicatePersonAddressBook.json", "duplicateRoleAddressBook.json", "unknownRoleAddressBook.json"}) {
             Files.write(dataPath, Files.readAllBytes(INVALID_DATA_FOLDER.resolve(fileName)));
-            assertFailedStartupPreservesFile();
+            assertRecoveredStartupPreservesFile();
         }
     }
 
@@ -117,7 +132,110 @@ public class MainAppTest {
                 "invalidAndValidPersonAddressBook.json");
         Files.copy(fixture, dataPath);
 
-        assertFailedStartupPreservesFile();
+        assertRecoveredStartupPreservesFile();
+    }
+
+    @Test
+    public void init_backupFails_blocksStartupAndPreservesOriginal() throws Exception {
+        Files.writeString(dataPath, "{");
+        RecruitmentDataRecovery failingRecovery = new RecruitmentDataRecovery() {
+            @Override
+            public Path backUp(Path path) throws IOException {
+                throw new IOException("Backup denied");
+            }
+        };
+        StartupNoticeApp app = new StartupNoticeApp(prefsPath, dataPath, failingRecovery);
+
+        assertBlockedStartup(app);
+
+        assertEquals("{", Files.readString(dataPath));
+        assertFalse(Files.exists(dataPath.resolveSibling("addressbook.json.bak")));
+    }
+
+    @Test
+    public void init_replacementFails_blocksStartupAndPreservesBackup() throws Exception {
+        Files.writeString(dataPath, "{");
+        RecruitmentDataRecovery failingRecovery = new RecruitmentDataRecovery() {
+            @Override
+            public void createEmptyDataFile(Path path) throws IOException {
+                throw new IOException("Replacement denied");
+            }
+        };
+        StartupNoticeApp app = new StartupNoticeApp(prefsPath, dataPath, failingRecovery);
+
+        assertBlockedStartup(app);
+
+        assertEquals("{", Files.readString(dataPath.resolveSibling("addressbook.json.bak")));
+        assertFalse(Files.exists(dataPath));
+    }
+
+    @Test
+    public void init_fileAppearsAfterBackup_blocksStartupWithoutOverwritingEitherFile() throws Exception {
+        Files.writeString(dataPath, "{");
+        RecruitmentDataRecovery racingRecovery = new RecruitmentDataRecovery() {
+            @Override
+            public void createEmptyDataFile(Path path) throws IOException {
+                Files.writeString(path, "Unexpected replacement");
+                super.createEmptyDataFile(path);
+            }
+        };
+        StartupNoticeApp app = new StartupNoticeApp(prefsPath, dataPath, racingRecovery);
+
+        assertBlockedStartup(app);
+
+        assertEquals("{", Files.readString(dataPath.resolveSibling("addressbook.json.bak")));
+        assertEquals("Unexpected replacement", Files.readString(dataPath));
+        assertTrue(app.notices.latestNotice.message().contains(
+                dataPath.resolveSibling("addressbook.json.bak").toAbsolutePath().normalize().toString()));
+    }
+
+    @Test
+    public void init_securityFailure_blocksStartupAndPreservesOriginal() throws Exception {
+        Files.writeString(dataPath, "{");
+        RecruitmentDataRecovery failingRecovery = new RecruitmentDataRecovery() {
+            @Override
+            public Path backUp(Path path) {
+                throw new SecurityException("Access denied");
+            }
+        };
+
+        assertBlockedStartup(new StartupNoticeApp(prefsPath, dataPath, failingRecovery));
+
+        assertEquals("{", Files.readString(dataPath));
+    }
+
+    @Test
+    public void init_recoveredData_persistsEmptyListsAcrossRestartWithoutCommands() throws Exception {
+        Files.writeString(dataPath, "{");
+        MainApp recoveredApp = new MainApp(prefsPath, dataPath);
+        recoveredApp.init();
+        recoveredApp.stop();
+        StartupNoticeApp restartedApp = new StartupNoticeApp(prefsPath, dataPath);
+        restartedApp.init();
+        restartedApp.ui = stage -> { };
+
+        restartedApp.start(null);
+
+        assertEquals(new AddressBook(), restartedApp.model.getAddressBook());
+        assertFalse(restartedApp.notices.wasRecoveryWarningShown);
+        assertFalse(restartedApp.notices.wasStartupErrorShown);
+        assertEquals("{", Files.readString(dataPath.resolveSibling("addressbook.json.bak")));
+    }
+
+    @Test
+    public void init_recoveredData_allowsCommandsAndReloadWithoutChangingBackup() throws Exception {
+        Files.writeString(dataPath, "{");
+        MainApp recoveredApp = new MainApp(prefsPath, dataPath);
+        recoveredApp.init();
+
+        assertEquals("Added open role: QA Engineer.",
+                recoveredApp.logic.execute("role add r/QA Engineer x/Entry level").getFeedbackToUser());
+        MainApp restartedApp = new MainApp(prefsPath, dataPath);
+        restartedApp.init();
+
+        assertEquals(recoveredApp.model.getAddressBook(), restartedApp.model.getAddressBook());
+        assertEquals(1, restartedApp.model.getAddressBook().getRoleList().size());
+        assertEquals("{", Files.readString(dataPath.resolveSibling("addressbook.json.bak")));
     }
 
     @Test
@@ -125,13 +243,13 @@ public class MainAppTest {
         Files.createDirectory(dataPath);
         Path originalFile = dataPath.resolve("keep.txt");
         Files.writeString(originalFile, "Preserve this file.");
-        StartupErrorApp app = new StartupErrorApp(prefsPath, dataPath);
+        StartupNoticeApp app = new StartupNoticeApp(prefsPath, dataPath);
 
         app.init();
         app.start(null);
         app.stop();
 
-        assertTrue(app.wasStartupErrorShown);
+        assertTrue(app.notices.wasStartupErrorShown);
         assertNull(app.model);
         assertNull(app.logic);
         assertNull(app.ui);
@@ -143,7 +261,7 @@ public class MainAppTest {
 
     @Test
     public void start_successfulInitialization_startsCommandUi() throws Exception {
-        StartupErrorApp app = new StartupErrorApp(prefsPath, dataPath);
+        StartupNoticeApp app = new StartupNoticeApp(prefsPath, dataPath);
         app.init();
         boolean[] wasUiStarted = {false};
         app.ui = stage -> wasUiStarted[0] = true;
@@ -151,7 +269,8 @@ public class MainAppTest {
         app.start(null);
 
         assertTrue(wasUiStarted[0]);
-        assertFalse(app.wasStartupErrorShown);
+        assertFalse(app.notices.wasStartupErrorShown);
+        assertFalse(app.notices.wasRecoveryWarningShown);
     }
 
     @Test
@@ -226,41 +345,88 @@ public class MainAppTest {
     }
 
     /**
-     * Checks that failed initialization cannot expose commands or overwrite the original file on shutdown.
+     * Checks that recovery preserves the original bytes, exposes empty lists and warns before commands open.
      */
-    private void assertFailedStartupPreservesFile() throws Exception {
+    private void assertRecoveredStartupPreservesFile() throws Exception {
         byte[] original = Files.readAllBytes(dataPath);
-        StartupErrorApp app = new StartupErrorApp(prefsPath, dataPath);
+        List<Path> existingBackups = getBackupPaths();
+        StartupNoticeApp app = new StartupNoticeApp(prefsPath, dataPath);
+        app.init();
+        boolean[] wasUiStarted = {false};
+        app.ui = stage -> {
+            assertTrue(app.notices.wasRecoveryWarningShown);
+            wasUiStarted[0] = true;
+        };
+
+        app.start(null);
+        app.stop();
+
+        assertTrue(wasUiStarted[0]);
+        assertFalse(app.notices.wasStartupErrorShown);
+        assertEquals(new AddressBook(), app.model.getAddressBook());
+        assertNotNull(app.logic);
+        List<Path> newBackups = getBackupPaths().stream().filter(path -> !existingBackups.contains(path)).toList();
+        assertEquals(1, newBackups.size());
+        assertArrayEquals(original, Files.readAllBytes(newBackups.get(0)));
+        assertEquals(new AddressBook(), new JsonAddressBookStorage(dataPath).readAddressBook().orElseThrow());
+        assertTrue(app.notices.latestNotice.message().contains(newBackups.get(0).toAbsolutePath().toString()));
+    }
+
+    private List<Path> getBackupPaths() throws IOException {
+        try (var files = Files.list(testFolder)) {
+            return files.filter(path -> path.getFileName().toString().startsWith("addressbook.json.bak")).toList();
+        }
+    }
+
+    /**
+     * Checks that unsuccessful recovery cannot expose commands or fail again during shutdown.
+     */
+    private void assertBlockedStartup(StartupNoticeApp app) throws Exception {
         app.init();
         byte[] preferencesAfterInit = Files.readAllBytes(prefsPath);
 
         app.start(null);
         app.stop();
 
-        assertTrue(app.wasStartupErrorShown);
+        assertTrue(app.notices.wasStartupErrorShown);
         assertNull(app.model);
         assertNull(app.logic);
         assertNull(app.ui);
-        assertArrayEquals(original, Files.readAllBytes(dataPath));
+        assertFalse(app.notices.wasRecoveryWarningShown);
         assertArrayEquals(preferencesAfterInit, Files.readAllBytes(prefsPath));
-        try (var files = Files.list(testFolder)) {
-            assertEquals(2, files.count());
-        }
     }
 
     /**
-     * Records the startup-error handoff without requiring a JavaFX display for lifecycle tests.
+     * Records real startup notifications without requiring a JavaFX display for lifecycle tests.
      */
-    private static class StartupErrorApp extends MainApp {
-        private boolean wasStartupErrorShown;
+    private static class StartupNoticeApp extends MainApp {
+        private final NoticeRecorder notices;
 
-        StartupErrorApp(Path prefsPath, Path dataPath) {
-            super(prefsPath, dataPath);
+        StartupNoticeApp(Path prefsPath, Path dataPath) {
+            this(prefsPath, dataPath, new RecruitmentDataRecovery());
         }
 
+        StartupNoticeApp(Path prefsPath, Path dataPath, RecruitmentDataRecovery recovery) {
+            this(prefsPath, dataPath, recovery, new NoticeRecorder());
+        }
+
+        private StartupNoticeApp(Path prefsPath, Path dataPath, RecruitmentDataRecovery recovery,
+                NoticeRecorder notices) {
+            super(prefsPath, dataPath, recovery, notices);
+            this.notices = notices;
+        }
+    }
+
+    private static class NoticeRecorder implements Consumer<StartupDataNotice> {
+        private boolean wasStartupErrorShown;
+        private boolean wasRecoveryWarningShown;
+        private StartupDataNotice latestNotice;
+
         @Override
-        protected void showDataLoadingErrorAndShutdown() {
-            wasStartupErrorShown = true;
+        public void accept(StartupDataNotice notice) {
+            latestNotice = notice;
+            wasStartupErrorShown = notice.isFatal();
+            wasRecoveryWarningShown = !notice.isFatal();
         }
     }
 }

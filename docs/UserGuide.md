@@ -384,13 +384,30 @@ When editing roles and their candidate associations:
 **Caution:**
 Malformed JSON, invalid role fields, duplicate role titles, or a candidate referring to a nonexistent
 role prevent the whole file from loading; valid records are not loaded separately.
-If the file cannot be read or validated, RecruiterBuddy shows an **Unable to load recruitment data**
-error containing the file's full path. After you dismiss the error, the application closes without
-opening the command window or changing the recruitment-data file. Restore your own backup, correct
-the invalid data, or resolve the file-access problem before restarting. If you intentionally want
-to start again with sample data, first move the original file to a safe location yourself.
-No automatic backup, recovery, or migration of old contact-only files is provided. A genuinely missing
-file still starts the application with sample data; a valid file containing empty lists stays empty.
+If a regular data file cannot be read or validated, RecruiterBuddy first renames it to
+`addressbook.json.bak` in the same folder, preserving its contents. Existing backups are never
+overwritten: if that name is taken, a timestamp is appended, for example
+`addressbook.json.bak.20261018-160000-123`. A numbered suffix resolves further collisions.
+
+After preserving the original, RecruiterBuddy saves a new file containing empty candidate and role
+lists. A **Recruitment data backed up** warning shows the backup's full path and restoration
+instructions. Dismiss it to continue using the app with empty lists. Restarting without entering
+any commands also keeps those lists empty; it does not load sample data.
+
+To restore your records, close RecruiterBuddy and save a separate copy of any new data you entered.
+Correct the backup's JSON or file permissions, then copy the corrected file to the original
+`data/addressbook.json` path and restart. Backups are not repaired, imported or merged automatically.
+Keep your backup until you have checked that restoration succeeded.
+
+If the backup or replacement cannot be created, an **Unable to load recruitment data** error
+identifies the data path, failure reason and backup path if one was created. The application then
+closes without opening commands. If backup failed, the original remains at its original path; if
+replacement failed after backup, the original remains in the named backup. Resolve the access problem
+or restore corrected data before restarting. Directories and symbolic links are not renamed as
+data-file backups.
+
+A genuinely missing file still starts the application with sample data; a valid file containing
+empty lists stays empty. There is no automatic migration of old contact-only files.
 </box>
 
 ### Archiving data files `[coming in v2.0]`
