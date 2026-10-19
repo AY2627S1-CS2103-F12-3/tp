@@ -8,6 +8,8 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ROLE_TITLE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
+import java.util.Optional;
+
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -40,7 +42,6 @@ public class AddCommand extends Command {
             + PREFIX_TAG + "owesMoney";
 
     public static final String MESSAGE_SUCCESS = "New candidate added: %1$s";
-    public static final String MESSAGE_DUPLICATE_PERSON = "This candidate already exists in RecruiterBuddy.";
     public static final String MESSAGE_ROLE_NOT_FOUND =
             "No role named “%1$s” exists. Add the role first, then add the candidate.";
     public static final String MESSAGE_ROLE_CLOSED =
@@ -60,8 +61,10 @@ public class AddCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
 
-        if (model.hasPerson(toAdd)) {
-            throw new CommandException(MESSAGE_DUPLICATE_PERSON);
+        Optional<Person> existingPerson = model.findSamePerson(toAdd);
+        if (existingPerson.isPresent()) {
+            throw new CommandException(
+                    Messages.getErrorMessageForDuplicatePerson(toAdd, existingPerson.get()));
         }
 
         Role role = findOpenRole(model);

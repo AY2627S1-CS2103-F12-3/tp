@@ -55,7 +55,7 @@ public class StatusCommandTest {
         for (Status original : new Status[]{Status.HIRED, Status.REJECTED, Status.WITHDRAWN}) {
             Person candidate = new PersonBuilder().withRole(CLOSED_DESIGNER.getTitle().value)
                     .withStatus(original).withNote("Retain history").withTags("referral").build();
-            setHiringCandidates(new PersonBuilder().withName("Other Candidate").build(), candidate);
+            setHiringCandidates(new PersonBuilder().withNameAndDistinctContacts("Other Candidate").build(), candidate);
             model.updateFilteredPersonList(person -> person.isSamePerson(candidate));
             for (Status pending : new Status[]{Status.PENDING_RESUME_SCREENING, Status.PENDING_RECRUITER_INTERVIEW,
                 Status.PENDING_OFFER_EXTENSION, Status.PENDING_OFFER_DECISION}) {
@@ -92,7 +92,8 @@ public class StatusCommandTest {
 
     @Test
     public void execute_secondHireForClosedRole_rejectsChange() {
-        Person hired = new PersonBuilder().withName("Hired Candidate").withRole(CLOSED_DESIGNER.getTitle().value)
+        Person hired = new PersonBuilder().withNameAndDistinctContacts("Hired Candidate")
+                .withRole(CLOSED_DESIGNER.getTitle().value)
                 .withStatus(Status.HIRED).build();
         Person rejected = new PersonBuilder().withRole(CLOSED_DESIGNER.getTitle().value)
                 .withStatus(Status.REJECTED).build();
@@ -111,8 +112,9 @@ public class StatusCommandTest {
 
     @Test
     public void execute_otherHiredCandidateHidden_rejectsSecondHire() {
-        Person hired = new PersonBuilder().withName("Hired Candidate").withStatus(Status.HIRED).build();
-        Person pending = new PersonBuilder().withName("Pending Candidate").build();
+        Person hired = new PersonBuilder().withNameAndDistinctContacts("Hired Candidate")
+                .withStatus(Status.HIRED).build();
+        Person pending = new PersonBuilder().withNameAndDistinctContacts("Pending Candidate").build();
         setHiringCandidates(hired, pending);
         model.updateFilteredPersonList(person -> person.isSamePerson(pending));
 
@@ -122,7 +124,7 @@ public class StatusCommandTest {
 
     @Test
     public void execute_sameRoleInDifferentCase_rejectsSecondHire() {
-        Person hired = new PersonBuilder().withName("Hired Candidate").withRole("software engineer")
+        Person hired = new PersonBuilder().withNameAndDistinctContacts("Hired Candidate").withRole("software engineer")
                 .withStatus(Status.HIRED).build();
         Person pending = new PersonBuilder().build();
         setHiringCandidates(pending, hired);
@@ -134,7 +136,7 @@ public class StatusCommandTest {
     @Test
     public void execute_hiredCandidateForOtherRole_allowsHire() {
         Person pending = new PersonBuilder().build();
-        Person otherRoleHired = new PersonBuilder().withName("Other Hired Candidate")
+        Person otherRoleHired = new PersonBuilder().withNameAndDistinctContacts("Other Hired Candidate")
                 .withRole(PRODUCT_ANALYST.getTitle().value).withStatus(Status.HIRED).build();
         setHiringCandidates(pending, otherRoleHired);
         assertSuccessfulHire(pending);
@@ -143,14 +145,16 @@ public class StatusCommandTest {
     @Test
     public void execute_sameCandidateAlreadyHired_allowsReapplyingHired() {
         Person hired = new PersonBuilder().withStatus(Status.HIRED).build();
-        Person rejected = new PersonBuilder().withName("Rejected Candidate").withStatus(Status.REJECTED).build();
+        Person rejected = new PersonBuilder().withNameAndDistinctContacts("Rejected Candidate")
+                .withStatus(Status.REJECTED).build();
         setHiringCandidates(hired, rejected);
         assertSuccessfulHire(hired);
     }
 
     @Test
     public void execute_nonHiredStatusWithExistingHire_allowsUpdate() throws Exception {
-        Person hired = new PersonBuilder().withName("Hired Candidate").withStatus(Status.HIRED).build();
+        Person hired = new PersonBuilder().withNameAndDistinctContacts("Hired Candidate")
+                .withStatus(Status.HIRED).build();
         Person pending = new PersonBuilder().build();
         setHiringCandidates(hired, pending);
         for (Status status : Status.values()) {
@@ -165,7 +169,8 @@ public class StatusCommandTest {
 
     @Test
     public void execute_previousHireRejected_allowsAnotherHire() throws Exception {
-        Person hired = new PersonBuilder().withName("Hired Candidate").withStatus(Status.HIRED).build();
+        Person hired = new PersonBuilder().withNameAndDistinctContacts("Hired Candidate")
+                .withStatus(Status.HIRED).build();
         Person pending = new PersonBuilder().build();
         setHiringCandidates(hired, pending);
         new StatusCommand(INDEX_FIRST_PERSON, Status.REJECTED).execute(model);

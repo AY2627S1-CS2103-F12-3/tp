@@ -99,7 +99,11 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
 
 * `ROLE` must be the title of an existing role that is `OPEN`. Use [`role add`](#adding-a-role-role-add) to create the role first.
 * `ROLE` is matched ignoring case; for example, `r/software engineer` matches the role `Software Engineer`. The candidate is saved with the role's own spelling of the title.
-* A candidate cannot be added if another candidate has exactly the same name. Names are case-sensitive, so `John Doe` and `john doe` are treated as different candidates. Candidates with different names may share a phone number or email address.
+* Each candidate needs their own email and phone number. A candidate cannot be added if another candidate already uses the same email or the same phone number, and the error message names that candidate.
+  * Emails are compared ignoring case, so `Alex@Example.com` and `alex@example.com` are the same email.
+  * Phone numbers are compared exactly as saved, so `6591234567` (with the country code) and `91234567` are different numbers. Type phone numbers in one consistent format, such as always without the country code.
+* Candidates may share a name, as long as their emails and phone numbers are different.
+* Each candidate applies for one role. Since their email and phone number stay the same, the same person cannot be added again for a second role.
 * Newly added candidates are automatically assigned the status `Pending Resume Screening`.
 * The candidate's card shows the role as `Applying for: ROLE`.
 
@@ -233,6 +237,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
 * When editing tags, all of the candidate's existing tags are removed; adding tags is not cumulative.
 * To remove all of a candidate's tags, enter `t/` without a tag after it.
 * A candidate's role cannot be edited, so `r/` is rejected. The candidate's status and note are also kept; use `status` or `note` to change them.
+* The new email and phone number must not be used by another candidate, following the same rules as in [`add`](#adding-a-candidate-add). Keeping a candidate's own email or phone number is fine.
 
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st candidate to be `91234567` and `johndoe@example.com` respectively.
@@ -364,11 +369,13 @@ For example, this complete file contains one role and no candidates:
 }
 ```
 
-When editing roles and their candidate associations:
+When editing candidates, roles and their associations:
 
 * Every role needs `title`, `experienceLevel`, and `status`. Title and experience values must satisfy
   the same constraints as `role add`; role status must be exactly `OPEN` or `CLOSED` in uppercase.
 * Do not repeat role titles, even with different capitalisation or experience levels.
+* No two candidates may share an email (ignoring case) or a phone number, following the same rules as in
+  [`add`](#adding-a-candidate-add).
 * Each candidate's `role` field must name an existing role, ignoring case. It may name a closed role,
   because closing preserves candidates. On loading, the role's stored capitalisation is used for
   its candidates. If you rename a role in the file, update every associated candidate's `role` too.
@@ -382,8 +389,9 @@ When editing roles and their candidate associations:
 <box type="warning" seamless>
 
 **Caution:**
-Malformed JSON, invalid role fields, duplicate role titles, or a candidate referring to a nonexistent
-role prevent the whole file from loading; valid records are not loaded separately.
+Malformed JSON, invalid role fields, duplicate role titles, candidates sharing an email or phone
+number, or a candidate referring to a nonexistent role prevent the whole file from loading; valid
+records are not loaded separately.
 RecruiterBuddy then starts with empty lists. Startup alone does not overwrite the invalid data file,
 but the next successfully executed command, including `list`, can overwrite it with the current data.
 If the lists unexpectedly appear empty, close the application window without entering any commands

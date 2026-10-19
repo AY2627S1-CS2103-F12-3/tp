@@ -52,7 +52,6 @@ public class EditCommand extends Command {
     public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited candidate: %1$s";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
     public static final String MESSAGE_ROLE_NOT_EDITABLE = "A candidate's role cannot be edited.";
-    public static final String MESSAGE_DUPLICATE_PERSON = "This candidate already exists in RecruiterBuddy.";
 
     private final Index index;
     private final EditPersonDescriptor editPersonDescriptor;
@@ -84,8 +83,11 @@ public class EditCommand extends Command {
         Person personToEdit = lastShownList.get(index.getZeroBased());
         Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor);
 
-        if (!personToEdit.isSamePerson(editedPerson) && model.hasPerson(editedPerson)) {
-            throw new CommandException(MESSAGE_DUPLICATE_PERSON);
+        // The candidate being edited is excluded, so keeping their own email or phone is not a duplicate.
+        Optional<Person> existingPerson = model.findSamePersonExcluding(editedPerson, personToEdit);
+        if (existingPerson.isPresent()) {
+            throw new CommandException(
+                    Messages.getErrorMessageForDuplicatePerson(editedPerson, existingPerson.get()));
         }
 
         model.setPerson(personToEdit, editedPerson);

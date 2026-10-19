@@ -1,5 +1,6 @@
 package seedu.address.model.person;
 
+import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Collections;
@@ -95,7 +96,8 @@ public class Person {
     }
 
     /**
-     * Returns true if both persons have the same name.
+     * Returns true if both persons have the same email (ignoring case) or the same phone number.
+     * Names are not compared, as different candidates can share a name.
      * This defines a weaker notion of equality between two persons.
      */
     public boolean isSamePerson(Person otherPerson) {
@@ -104,7 +106,24 @@ public class Person {
         }
 
         return otherPerson != null
-                && otherPerson.getName().equals(getName());
+                && (hasSameEmail(otherPerson) || hasSamePhone(otherPerson));
+    }
+
+    /**
+     * Returns true if both persons have the same email, ignoring case.
+     */
+    public boolean hasSameEmail(Person otherPerson) {
+        requireNonNull(otherPerson);
+        return email.isSameEmail(otherPerson.email);
+    }
+
+    /**
+     * Returns true if both persons have the same phone number.
+     * Numbers are compared as saved, so {@code 6591234567} and {@code 91234567} are different numbers.
+     */
+    public boolean hasSamePhone(Person otherPerson) {
+        requireNonNull(otherPerson);
+        return phone.equals(otherPerson.phone);
     }
 
     /**
