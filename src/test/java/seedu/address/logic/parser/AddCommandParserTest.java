@@ -80,6 +80,24 @@ public class AddCommandParserTest {
     }
 
     @Test
+    public void parse_nameContainingSlash_success() {
+        // "s/" is not a prefix of this command, so "s/o" stays part of the name
+        String nameWithSlash = "Ravi s/o Kumar";
+        Person expectedPerson = new PersonBuilder(BOB).withName(nameWithSlash).withTags().build();
+
+        assertParseSuccess(parser, " " + PREFIX_NAME + nameWithSlash + PHONE_DESC_BOB + EMAIL_DESC_BOB
+                + ADDRESS_DESC_BOB + ROLE_DESC_BOB, new AddCommand(expectedPerson));
+    }
+
+    @Test
+    public void parse_phoneWithSeparators_success() {
+        Person expectedPerson = new PersonBuilder(BOB).withPhone("+6591234567").withTags().build();
+
+        assertParseSuccess(parser, NAME_DESC_BOB + " " + PREFIX_PHONE + "+65 9123-4567" + EMAIL_DESC_BOB
+                + ADDRESS_DESC_BOB + ROLE_DESC_BOB, new AddCommand(expectedPerson));
+    }
+
+    @Test
     public void parse_repeatedNonTagValue_failure() {
         String validExpectedPersonString = NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB
                 + ADDRESS_DESC_BOB + ROLE_DESC_BOB + TAG_DESC_FRIEND;

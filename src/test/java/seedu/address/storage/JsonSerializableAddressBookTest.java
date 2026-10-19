@@ -79,7 +79,7 @@ public class JsonSerializableAddressBookTest {
 
         AddressBook expectedAddressBook = new AddressBook();
         expectedAddressBook.addRole(TypicalRoles.SOFTWARE_ENGINEER);
-        expectedAddressBook.addPerson(new PersonBuilder().withName("Hans Muster").withPhone("9482424")
+        expectedAddressBook.addPerson(new PersonBuilder().withName("Hans Muster").withPhone("94824240")
                 .withEmail("hans@example.com").withAddress("4th street")
                 .withRole(TypicalRoles.SOFTWARE_ENGINEER.getTitle().value).build());
         assertEquals(expectedAddressBook, addressBookFromFile);
