@@ -23,7 +23,7 @@ public class PhoneTest {
     @Test
     public void constructor_phoneWithSeparators_storesDigitsOnly() {
         assertEquals("+6591234567", new Phone("+65 9123-4567").value);
-        assertEquals("91234567", new Phone("9123 4567").value);
+        assertEquals("91234567", new Phone("9123 - 4567").value);
     }
 
     @Test
@@ -34,30 +34,28 @@ public class PhoneTest {
         // invalid phone numbers
         assertFalse(Phone.isValidPhone("")); // empty string
         assertFalse(Phone.isValidPhone(" ")); // spaces only
+        assertFalse(Phone.isValidPhone(" - ")); // spaces and hyphens only
         assertFalse(Phone.isValidPhone("phone")); // non-numeric
         assertFalse(Phone.isValidPhone("9011p041")); // alphabets within digits
         assertFalse(Phone.isValidPhone("9123456")); // 7 digits
         assertFalse(Phone.isValidPhone("1234567890123456")); // 16 digits
         assertFalse(Phone.isValidPhone("+9123456")); // 7 digits after '+'
-        assertFalse(Phone.isValidPhone("9123 456")); // 7 digits with a separator
+        assertFalse(Phone.isValidPhone("9123 456")); // 7 digits once spaces are ignored
         assertFalse(Phone.isValidPhone("++6591234567")); // more than one '+'
         assertFalse(Phone.isValidPhone("91+234567")); // '+' not at the start
-        assertFalse(Phone.isValidPhone("+ 6591234567")); // separator after '+'
-        assertFalse(Phone.isValidPhone("9123  4567")); // consecutive spaces
-        assertFalse(Phone.isValidPhone("9123--4567")); // consecutive hyphens
-        assertFalse(Phone.isValidPhone("9123 - 4567")); // consecutive separators
-        assertFalse(Phone.isValidPhone("-91234567")); // separator at the start
-        assertFalse(Phone.isValidPhone("9123-4567-")); // separator at the end
-        assertFalse(Phone.isValidPhone("9123.4567")); // separator that is not allowed
+        assertFalse(Phone.isValidPhone("9123.4567")); // separator that is not ignored
 
         // valid phone numbers
         assertTrue(Phone.isValidPhone("91234567")); // exactly 8 digits
         assertTrue(Phone.isValidPhone("123456789012345")); // exactly 15 digits
         assertTrue(Phone.isValidPhone("+6591234567")); // with '+'
+        assertTrue(Phone.isValidPhone("+12345678")); // '+' does not count as a digit
         assertTrue(Phone.isValidPhone("+65 9123-4567")); // with '+', space and hyphen
         assertTrue(Phone.isValidPhone("9123 4567")); // with a space
         assertTrue(Phone.isValidPhone("9123-4567")); // with a hyphen
-        assertTrue(Phone.isValidPhone("+12345678")); // '+' does not count as a digit
+        assertTrue(Phone.isValidPhone("9123 - 4567")); // consecutive spaces and hyphens
+        assertTrue(Phone.isValidPhone("+ 65 9123 4567")); // space after '+'
+        assertTrue(Phone.isValidPhone("-91234567-")); // hyphens at the start and end
     }
 
     @Test

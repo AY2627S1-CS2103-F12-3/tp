@@ -13,11 +13,11 @@ public class Phone {
     public static final int MAX_DIGITS = 15;
 
     public static final String MESSAGE_CONSTRAINTS = "Phone numbers should have " + MIN_DIGITS + " to "
-            + MAX_DIGITS + " digits, optionally starting with +. Digits may be separated by single spaces "
-            + "or hyphens, e.g. +65 9123-4567.";
+            + MAX_DIGITS + " digits, with an optional + at the start. Spaces and hyphens are ignored, "
+            + "such as in +65 9123-4567.";
 
-    /** An optional leading '+', then digits that may be separated by a single space or hyphen. */
-    public static final String VALIDATION_REGEX = "\\+?\\d(?:[ -]?\\d)*";
+    /** An optional leading '+' and the allowed number of digits, checked after separators are removed. */
+    public static final String VALIDATION_REGEX = "\\+?\\d{" + MIN_DIGITS + "," + MAX_DIGITS + "}";
 
     private static final String SEPARATOR_REGEX = "[ -]";
 
@@ -25,27 +25,26 @@ public class Phone {
     public final String value;
 
     /**
-     * Constructs a {@code Phone}, removing any spaces and hyphens between digits so that differently
-     * formatted inputs of the same number are stored identically.
+     * Constructs a {@code Phone}, removing all spaces and hyphens so that differently formatted inputs
+     * of the same number are stored identically.
      *
      * @param phone A valid phone number.
      */
     public Phone(String phone) {
         requireNonNull(phone);
         checkArgument(isValidPhone(phone), MESSAGE_CONSTRAINTS);
-        value = phone.replaceAll(SEPARATOR_REGEX, "");
+        value = removeSeparators(phone);
     }
 
     /**
-     * Returns true if a given string is a valid phone number.
-     * The '+' and any separators do not count towards the number of digits.
+     * Returns true if a given string is a valid phone number once its spaces and hyphens are ignored.
      */
     public static boolean isValidPhone(String test) {
-        if (!test.matches(VALIDATION_REGEX)) {
-            return false;
-        }
-        int digitCount = test.replaceAll("\\D", "").length();
-        return digitCount >= MIN_DIGITS && digitCount <= MAX_DIGITS;
+        return removeSeparators(test).matches(VALIDATION_REGEX);
+    }
+
+    private static String removeSeparators(String phone) {
+        return phone.replaceAll(SEPARATOR_REGEX, "");
     }
 
     @Override
