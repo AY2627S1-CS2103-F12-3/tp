@@ -1,6 +1,7 @@
 package seedu.address;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
@@ -21,12 +23,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.model.AddressBook;
+import seedu.address.model.ModelManager;
+import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.util.SampleDataUtil;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.RecruitmentDataRecovery;
+import seedu.address.storage.StorageManager;
 import seedu.address.testutil.LogCapture;
 import seedu.address.ui.StartupDataNotice;
 
@@ -45,6 +51,109 @@ public class MainAppTest {
     public void setUp() {
         prefsPath = testFolder.resolve("preferences.json");
         dataPath = testFolder.resolve("addressbook.json");
+    }
+
+    private MainApp createApp(PrefsStorageStub prefsStorage) {
+        MainApp app = new MainApp();
+        app.model = new ModelManager();
+        app.model.setGuiSettings(getTypicalPrefs().getGuiSettings());
+        app.storage = new StorageManager(new JsonAddressBookStorage(testFolder.resolve("addressbook.json")),
+                prefsStorage);
+        return app;
+    }
+
+    private UserPrefs getTypicalPrefs() {
+        UserPrefs prefs = new UserPrefs();
+        prefs.setGuiSettings(new GuiSettings(1000, 500, 300, 100));
+        return prefs;
+    }
+
+    /**
+     * Controls preference storage outcomes without accessing a real preferences file.
+     */
+    private class PrefsStorageStub extends JsonUserPrefsStorage {
+        private Optional<UserPrefs> loadedPrefs = Optional.empty();
+        private ReadOnlyUserPrefs savedPrefs;
+        private boolean shouldFailRead;
+        private boolean shouldFailSave;
+
+        PrefsStorageStub() {
+            super(testFolder.resolve("preferences.json"));
+        }
+
+        @Override
+        public Optional<UserPrefs> readUserPrefs() throws DataLoadingException {
+            if (shouldFailRead) {
+                throw new DataLoadingException(new IOException("Simulated read failure"));
+            }
+            return loadedPrefs;
+        }
+
+        @Override
+        public void saveUserPrefs(ReadOnlyUserPrefs prefs) throws IOException {
+            savedPrefs = new UserPrefs(prefs);
+            if (shouldFailSave) {
+                throw new IOException("Simulated save failure");
+            }
+        }
+    }
+
+    @Test
+    public void initPrefs_missingFile_returnsAndSavesDefaults() {
+        PrefsStorageStub storage = new PrefsStorageStub();
+
+        assertEquals(new UserPrefs(), new MainApp().initPrefs(storage));
+        assertEquals(new UserPrefs(), storage.savedPrefs);
+    }
+
+    @Test
+    public void initPrefs_existingFile_returnsAndSavesLoadedPrefs() {
+        PrefsStorageStub storage = new PrefsStorageStub();
+        UserPrefs expected = getTypicalPrefs();
+        storage.loadedPrefs = Optional.of(expected);
+
+        assertEquals(expected, new MainApp().initPrefs(storage));
+        assertEquals(expected, storage.savedPrefs);
+    }
+
+    @Test
+    public void initPrefs_readFailure_returnsAndSavesDefaults() {
+        PrefsStorageStub storage = new PrefsStorageStub();
+        storage.shouldFailRead = true;
+
+        assertEquals(new UserPrefs(), new MainApp().initPrefs(storage));
+        assertEquals(new UserPrefs(), storage.savedPrefs);
+    }
+
+    @Test
+    public void initPrefs_saveFailure_returnsLoadedPrefs() {
+        PrefsStorageStub storage = new PrefsStorageStub();
+        UserPrefs expected = getTypicalPrefs();
+        storage.loadedPrefs = Optional.of(expected);
+        storage.shouldFailSave = true;
+
+        assertEquals(expected, new MainApp().initPrefs(storage));
+        assertEquals(expected, storage.savedPrefs);
+    }
+
+    @Test
+    public void stop_changedPreferences_savesCurrentPreferences() {
+        PrefsStorageStub storage = new PrefsStorageStub();
+        MainApp app = createApp(storage);
+
+        app.stop();
+
+        assertEquals(getTypicalPrefs(), storage.savedPrefs);
+    }
+
+    @Test
+    public void stop_saveFailure_doesNotThrow() {
+        PrefsStorageStub storage = new PrefsStorageStub();
+        storage.shouldFailSave = true;
+        MainApp app = createApp(storage);
+
+        assertDoesNotThrow(app::stop);
+        assertEquals(getTypicalPrefs(), storage.savedPrefs);
     }
 
     @Test
