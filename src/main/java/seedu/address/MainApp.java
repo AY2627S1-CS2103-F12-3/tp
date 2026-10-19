@@ -92,9 +92,12 @@ public class MainApp extends Application {
         logger.info("=============================[ Initializing AddressBook ]===========================");
         super.init();
 
-        JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(userPrefsFilePath);
+        Path jarPath = Paths.get(MainApp.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+        Path jarDir = jarPath.getParent();
+
+        JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(jarDir.resolve(userPrefsFilePath));
         UserPrefs userPrefs = initPrefs(userPrefsStorage);
-        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(addressBookFilePath);
+        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(jarDir.resolve(addressBookFilePath));
         storage = new StorageManager(addressBookStorage, userPrefsStorage);
 
         try {

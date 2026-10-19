@@ -80,4 +80,9 @@ shadowJar {
     archiveFileName = 'addressbook.jar'
 }
 
+test {
+    dependsOn shadowJar
+    systemProperty 'test.appJar', tasks.shadowJar.archiveFile.get().asFile.absolutePath
+}
+
 defaultTasks 'clean', 'test'

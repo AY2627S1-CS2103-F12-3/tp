@@ -3,6 +3,9 @@ package seedu.address.commons.core;
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
@@ -24,11 +27,20 @@ public class LogsCenter {
     private static final int MAX_FILE_COUNT = 5;
     private static final int MAX_FILE_SIZE_IN_BYTES = (int) (Math.pow(2, 20) * 5); // 5MB
     private static final String LOG_FILE = "addressbook.log";
+    private static final String LOG_FILE_ABSOLUTE;
     private static final Logger logger; // logger for this class
     private static Logger baseLogger; // to be used as the parent of all other loggers created by this class.
 
     // This static block ensures essential loggers are created early
     static {
+        try {
+            Path jarPath = Paths.get(LogsCenter.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+            Path jarDir = jarPath.getParent();
+            //ReadFile() interprets any '%' in the directory as a pattern. Let's escape them as '%%'.
+            LOG_FILE_ABSOLUTE = jarDir.resolve(LOG_FILE).toString().replace("%", "%%");
+        } catch (URISyntaxException e) {
+            throw new ExceptionInInitializerError(e);
+        }
         setBaseLogger();
         logger = LogsCenter.getLogger(LogsCenter.class);
     }
@@ -86,7 +98,7 @@ public class LogsCenter {
 
         // add a FileHandler to log to a file
         try {
-            FileHandler fileHandler = new FileHandler(LOG_FILE, MAX_FILE_SIZE_IN_BYTES, MAX_FILE_COUNT, true);
+            FileHandler fileHandler = new FileHandler(LOG_FILE_ABSOLUTE, MAX_FILE_SIZE_IN_BYTES, MAX_FILE_COUNT, true);
             fileHandler.setFormatter(new SimpleFormatter());
             fileHandler.setLevel(Level.ALL);
             baseLogger.addHandler(fileHandler);
