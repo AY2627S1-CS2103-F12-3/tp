@@ -29,7 +29,6 @@ public class FindCommandParser implements Parser<FindCommand> {
         }
 
         String[] nameKeywords = trimmedArgs.split("\\s+");
-        assert nameKeywords.length > 0;
         logger.info("Parsing find command with " + nameKeywords.length + " keyword(s)");
 
         return new FindCommand(new NameContainsKeywordsPredicate(List.of(nameKeywords)));

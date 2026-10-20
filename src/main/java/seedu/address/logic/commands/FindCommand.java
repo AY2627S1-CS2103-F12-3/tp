@@ -35,10 +35,8 @@ public class FindCommand extends Command {
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
-        assert model.getFilteredPersonList() != null;
         logger.info("Applying candidate find filter");
         model.updateFilteredPersonList(predicate);
-        assert model.getFilteredPersonList().stream().allMatch(predicate);
         return new CommandResult(
                 String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, model.getFilteredPersonList().size()));
     }

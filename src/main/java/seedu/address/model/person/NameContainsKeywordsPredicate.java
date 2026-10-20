@@ -17,7 +17,6 @@ public class NameContainsKeywordsPredicate implements Predicate<Person> {
     /** Creates a predicate for the supplied name keywords. */
     public NameContainsKeywordsPredicate(List<String> keywords) {
         requireNonNull(keywords);
-        assert keywords.stream().noneMatch(String::isBlank) : "Find keywords must not be blank";
         this.keywords = keywords;
     }
 
