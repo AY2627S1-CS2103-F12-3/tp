@@ -18,10 +18,12 @@ public class NameContainsKeywordsPredicate implements Predicate<Person> {
     private final Set<RoleStatus> roleStatuses;
     private final List<Role> roles;
 
+    /** Creates a predicate that matches candidate names against the supplied keywords. */
     public NameContainsKeywordsPredicate(List<String> keywords) {
         this(keywords, List.of(), Set.of(), List.of());
     }
 
+    /** Creates a predicate with name, role, status, and role data filters. */
     public NameContainsKeywordsPredicate(List<String> keywords, List<String> roleKeywords,
             Set<RoleStatus> roleStatuses, List<Role> roles) {
         this.keywords = keywords;
