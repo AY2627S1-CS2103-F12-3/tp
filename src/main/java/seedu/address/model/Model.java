@@ -1,11 +1,13 @@
 package seedu.address.model;
 
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.Person;
 import seedu.address.model.role.Role;
+import seedu.address.model.role.RoleTitle;
 
 /**
  * The API of the Model component.
@@ -16,10 +18,16 @@ public interface Model {
     /** {@code Predicate} that always evaluates to true */
     Predicate<Role> PREDICATE_SHOW_ALL_ROLES = unused -> true;
 
+    /**
+     * Returns true if the last successful logic result selected the role list.
+     */
     default boolean isRoleListDisplayed() {
         return false;
     }
 
+    /**
+     * Records the view selected by a successfully completed logic result.
+     */
     default void setRoleListDisplayed(boolean displayed) {
     }
 
@@ -85,9 +93,20 @@ public interface Model {
     boolean hasRole(Role role);
 
     /**
+     * Returns the role whose title matches {@code title}, ignoring case, if there is one.
+     */
+    Optional<Role> findRole(RoleTitle title);
+
+    /**
      * Adds {@code role} to the address book.
      */
     void addRole(Role role);
+
+    /**
+     * Deletes {@code role} from the address book.
+     * The role must exist and have no associated candidates.
+     */
+    void deleteRole(Role role);
 
     /**
      * Replaces {@code target} with {@code editedRole}.

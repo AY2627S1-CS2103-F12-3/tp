@@ -8,6 +8,7 @@ import static seedu.address.testutil.TypicalRoles.PRODUCT_ANALYST;
 import static seedu.address.testutil.TypicalRoles.SOFTWARE_ENGINEER;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -18,6 +19,26 @@ import seedu.address.testutil.RoleBuilder;
 public class UniqueRoleListTest {
 
     private final UniqueRoleList uniqueRoleList = new UniqueRoleList();
+
+    @Test
+    public void remove_nullRole_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> uniqueRoleList.remove(null));
+    }
+
+    @Test
+    public void remove_missingRole_throwsRoleNotFoundException() {
+        uniqueRoleList.add(SOFTWARE_ENGINEER);
+        assertThrows(RoleNotFoundException.class, () -> uniqueRoleList.remove(PRODUCT_ANALYST));
+        assertEquals(List.of(SOFTWARE_ENGINEER), uniqueRoleList.asUnmodifiableObservableList());
+    }
+
+    @Test
+    public void remove_existingRole_updatesObservableList() {
+        uniqueRoleList.add(SOFTWARE_ENGINEER);
+        uniqueRoleList.add(PRODUCT_ANALYST);
+        uniqueRoleList.remove(SOFTWARE_ENGINEER);
+        assertEquals(List.of(PRODUCT_ANALYST), uniqueRoleList.asUnmodifiableObservableList());
+    }
 
     @Test
     public void contains_nullRole_throwsNullPointerException() {
@@ -33,6 +54,23 @@ public class UniqueRoleListTest {
     public void contains_roleInList_returnsTrue() {
         uniqueRoleList.add(SOFTWARE_ENGINEER);
         assertTrue(uniqueRoleList.contains(SOFTWARE_ENGINEER));
+    }
+
+    @Test
+    public void findByTitle_nullTitle_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> uniqueRoleList.findByTitle(null));
+    }
+
+    @Test
+    public void findByTitle_titleNotInList_returnsEmpty() {
+        uniqueRoleList.add(SOFTWARE_ENGINEER);
+        assertEquals(Optional.empty(), uniqueRoleList.findByTitle(PRODUCT_ANALYST.getTitle()));
+    }
+
+    @Test
+    public void findByTitle_titleInDifferentCase_returnsRole() {
+        uniqueRoleList.add(SOFTWARE_ENGINEER);
+        assertEquals(Optional.of(SOFTWARE_ENGINEER), uniqueRoleList.findByTitle(new RoleTitle("software ENGINEER")));
     }
 
     @Test

@@ -41,10 +41,16 @@ public class ParserUtilTest {
     private static final String VALID_TAG_2 = "neighbour";
     private static final String VALID_ROLE_TITLE = "Software Engineer";
     private static final String VALID_EXPERIENCE_LEVEL = "2 years";
-    private static final String VALID_STATUS_STRING = "PENDING RESUME SCREENING";
-    private static final Status VALID_STATUS = Status.PENDING_RESUME_SCREENING;
+    private static final String VALID_STATUS_STRING = "PENDING_RECRUITER_INTERVIEW";
+    private static final Status VALID_STATUS = Status.valueOf(VALID_STATUS_STRING);
 
     private static final String WHITESPACE = " \t\r\n";
+
+    @Test
+    public void parseRoleIndex_nullArgument_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseRoleIndex(null, "Extra text."));
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseRoleIndex("1", null));
+    }
 
     @Test
     public void parseIndex_invalidInput_throwsParseException() {

@@ -13,6 +13,7 @@ import static seedu.address.logic.commands.CommandTestUtil.INVALID_TAG_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_BOB;
+import static seedu.address.logic.commands.CommandTestUtil.ROLE_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.TAG_DESC_FRIEND;
 import static seedu.address.logic.commands.CommandTestUtil.TAG_DESC_HUSBAND;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_AMY;
@@ -20,11 +21,13 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_ROLE_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_FRIEND;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ROLE_TITLE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
@@ -42,11 +45,13 @@ import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.role.RoleTitle;
 import seedu.address.model.tag.Tag;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 
 public class EditCommandParserTest {
 
+    private static final int MAX_ROLE_TITLE_LENGTH = 100;
     private static final String TAG_EMPTY = " " + PREFIX_TAG;
 
     private static final String MESSAGE_INVALID_FORMAT =
@@ -104,13 +109,49 @@ public class EditCommandParserTest {
     }
 
     @Test
+    public void parse_roleSpecified_success() {
+        EditPersonDescriptor roleOnly = new EditPersonDescriptorBuilder().withRole(VALID_ROLE_AMY).build();
+        assertParseSuccess(parser, "1" + ROLE_DESC_AMY, new EditCommand(INDEX_FIRST_PERSON, roleOnly));
+
+        EditPersonDescriptor combined = new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB)
+                .withAddress(VALID_ADDRESS_AMY).withRole(VALID_ROLE_AMY).build();
+        assertParseSuccess(parser, "1" + PHONE_DESC_BOB + ADDRESS_DESC_AMY + ROLE_DESC_AMY,
+                new EditCommand(INDEX_FIRST_PERSON, combined));
+        assertParseSuccess(parser, "1" + ROLE_DESC_AMY + PHONE_DESC_BOB + ADDRESS_DESC_AMY,
+                new EditCommand(INDEX_FIRST_PERSON, combined));
+    }
+
+    @Test
+    public void parse_invalidRole_failure() {
+        for (String title : new String[] {"", "   ", "123", "Engineer@", "A".repeat(MAX_ROLE_TITLE_LENGTH + 1)}) {
+            assertParseFailure(parser, "1 r/" + title, RoleTitle.MESSAGE_CONSTRAINTS);
+        }
+    }
+
+    @Test
+    public void parse_validRoleBoundaries_success() {
+        for (String title : new String[] {"A", "A".repeat(MAX_ROLE_TITLE_LENGTH), "R&D / Lead's - Team. 2"}) {
+            EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withRole(title).build();
+            assertParseSuccess(parser, "1 r/  " + title + "  ", new EditCommand(INDEX_FIRST_PERSON, descriptor));
+        }
+    }
+
+    @Test
+    public void parse_repeatedRole_failure() {
+        for (String args : new String[] {"1 r/Engineer r/Analyst", "1 r/ r/Engineer", "1 r/Engineer r/"}) {
+            assertParseFailure(parser, args, Messages.getErrorMessageForDuplicatePrefixes(PREFIX_ROLE_TITLE));
+        }
+    }
+
+    @Test
     public void parse_allFieldsSpecified_success() {
         Index targetIndex = INDEX_SECOND_PERSON;
         String userInput = targetIndex.getOneBased() + PHONE_DESC_BOB + TAG_DESC_HUSBAND
-                + EMAIL_DESC_AMY + ADDRESS_DESC_AMY + NAME_DESC_AMY + TAG_DESC_FRIEND;
+                + EMAIL_DESC_AMY + ADDRESS_DESC_AMY + NAME_DESC_AMY + ROLE_DESC_AMY + TAG_DESC_FRIEND;
 
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName(VALID_NAME_AMY)
                 .withPhone(VALID_PHONE_BOB).withEmail(VALID_EMAIL_AMY).withAddress(VALID_ADDRESS_AMY)
+                .withRole(VALID_ROLE_AMY)
                 .withTags(VALID_TAG_HUSBAND, VALID_TAG_FRIEND).build();
         EditCommand expectedCommand = new EditCommand(targetIndex, descriptor);
 
