@@ -5,10 +5,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.model.role.Role;
+import seedu.address.model.role.RoleStatus;
 import seedu.address.testutil.PersonBuilder;
+import seedu.address.testutil.RoleBuilder;
 
 public class NameContainsKeywordsPredicateTest {
 
@@ -79,5 +83,26 @@ public class NameContainsKeywordsPredicateTest {
 
         String expected = NameContainsKeywordsPredicate.class.getCanonicalName() + "{keywords=" + keywords + "}";
         assertEquals(expected, predicate.toString());
+    }
+
+    @Test
+    public void test_roleFilters_matchRoleAndStatusAndTag() {
+        Role openRole = new RoleBuilder().withTitle("Software Engineer").withStatus(RoleStatus.OPEN).build();
+        Person person = new PersonBuilder().withName("Alice").withTags("SoftwareEngineer").build();
+        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(
+                List.of("Alice"), List.of("Software", "Engineer"), Set.of(RoleStatus.OPEN), List.of(openRole));
+        assertTrue(predicate.test(person));
+        assertTrue(predicate.hasRoleFilters());
+        assertTrue(predicate.withRoles(List.of(openRole)).test(person));
+    }
+
+    @Test
+    public void test_roleFilters_mismatch() {
+        Role closedRole = new RoleBuilder().withTitle("Software Engineer").withStatus(RoleStatus.CLOSED).build();
+        Person person = new PersonBuilder().withName("Alice").withTags("OtherRole").build();
+        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(
+                List.of("Alice"), List.of("Software"), Set.of(RoleStatus.OPEN), List.of(closedRole));
+        assertFalse(predicate.test(person));
+        assertFalse(new NameContainsKeywordsPredicate(List.of("Alice")).hasRoleFilters());
     }
 }

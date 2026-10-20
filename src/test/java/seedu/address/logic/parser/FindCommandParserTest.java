@@ -5,11 +5,13 @@ import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailur
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.role.RoleStatus;
 
 public class FindCommandParserTest {
 
@@ -29,6 +31,13 @@ public class FindCommandParserTest {
 
         // multiple whitespaces between keywords
         assertParseSuccess(parser, " \n Alice \n \t Bob  \t", expectedFindCommand);
+    }
+
+    @Test
+    public void parse_roleAndStatusFilters_returnsFindCommand() throws Exception {
+        FindCommand expected = new FindCommand(new NameContainsKeywordsPredicate(
+                List.of("Alice"), List.of("Software", "Engineer"), Set.of(RoleStatus.OPEN), List.of()));
+        assertParseSuccess(parser, "Alice r/Software Engineer st/open", expected);
     }
 
 }
