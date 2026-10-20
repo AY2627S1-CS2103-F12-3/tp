@@ -382,8 +382,12 @@ When editing roles and their candidate associations:
 <box type="warning" seamless>
 
 **Caution:**
-Malformed JSON, invalid role fields, duplicate role titles, or a candidate referring to a nonexistent
-role prevent the whole file from loading; valid records are not loaded separately.
+The data file must contain exactly one JSON object. Keep the `persons` and `roles` lists inside
+that object instead of appending another object. Whitespace before or after it is allowed.
+Additional JSON values or other trailing text,
+malformed JSON, invalid role fields, duplicate role titles, or a candidate referring to a nonexistent
+role prevent the whole file from loading; valid records are not loaded separately. If two objects
+are accidentally joined together, neither is imported and the entire file is preserved in the backup.
 If a regular data file cannot be read or validated, RecruiterBuddy first renames it to
 `addressbook.json.bak` in the same folder, preserving its contents. Existing backups are never
 overwritten: if that name is taken, a timestamp is appended, for example

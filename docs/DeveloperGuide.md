@@ -231,6 +231,11 @@ recruitment rules, such as the maximum number of hired candidates in hand-edited
 
 Invalid data is reported as `DataLoadingException`. JSON `null` roots and null candidate, role or tag
 entries also fail loading rather than bypassing the failure path with a null-pointer exception.
+`JsonUtil#fromJsonString` reads through a managed Jackson parser and checks for end of input after
+deserializing the first value. Additional root values or malformed trailing text fail loading;
+ordinary surrounding whitespace remains valid. This prevents a later save from silently discarding
+content that Jackson would otherwise ignore. Recovery preserves the entire original file, not just
+the first object, and does not attempt to combine multiple objects.
 `JsonUtil#readJsonFile` returns an empty optional only when the file is known not to exist; an
 indeterminate existence check does not silently treat an inaccessible file as missing.
 
@@ -258,7 +263,9 @@ If backup or replacement creation throws an I/O or security exception, initializ
 creating the model, logic or command UI. The startup error names the original path, failure reason,
 and backup path if the move succeeded. JavaFX shuts down after dismissal. A directory or symbolic
 link is not moved. `MainApp#stop` skips preference saving when no model was initialized. Preference
-loading/defaulting is unchanged and still runs before recruitment data is loaded.
+loading still runs before recruitment data is loaded. Preference files use the same single-root
+JSON check; invalid preferences retain the existing default-settings fallback rather than using
+recruitment-data backup recovery.
 
 <puml src="diagrams/RecruitmentDataStartupActivityDiagram.puml" width="550"
   alt="Startup branches for valid, missing and unreadable recruitment data" />
@@ -1246,7 +1253,9 @@ Close the application window before editing or moving data files.
    Dismiss the warning: the command window opens with empty lists and a valid empty data file.
    Exit without a command and restart: the lists stay empty without another warning. Restore your
    fixture while the app is closed. Repeat separately
-   with JSON `null`, null role or candidate records, a duplicated role title,
+   with two valid recruitment JSON objects joined together (both directly and separated by whitespace),
+   a valid object followed by `null`, `[]`, or arbitrary text, JSON `null`, null role or candidate records,
+   a duplicated role title,
    a role status of `open` instead of `OPEN`, and a candidate whose `role` names a nonexistent role.<br>
    Expected: Each invalid file is backed up before starting empty; valid records are not imported
    separately. Earlier backups remain unchanged. Repeated failures use a timestamped backup name,

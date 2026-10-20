@@ -109,6 +109,37 @@ public class MainAppTest {
     }
 
     @Test
+    public void init_trailingContent_backsUpEntireFileWithoutImportingEitherObject() throws Exception {
+        new JsonAddressBookStorage(dataPath).saveAddressBook(getTypicalAddressBook());
+        String validJson = Files.readString(dataPath);
+
+        for (String suffix : new String[] {validJson, " \r\n" + validJson, " []", " null", " extra", "{"}) {
+            Files.writeString(dataPath, validJson + suffix);
+            assertRecoveredStartupPreservesFile();
+        }
+    }
+
+    @Test
+    public void init_trailingContent_allowsCommandsWithoutChangingBackup() throws Exception {
+        new JsonAddressBookStorage(dataPath).saveAddressBook(getTypicalAddressBook());
+        String validJson = Files.readString(dataPath);
+        Files.writeString(dataPath, validJson + validJson);
+        byte[] original = Files.readAllBytes(dataPath);
+        MainApp recoveredApp = new MainApp(prefsPath, dataPath);
+        recoveredApp.init();
+
+        assertEquals("Added open role: Recovery Test.",
+                recoveredApp.logic.execute("role add r/Recovery Test x/Entry level").getFeedbackToUser());
+        MainApp restartedApp = new MainApp(prefsPath, dataPath);
+        restartedApp.init();
+
+        assertEquals(recoveredApp.model.getAddressBook(), restartedApp.model.getAddressBook());
+        assertEquals(1, restartedApp.model.getAddressBook().getRoleList().size());
+        assertTrue(restartedApp.model.getAddressBook().getPersonList().isEmpty());
+        assertArrayEquals(original, Files.readAllBytes(dataPath.resolveSibling("addressbook.json.bak")));
+    }
+
+    @Test
     public void init_nullDataOrRecords_backsUpAndStartsEmpty() throws Exception {
         for (String json : new String[] {"null", "{\"persons\":[null]}", "{\"roles\":[null]}",
             "{\"persons\":[{\"tags\":[null]}]}"}) {
@@ -306,6 +337,22 @@ public class MainAppTest {
         app.init();
 
         assertEquals(new UserPrefs(), app.model.getUserPrefs());
+    }
+
+    @Test
+    public void init_preferencesWithTrailingContent_usesExistingDefaultFallback() throws Exception {
+        UserPrefs preferences = new UserPrefs();
+        preferences.setGuiSettings(new GuiSettings(500, 600, 10, 20));
+        new JsonUserPrefsStorage(prefsPath).saveUserPrefs(preferences);
+        Files.writeString(prefsPath, Files.readString(prefsPath) + "{}");
+        MainApp app = new MainApp(prefsPath, dataPath);
+
+        app.init();
+
+        assertEquals(new UserPrefs(), app.model.getUserPrefs());
+        assertEquals(SampleDataUtil.getSampleAddressBook(), app.model.getAddressBook());
+        assertNotNull(app.logic);
+        assertNotNull(app.ui);
     }
 
     @Test
