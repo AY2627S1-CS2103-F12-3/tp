@@ -12,6 +12,7 @@ import seedu.address.model.role.RoleTitle;
 final class CandidateRoleChecks {
 
     static final String MESSAGE_ROLE_ALREADY_HAS_HIRED_CANDIDATE = "%1$s already has a hired candidate.";
+    static final String MESSAGE_CANDIDATES_HIRED_SAME_ROLE = "Cannot hire two candidates for the %1$s role.";
 
     private CandidateRoleChecks() {
     }

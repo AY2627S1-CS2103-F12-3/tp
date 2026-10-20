@@ -1,8 +1,8 @@
 package seedu.address.commons.core.index;
 
-import seedu.address.commons.util.ToStringBuilder;
-
 import java.util.Objects;
+
+import seedu.address.commons.util.ToStringBuilder;
 
 /**
  * Represents a zero-based or one-based index.

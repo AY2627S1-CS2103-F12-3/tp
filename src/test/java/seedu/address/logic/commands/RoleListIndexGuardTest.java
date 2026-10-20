@@ -3,6 +3,8 @@ package seedu.address.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
+import java.util.Set;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -30,7 +32,7 @@ public class RoleListIndexGuardTest {
                 new EditCommand.EditPersonDescriptor()).execute(model));
         assertThrows(CommandException.class, () -> new NoteCommand(INDEX_FIRST_PERSON,
                 new Note("note")).execute(model));
-        assertThrows(CommandException.class, () -> new StatusCommand(INDEX_FIRST_PERSON,
+        assertThrows(CommandException.class, () -> new StatusCommand(Set.of(INDEX_FIRST_PERSON),
                 Status.HIRED).execute(model));
     }
 }

@@ -179,13 +179,52 @@ public class LogicManagerTest {
         Person second = new PersonBuilder().withName("Second Candidate").build();
         model.addPerson(first);
         model.addPerson(second);
-        logic.execute("status 1 HIRED");
+        logic.execute("status 1 st/HIRED");
         ReadOnlyAddressBook saved = addressBookStorage.readAddressBook().orElseThrow();
         assertEquals(Status.HIRED, saved.getPersonList().getFirst().getStatus());
         assertEquals(List.of(SOFTWARE_ENGINEER), saved.getRoleList());
 
         assertThrows(CommandException.class, String.format(StatusCommand.MESSAGE_ROLE_ALREADY_HAS_HIRED_CANDIDATE,
-                SOFTWARE_ENGINEER.getTitle()), () -> logic.execute("status 2 HIRED"));
+                SOFTWARE_ENGINEER.getTitle()), () -> logic.execute("status 2 st/HIRED"));
+        assertEquals(saved, model.getAddressBook());
+        assertEquals(saved, addressBookStorage.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_batchStatus_persistsAllSelectedCandidates() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
+        Person first = new PersonBuilder().withName("First Candidate").build();
+        Person second = new PersonBuilder().withName("Second Candidate").build();
+        Person unselected = new PersonBuilder().withName("Unselected Candidate").build();
+        model.addPerson(first);
+        model.addPerson(second);
+        model.addPerson(unselected);
+
+        logic.execute("status 2 1 2 st/REJECTED");
+
+        ReadOnlyAddressBook saved = addressBookStorage.readAddressBook().orElseThrow();
+        assertEquals(List.of(new PersonBuilder(first).withStatus(Status.REJECTED).build(),
+                new PersonBuilder(second).withStatus(Status.REJECTED).build(), unselected), saved.getPersonList());
+        assertEquals(List.of(SOFTWARE_ENGINEER), saved.getRoleList());
+        assertEquals(saved, model.getAddressBook());
+    }
+
+    @Test
+    public void execute_invalidBatchStatus_preservesModelAndSavedData() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
+        model.addPerson(new PersonBuilder().withName("First Candidate").build());
+        model.addPerson(new PersonBuilder().withName("Second Candidate").build());
+        logic.execute("list");
+        ReadOnlyAddressBook saved = addressBookStorage.readAddressBook().orElseThrow();
+
+        String expectedMessage = String.format(StatusCommand.MESSAGE_CANDIDATES_HIRED_SAME_ROLE,
+                SOFTWARE_ENGINEER.getTitle());
+        assertThrows(CommandException.class, expectedMessage, () -> logic.execute("status 1 2 st/HIRED"));
+        assertEquals(saved, model.getAddressBook());
+        assertEquals(saved, addressBookStorage.readAddressBook().orElseThrow());
+
+        assertThrows(CommandException.class, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, () ->
+                logic.execute("status 1 99 st/REJECTED"));
         assertEquals(saved, model.getAddressBook());
         assertEquals(saved, addressBookStorage.readAddressBook().orElseThrow());
     }
@@ -195,8 +234,8 @@ public class LogicManagerTest {
         model.addRole(SOFTWARE_ENGINEER);
         model.addPerson(new PersonBuilder().withName("First Candidate").build());
         model.addPerson(new PersonBuilder().withName("Second Candidate").build());
-        logic.execute("status 1 HIRED");
-        logic.execute("status 2 REJECTED");
+        logic.execute("status 1 st/HIRED");
+        logic.execute("status 2 st/REJECTED");
         logic.execute("list role");
         logic.execute("role close 1");
 
@@ -234,7 +273,7 @@ public class LogicManagerTest {
             assertEquals(saved, addressBookStorage.readAddressBook().orElseThrow());
             assertFalse(model.isRoleListDisplayed());
         }
-        logic.execute("status 1 REJECTED");
+        logic.execute("status 1 st/REJECTED");
         assertEquals(Status.REJECTED, model.getFilteredPersonList().getFirst().getStatus());
         logic.execute("delete 1");
         assertTrue(model.getAddressBook().getPersonList().isEmpty());
@@ -248,7 +287,8 @@ public class LogicManagerTest {
         assertEquals(1, model.getFilteredPersonList().size());
 
         ReadOnlyAddressBook saved = addressBookStorage.readAddressBook().orElseThrow();
-        for (String command : new String[]{"delete 1", "edit 1 n/Changed Name", "note 1 Updated", "status 1 HIRED"}) {
+        for (String command : new String[]{"delete 1", "edit 1 n/Changed Name",
+            "note 1 Updated", "status 1 st/HIRED"}) {
             assertThrows(CommandException.class, MESSAGE_PERSON_LIST_NOT_DISPLAYED, () -> logic.execute(command));
             assertEquals(saved, model.getAddressBook());
             assertTrue(model.isRoleListDisplayed());
@@ -320,7 +360,7 @@ public class LogicManagerTest {
         for (Status pending : new Status[]{Status.RESUME, Status.INTERVIEW,
             Status.OFFER, Status.DECISION}) {
             assertThrows(CommandException.class, String.format(StatusCommand.MESSAGE_PENDING_STATUS_FOR_CLOSED_ROLE,
-                    candidate.getName(), candidate.getRole()), () -> logic.execute("status 1 " + pending.name()));
+                    candidate.getName(), candidate.getRole()), () -> logic.execute("status 1 st/" + pending.name()));
             assertEquals(saved, model.getAddressBook());
             assertEquals(saved, addressBookStorage.readAddressBook().orElseThrow());
             assertEquals(List.of(candidate), model.getFilteredPersonList());
@@ -332,7 +372,7 @@ public class LogicManagerTest {
     public void execute_pendingCorrectionForOpenRole_persistsAndPreventsClosure() throws Exception {
         model.addRole(SOFTWARE_ENGINEER);
         model.addPerson(new PersonBuilder().withStatus(Status.HIRED).build());
-        logic.execute("status 1 DECISION");
+        logic.execute("status 1 st/DECISION");
         ReadOnlyAddressBook saved = addressBookStorage.readAddressBook().orElseThrow();
         assertEquals(Status.DECISION, saved.getPersonList().getFirst().getStatus());
         assertEquals(RoleStatus.OPEN, saved.getRoleList().getFirst().getStatus());
