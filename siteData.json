@@ -44,6 +44,7 @@
         "implementation": "Implementation",
         "role-creation-and-persistence": "Role creation and persistence",
         "role-lifecycle-and-candidate-safeguards": "Role lifecycle and candidate safeguards",
+        "correcting-a-candidate-s-role": "Correcting a candidate's role",
         "proposed-undo-redo-feature": "[Proposed] Undo/redo feature",
         "candidate-notes": "Candidate notes",
         "proposed-data-archiving": "[Proposed] Data archiving",
