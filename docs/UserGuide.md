@@ -389,29 +389,23 @@ Examples:
 
 Updates the recruitment status of the candidate at the specified index.
 
-Format: `status INDEX STATUS`
+Format: `status INDEX... STATUS`
 
-* Updates the status of the candidate at the specified `INDEX`. The index refers to the index number shown in the displayed candidate list. The index **must be a positive integer** 1, 2, 3, ... and cannot exceed the length of the _displayed_ candidate list.
-* The candidate's original status is replaced with the one specified in `STATUS`.
+* Updates the status of the candidates at the specified indices. Each index refers to the index number shown in the displayed candidate list. The index **must be a positive integer** 1, 2, 3, ... and cannot exceed the length of the _displayed_ candidate list.
+* Each candidate's original status is replaced with the one specified in `STATUS`.
 * `STATUS` must be one of the following: `RESUME`, `INTERVIEW`, `OFFER`, `DECISION`, `HIRED`, `REJECTED`, or `WITHDRAWN`.
 * `STATUS` is not case-sensitive; for example, `hired`, `Hired` and `hiRED` are treated as the same as `HIRED`.
-* Each role has one vacancy. Assigning `HIRED` fails if another candidate for the same role is already
-  `HIRED`, including candidates hidden by filters. Role titles are compared without case sensitivity.
-  The error is `ROLE_TITLE already has a hired candidate.` No candidate data changes.
-* Reapplying `HIRED` to the same candidate is allowed when no other candidate for that role is hired.
-  Marking a candidate `HIRED` does not close the role; use `role close` explicitly after all candidates
-  have final outcomes.
-* For an `OPEN` role, a candidate with a final outcome (`HIRED`, `REJECTED`, or `WITHDRAWN`) may return
-  to any of the four `PENDING_*` statuses to correct or resume their recruitment process.
-* For a `CLOSED` role, assigning any `PENDING_*` status is rejected with
-  `Cannot set a pending status for NAME because role ROLE_TITLE is closed.` The candidate, role,
-  current filter, and saved records remain unchanged. Corrections between final outcomes are still
-  allowed, subject to the one-hired-candidate rule. Reopening a role is not supported in the MVP.
+* Each role has exactly one vacancy. If another candidate for the same role is already `HIRED`, assigning the `HIRED` status fails with error message `ROLE_TITLE already has a hired candidate`. Candidates hidden by filters are considered for this, and role titles are compared without case sensitivity.
+  * If two candidates for the same role are assigned `HIRED` in a single command, the command fails with error message `Cannot hire two candidates for the ROLE_TITLE role`. Role titles are compared without case sensitivity.
+  * In both of the above failure cases, no candidate data changes, even for other candidates specified in the same command whose roles have a vacancy.
+* Reapplying `HIRED` to the same candidate is allowed when no other candidate for that role is hired. Marking a candidate `HIRED` does not close the role; use `role close` explicitly after all candidates have final outcomes.
+* For an `OPEN` role, a candidate with a final outcome (`HIRED`, `REJECTED`, or `WITHDRAWN`) may return to any of the four pending statuses (`RESUME`, `INTERVIEW`, `OFFER`, or `DECISION`) to correct or resume their recruitment process.
+* For a `CLOSED` role, assigning any of the pending statuses is rejected with `Cannot set a pending status for NAME because role ROLE_TITLE is closed.` The candidate, role, current filter, and saved records remain unchanged. Corrections between final outcomes are still allowed, subject to the one-hired-candidate rule. Reopening a role is not supported in the MVP.
 
 Example:
 
 * `status 1 offer`
-* `status 2 INTERVIEW`
+* `status 2 4 6 INTERVIEW`
 
 ### Deleting a candidate: `delete`
 

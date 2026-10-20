@@ -317,16 +317,9 @@ or reassigns candidates. It is immediate and has no undo operation in the MVP.
 
 #### Status changes and one hire per role
 
-Before assigning `HIRED`, `StatusCommand` uses `CandidateRoleChecks` to check all stored candidates
-for another hire with a case-insensitively matching role title, excluding the selected candidate by
-candidate identity.
-Reapplying `HIRED` to that candidate is allowed if there is no other hire. Moving an existing hire to
-another permitted status frees the vacancy; hiring a candidate never closes the role automatically.
+Before assigning `HIRED`, `StatusCommand` checks amongst candidates to be assigned the `HIRED` status, as well as all stored candidates with the `HIRED` status, for another candidate with a case-insensitively matching role title, excluding the selected candidate by candidate identity. Applying or reapplying `HIRED` to that candidate is allowed only if there is no other hire. Moving an existing hire to another permitted status frees the vacancy; hiring a candidate never closes the role automatically.
 
-Before assigning a pending status, the command looks up the candidate's role and rejects the change
-if the role is closed. Final-to-pending corrections remain available for open roles. Corrections
-between final outcomes remain available for closed roles, subject to the hiring guard. Both guards
-run before replacing a candidate or changing filters. Rejected commands do not trigger saving.
+Before assigning a pending status (`RESUME`, `INTERVIEW`, `OFFER` or `DECISION`), the command looks up the candidate's role and rejects the change if the role is closed. Final-to-pending corrections remain available for open roles. Corrections between final outcomes remain available for closed roles, subject to the hiring guard. Both guards run before replacing a candidate or changing filters. Rejected commands do not trigger saving.
 
 #### Keeping displayed indices aligned with the UI
 
