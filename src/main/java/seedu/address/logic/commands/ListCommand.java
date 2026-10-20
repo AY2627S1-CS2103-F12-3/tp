@@ -10,9 +10,6 @@ import seedu.address.model.Model;
  * Lists all persons in the address book to the user.
  */
 public class ListCommand extends Command {
-    @Override
-    public boolean isUndoable() { return false; }
-
     public static final String COMMAND_WORD = "list";
     public static final String MESSAGE_USAGE = COMMAND_WORD + " [role]";
 
@@ -29,6 +26,10 @@ public class ListCommand extends Command {
         this.listRoles = listRoles;
     }
 
+    @Override
+    public boolean isUndoable() {
+        return false;
+    }
 
     @Override
     public CommandResult execute(Model model) {
