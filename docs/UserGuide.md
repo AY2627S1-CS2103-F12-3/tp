@@ -247,8 +247,8 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITLE] [t/T
 
 Role-related errors:
 
-* Unknown role: `No role named “ROLE_TITLE” exists. Add the role first.`
-* Closed destination: `Cannot move candidate to closed role: ROLE_TITLE.`
+* Unknown role: `No role named “ROLE_TITLE” exists. Add the role first, then edit the candidate.`
+* Closed destination: `The role “ROLE_TITLE” is closed, so candidates cannot be moved to it.`
 * Destination already has a hire: `ROLE_TITLE already has a hired candidate.`
 
 Examples:

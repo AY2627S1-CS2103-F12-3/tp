@@ -122,7 +122,7 @@ public class EditCandidateRoleCommandTest {
             Person original = new PersonBuilder().withStatus(Status.HIRED).build();
             Model model = createModel(original);
             model.setRole(SOFTWARE_ENGINEER, new RoleBuilder(SOFTWARE_ENGINEER).withStatus(roleStatus).build());
-            assertEditSuccess(model, original, roleDescriptor("software engineer"), original);
+            assertEditSuccess(model, original, roleDescriptor("  software engineer  "), original);
 
             EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withRole("SOFTWARE ENGINEER")
                     .withName("Updated Name").build();
@@ -141,9 +141,9 @@ public class EditCandidateRoleCommandTest {
         EditPersonDescriptor unknown = new EditPersonDescriptorBuilder().withRole("Unknown Role")
                 .withPhone("91234567").build();
         assertCommandFailure(new EditCommand(INDEX_FIRST_PERSON, unknown), model,
-                String.format(EditCommand.MESSAGE_ROLE_NOT_FOUND, "Unknown Role"));
+                "No role named “Unknown Role” exists. Add the role first, then edit the candidate.");
         assertCommandFailure(new EditCommand(INDEX_FIRST_PERSON, roleDescriptor("product designer")), model,
-                String.format(EditCommand.MESSAGE_ROLE_CLOSED, CLOSED_DESIGNER.getTitle()));
+                "The role “Product Designer” is closed, so candidates cannot be moved to it.");
     }
 
     @Test

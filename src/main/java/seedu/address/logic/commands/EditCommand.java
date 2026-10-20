@@ -55,8 +55,10 @@ public class EditCommand extends Command {
 
     public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited candidate: %1$s";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
-    public static final String MESSAGE_ROLE_NOT_FOUND = "No role named “%1$s” exists. Add the role first.";
-    public static final String MESSAGE_ROLE_CLOSED = "Cannot move candidate to closed role: %1$s.";
+    public static final String MESSAGE_ROLE_NOT_FOUND =
+            "No role named “%1$s” exists. Add the role first, then edit the candidate.";
+    public static final String MESSAGE_ROLE_CLOSED =
+            "The role “%1$s” is closed, so candidates cannot be moved to it.";
     public static final String MESSAGE_DUPLICATE_PERSON = "This candidate already exists in RecruiterBuddy.";
 
     private final Index index;
@@ -94,7 +96,7 @@ public class EditCommand extends Command {
             throw new CommandException(MESSAGE_DUPLICATE_PERSON);
         }
 
-        if (!personToEdit.getRole().isSameTitle(updatedRole)) {
+        if (isRoleChanged(personToEdit, updatedRole)) {
             CandidateRoleChecks.verifyHiringAllowed(model, personToEdit, updatedRole, editedPerson.getStatus());
         }
 
@@ -115,10 +117,17 @@ public class EditCommand extends Command {
         RoleTitle requestedRole = editPersonDescriptor.getRole().get();
         Role destination = model.findRole(requestedRole)
                 .orElseThrow(() -> new CommandException(String.format(MESSAGE_ROLE_NOT_FOUND, requestedRole)));
-        if (!personToEdit.getRole().isSameTitle(destination.getTitle()) && destination.isClosed()) {
+        if (isRoleChanged(personToEdit, destination.getTitle()) && destination.isClosed()) {
             throw new CommandException(String.format(MESSAGE_ROLE_CLOSED, destination.getTitle()));
         }
         return destination.getTitle();
+    }
+
+    /**
+     * Returns true if {@code newRole} identifies a different role from the candidate's current role.
+     */
+    private static boolean isRoleChanged(Person personToEdit, RoleTitle newRole) {
+        return !personToEdit.getRole().isSameTitle(newRole);
     }
 
     /**

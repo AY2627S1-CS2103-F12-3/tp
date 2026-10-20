@@ -296,6 +296,8 @@ both role commands reject indices until `list role` is run again. See the
 records or changing filters. A missing role is rejected; a different role must be open. The source
 may be open or closed, and selecting the existing role remains a permitted no-op. Resolution uses
 case-insensitive matching and the stored role's canonical spelling. Omitting `r/` preserves the role.
+The shared `EditCommand#isRoleChanged` predicate keeps the closed-destination and hiring guards
+consistent about whether the operation actually transfers the candidate.
 
 The edited immutable `Person` keeps its status and note, and keeps every other field not explicitly
 edited. The existing candidate-identity duplicate check is unchanged. For a real role transfer,
@@ -1195,7 +1197,8 @@ Always switch back with `list` or `list role` before using indices for that list
 
    1. From the same closed-source setup, run `edit 1 n/Alice Corrected r/qa engineer` before transferring.<br>
       Expected: The same-role edit succeeds and uses `QA Engineer` spelling without reopening it.
-      Selecting a different closed role instead is rejected with `Cannot move candidate to closed role: ROLE_TITLE.`
+      Selecting a different closed role instead is rejected with
+      `The role “ROLE_TITLE” is closed, so candidates cannot be moved to it.`
 
    1. From the closed-source setup before transferring Alice, give QA Analyst another candidate with
       status `HIRED`. Alice must still be hired for QA Engineer. Filter to Alice using `find Alice`
@@ -1204,7 +1207,9 @@ Always switch back with `list` or `list role` before using indices for that list
       A non-hired candidate may transfer to the same open role; their status is preserved.
 
    1. Try `edit 1 r/Unknown Role`, `edit 1 r/`, and `edit 1 r/QA Analyst r/QA Engineer`.<br>
-      Expected: Unknown, empty and repeated role fields are rejected. No partial edits are applied.
+      Expected: The unknown role reports
+      `No role named “Unknown Role” exists. Add the role first, then edit the candidate.`
+      Empty and repeated role fields are also rejected. No partial edits are applied.
 
 ### Recording a note
 
