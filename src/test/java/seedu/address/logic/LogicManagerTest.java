@@ -89,8 +89,9 @@ public class LogicManagerTest {
 
     @Test
     public void execute_undoRedoRestoresAndPersistsHistory() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
         String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
-                + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
+                + EMAIL_DESC_AMY + ADDRESS_DESC_AMY + ROLE_DESC_AMY;
 
         logic.execute(addCommand);
         assertEquals(1, model.getAddressBook().getPersonList().size());
@@ -106,8 +107,9 @@ public class LogicManagerTest {
 
     @Test
     public void execute_newChangeAfterUndo_clearsRedoHistory() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
         String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
-                + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
+                + EMAIL_DESC_AMY + ADDRESS_DESC_AMY + ROLE_DESC_AMY;
         logic.execute(addCommand);
         logic.execute("undo");
         logic.execute(addCommand);
