@@ -208,12 +208,7 @@ Parsing or duplicate rejection leaves the stored records unchanged.
 
 #### Correcting a role's required experience
 
-`RoleCommandParser` delegates `edit` to `EditRoleCommandParser`. The parser reads the displayed-role
-index with `ParserUtil#parseRoleIndex`, requires exactly one `x/` using the existing duplicate-prefix
-check, and validates its value with `ParserUtil#parseExperienceLevel`. It also recognises `r/` so an
-unsupported title edit cannot silently become part of the experience description. An invalid index
-is reported first, followed by unsupported title input, missing/repeated experience prefixes, and
-experience-value validation.
+`RoleCommandParser` delegates `edit` to `EditRoleCommandParser`. The parser reads the displayed-role index with `ParserUtil#parseRoleIndex`, requires exactly one `x/` using the existing duplicate-prefix check, and validates its value with `ParserUtil#parseExperienceLevel`. It also recognises `r/` so an unsupported title edit cannot silently become part of the experience description. An invalid index is reported first, followed by unsupported title input, missing/repeated experience prefixes, and experience-value validation.
 
 `EditRoleCommand` requires the role view, resolves the index against `Model#getFilteredRoleList`,
 and replaces the immutable role through `Model#setRole`, retaining its title and `RoleStatus`.
