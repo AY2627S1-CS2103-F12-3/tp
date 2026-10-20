@@ -332,13 +332,15 @@ RecruiterBuddy automatically saves the complete candidate and role data after a 
 successfully, including commands such as `list` that do not change records. You do not need to save
 manually. Commands rejected during parsing or validation do not trigger a save.
 
-Saved roles retain their titles, required experience levels, and `OPEN` or `CLOSED` statuses after
+Upon startup, RecruiterBuddy automatically loads data saved during the previous session. Saved roles retain their titles, required experience levels, and `OPEN` or `CLOSED` statuses after
 restarting. Candidates associated with closed roles are retained too. If no data file exists,
 RecruiterBuddy starts with sample roles and candidates, not an empty data set.
 
 If saving fails, an error reports the file-access problem instead of the normal success message.
 Changes already made may remain in the current session without being saved. Resolve the file-access
 problem and run a successful command to retry saving before exiting.
+
+**Caution:** due to changes in Status names, save files from v1.3 and earlier are incompatible with later versions and will fail to load. Please backup obsolete save files and manually change any invalid Status names to valid ones (see below for information on editing the save file).
 
 ### Editing the data file
 
