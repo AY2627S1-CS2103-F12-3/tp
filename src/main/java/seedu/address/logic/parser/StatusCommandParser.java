@@ -2,9 +2,10 @@ package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_STATUS;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.HashSet;
+import java.util.Set;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.StatusCommand;
@@ -15,8 +16,6 @@ import seedu.address.model.person.Status;
  * Parses input arguments and creates a new StatusCommand object.
  */
 public class StatusCommandParser implements Parser<StatusCommand> {
-    private static final Pattern COMMAND_PATTERN = Pattern.compile("(?<index>\\d+)\\s+(?<status>.+)");
-
     /**
      * Parses the given {@code String} of arguments in the context of the StatusCommand
      * and returns a StatusCommand object for execution.
@@ -26,19 +25,28 @@ public class StatusCommandParser implements Parser<StatusCommand> {
     public StatusCommand parse(String args) throws ParseException {
         requireNonNull(args);
 
-        Matcher matcher = COMMAND_PATTERN.matcher(args.trim());
-        if (!matcher.matches()) {
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_STATUS);
+
+        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_STATUS);
+
+        if (argMultimap.getValue(PREFIX_STATUS).isEmpty()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, StatusCommand.MESSAGE_USAGE));
         }
 
-        Index index;
-        try {
-            index = ParserUtil.parseIndex(matcher.group("index"));
-        } catch (ParseException pe) {
-            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, StatusCommand.MESSAGE_USAGE), pe);
+        Set<Index> indices;
+        indices = new HashSet<>();
+
+        String[] stringIndices = argMultimap.getPreamble().split("\\s+");
+        for (String s : stringIndices) {
+            try {
+                Index index = ParserUtil.parseIndex(s);
+                indices.add(index);
+            } catch (ParseException e) {
+                throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, StatusCommand.MESSAGE_USAGE), e);
+            }
         }
 
-        Status status = ParserUtil.parseStatus(matcher.group("status"));
-        return new StatusCommand(index, status);
+        Status status = ParserUtil.parseStatus(argMultimap.getValue(PREFIX_STATUS).get());
+        return new StatusCommand(indices, status);
     }
 }
