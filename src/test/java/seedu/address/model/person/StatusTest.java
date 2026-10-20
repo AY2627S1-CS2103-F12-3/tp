@@ -38,9 +38,9 @@ public class StatusTest {
 
     @Test
     public void toStringMethod() {
-        assertEquals("Pending Resume Screening", Status.RESUME.toString());
-        assertEquals("Pending Recruiter Interview", Status.INTERVIEW.toString());
-        assertEquals("Pending Offer Extension", Status.OFFER.toString());
+        assertEquals("Resume", Status.RESUME.toString());
+        assertEquals("Interview", Status.INTERVIEW.toString());
+        assertEquals("Offer", Status.OFFER.toString());
         assertEquals("Hired", Status.HIRED.toString());
         assertEquals("Rejected", Status.REJECTED.toString());
     }
