@@ -2,6 +2,7 @@ package seedu.address.model.person;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -79,5 +80,16 @@ public class NameContainsKeywordsPredicateTest {
 
         String expected = NameContainsKeywordsPredicate.class.getCanonicalName() + "{keywords=" + keywords + "}";
         assertEquals(expected, predicate.toString());
+    }
+
+    @Test
+    public void constructor_nullKeywords_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new NameContainsKeywordsPredicate(null));
+    }
+
+    @Test
+    public void test_nullPerson_throwsNullPointerException() {
+        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("Alice"));
+        assertThrows(NullPointerException.class, () -> predicate.test(null));
     }
 }
