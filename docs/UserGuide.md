@@ -443,5 +443,5 @@ Action     | Format, Examples
 **Role add** | `role add r/ROLE_TITLE x/EXPERIENCE_LEVEL`<br> e.g., `role add r/Software Engineer x/2 years`
 **Role close** | `role close INDEX`<br> e.g., `list role` followed by `role close 1`
 **Role delete** | `role delete INDEX`<br> e.g., `list role` followed by `role delete 1`
-**Status** | `status INDEX STATUS`<br> e.g., `status 1 HIRED`
+**Status** | `status INDEX... STATUS`<br> e.g., `status 1 2 3 HIRED`
 **Help**   | `help`
