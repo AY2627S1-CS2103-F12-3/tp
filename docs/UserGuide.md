@@ -30,7 +30,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
    Some example commands you can try:
 
    * `list` : Lists all contacts.
-* `list role` : Lists all unique roles, with each role shown in its own box.
+   * `list role` : Lists all unique roles, with each role shown in its own box.
    * `undo` : Undoes the most recent data-changing command in this session.
    * `redo` : Redoes the most recently undone data-changing command.
    * `role add r/Software Engineer x/2 years` : Adds an open role.
@@ -120,6 +120,28 @@ Format: `list`
 Shows every unique role in the address book. Each role is displayed in its own box with its title, required experience level, and status.
 
 Format: `list role`
+
+### Undoing a change: `undo`
+
+Undoes the most recent successful command that changed the address book. Undo can be used repeatedly to return to the address-book state at the beginning of the current session.
+
+Format: `undo`
+
+Examples:
+
+* `add ...` followed by `undo` removes the newly added person.
+* `edit 1 p/91234567` followed by `undo` restores the person's previous phone number.
+* `delete 1` followed by `undo` restores the deleted person.
+
+The `list`, `find`, `help`, and `exit` commands do not affect undo history. Changes are saved automatically, so an undo also updates the saved address-book data.
+
+### Redoing a change: `redo`
+
+Redoes the most recently undone change.
+
+Format: `redo`
+
+Redo is available only after an `undo`. Executing a new address-book change after an undo clears the redo history. Like all address-book changes, a redo is saved automatically.
 
 ### Editing a person: `edit`
 
@@ -254,6 +276,8 @@ Action     | Format, Examples
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List**   | `list`
 **List roles** | `list role`
+**Undo**   | `undo`
+**Redo**   | `redo`
 **Note**   | `note INDEX [NOTE]`<br> e.g., `note 1 Interview 2026-10-20 14:00`
 **Role add** | `role add r/ROLE_TITLE x/EXPERIENCE_LEVEL`<br> e.g., `role add r/Software Engineer x/2 years`
 **Status** | `status INDEX STATUS`<br> e.g., `status 1 accepted`
