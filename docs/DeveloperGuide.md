@@ -221,7 +221,7 @@ replaces the candidate's role title with that role's canonical stored title. Clo
 references because closure retains candidates.
 
 An absent `roles` array is treated as empty, but loading still fails if a candidate lacks a role or
-references a missing one. A missing candidate status defaults to `PENDING_RESUME_SCREENING`, whereas
+references a missing one. A missing candidate status defaults to `RESUME`, whereas
 a missing role status is invalid. There is no automatic migration from old contact-only records.
 Loading validates fields, duplicate records, and references; it does not enforce all command-level
 recruitment rules, such as the maximum number of hired candidates in hand-edited data.
@@ -241,8 +241,7 @@ executed command saves the current state, so users must recover invalid files be
 `Model#getFilteredRoleList` and rejects an already closed role.
 
 Candidate checks use the complete `ReadOnlyAddressBook#getPersonList`, not the filtered candidate
-list, matching role titles without case sensitivity. `Status#isPending` classifies every status
-except `HIRED`, `REJECTED`, and `WITHDRAWN` as pending. Closure rejects pending candidates with their
+list, matching role titles without case sensitivity. `Status#isPending` classifies statuses `RESUME`, `INTERVIEW`, `OFFER` and `DECISION` as pending. Closure rejects pending candidates with their
 count, then rejects more than one hired candidate. No candidates, or no hired candidate, is allowed.
 After validation, `Model#setRole` replaces the immutable role with a `CLOSED` copy. Candidate records
 and statuses remain unchanged. The observable role list refreshes, the command result keeps it
@@ -1101,11 +1100,11 @@ Always switch back with `list` or `list role` before using indices for that list
    Expected: Closure succeeds even with no hire. Separately, `list role` followed by `role close 2`
    closes the empty analyst role. No candidate is automatically hired, rejected, or removed.
 
-1. Run `status 1 HIRED`, then `status 1 PENDING_RECRUITER_INTERVIEW`.<br>
+1. Run `status 1 HIRED`, then `status 1 INTERVIEW`.<br>
    Expected: Returning to pending succeeds while the role is open. Repeat with each of the four
-   `PENDING_*` statuses after assigning a final outcome. `list role` followed by `role close 1`
+   pending statuses (`RESUME`, `INTERVIEW`, `OFFER`, `DECISION`) after assigning a final outcome. `list role` followed by `role close 1`
    fails while a pending candidate remains. Run `list`, `status 1 HIRED`, `status 2 REJECTED`,
-   `list role`, and `role close 1`, then run `list` and `status 1 PENDING_RECRUITER_INTERVIEW`.<br>
+   `list role`, and `role close 1`, then run `list` and `status 1 INTERVIEW`.<br>
    Expected: `Cannot set a pending status for Alice Test because role QA Engineer is closed.`
    Each of the other pending statuses is rejected too. Final-to-final corrections still succeed,
    provided they do not create a second hire; the role remains closed.
