@@ -241,8 +241,7 @@ executed command saves the current state, so users must recover invalid files be
 `Model#getFilteredRoleList` and rejects an already closed role.
 
 Candidate checks use the complete `ReadOnlyAddressBook#getPersonList`, not the filtered candidate
-list, matching role titles without case sensitivity. `Status#isPending` classifies every status
-except `HIRED`, `REJECTED`, and `WITHDRAWN` as pending. Closure rejects pending candidates with their
+list, matching role titles without case sensitivity. `Status#isPending` classifies statuses `RESUME`, `INTERVIEW`, `OFFER` and `DECISION` as pending. Closure rejects pending candidates with their
 count, then rejects more than one hired candidate. No candidates, or no hired candidate, is allowed.
 After validation, `Model#setRole` replaces the immutable role with a `CLOSED` copy. Candidate records
 and statuses remain unchanged. The observable role list refreshes, the command result keeps it
@@ -1075,7 +1074,7 @@ Always switch back with `list` or `list role` before using indices for that list
 
 1. Run `status 1 HIRED`, then `status 1 INTERVIEW`.<br>
    Expected: Returning to pending succeeds while the role is open. Repeat with each of the four
-   `PENDING_*` statuses after assigning a final outcome. `list role` followed by `role close 1`
+   pending statuses (`RESUME`, `INTERVIEW`, `OFFER`, `DECISION`) after assigning a final outcome. `list role` followed by `role close 1`
    fails while a pending candidate remains. Run `list`, `status 1 HIRED`, `status 2 REJECTED`,
    `list role`, and `role close 1`, then run `list` and `status 1 INTERVIEW`.<br>
    Expected: `Cannot set a pending status for Alice Test because role QA Engineer is closed.`
