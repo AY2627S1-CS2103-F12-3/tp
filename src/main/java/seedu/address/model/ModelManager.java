@@ -3,6 +3,7 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -14,6 +15,7 @@ import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.person.Person;
 import seedu.address.model.role.Role;
+import seedu.address.model.role.RoleTitle;
 
 /**
  * Represents the in-memory model of the address book data.
@@ -170,6 +172,12 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public Optional<Role> findRole(RoleTitle title) {
+        requireNonNull(title);
+        return addressBook.findRole(title);
+    }
+
+    @Override
     public void addRole(Role role) {
         addressBook.addRole(role);
         updateFilteredRoleList(PREDICATE_SHOW_ALL_ROLES);
@@ -179,6 +187,11 @@ public class ModelManager implements Model {
     public void setRole(Role target, Role editedRole) {
         requireAllNonNull(target, editedRole);
         addressBook.setRole(target, editedRole);
+    }
+
+    @Override
+    public void deleteRole(Role role) {
+        addressBook.removeRole(role);
     }
 
     @Override

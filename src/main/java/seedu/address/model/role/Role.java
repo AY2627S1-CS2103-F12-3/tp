@@ -46,6 +46,13 @@ public class Role {
     }
 
     /**
+     * Returns true if recruitment for this role has finished.
+     */
+    public boolean isClosed() {
+        return status == RoleStatus.CLOSED;
+    }
+
+    /**
      * Returns true if both roles have the same title, ignoring case.
      */
     public boolean isSameRole(Role otherRole) {
@@ -54,7 +61,7 @@ public class Role {
         }
 
         return otherRole != null
-                && title.value.equalsIgnoreCase(otherRole.title.value);
+                && title.isSameTitle(otherRole.title);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_ROLE_DISPLAYED_INDEX;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -37,6 +38,25 @@ public class ParserUtil {
             throw new ParseException(MESSAGE_INVALID_INDEX);
         }
         return Index.fromOneBased(Integer.parseInt(trimmedIndex));
+    }
+
+    /**
+     * Parses the single displayed-role index, rejecting extra arguments with {@code extraTextMessage}.
+     *
+     * @throws ParseException if the index is invalid or extra arguments are present.
+     */
+    public static Index parseRoleIndex(String args, String extraTextMessage) throws ParseException {
+        requireNonNull(args);
+        requireNonNull(extraTextMessage);
+        String trimmedArgs = args.strip();
+        if (trimmedArgs.split("\\s+").length > 1) {
+            throw new ParseException(extraTextMessage);
+        }
+        try {
+            return parseIndex(trimmedArgs);
+        } catch (ParseException exception) {
+            throw new ParseException(MESSAGE_INVALID_ROLE_DISPLAYED_INDEX, exception);
+        }
     }
 
     /**
@@ -155,21 +175,14 @@ public class ParserUtil {
 
     /**
      * Parses a {@code String status} into a {@code Status}.
-     * Leading and trailing whitespaces will be trimmed.
-     * Parsing of status is case-insensitive, and internal whitespaces are treated as underscores.
+     * Parsing is case-insensitive, and leading and trailing whitespaces are trimmed.
      *
-     * @param status Candidate status, to be parsed into a Status object.
-     *      It must exactly match one of the Status names after trimming whitespace, converting to uppercase,
-     *      and replacing internal whitespaces with underscores
-     *      (e.g. " pending_resume_screening " and "pending resume screening" are valid
-     *      because they match PENDING_RESUME_SCREENING).
-     * @throws ParseException if the given {@code status} is invalid (see param specification for details)
+     * @param status String denoting status, to be parsed into a Status object.
+     * @throws ParseException if the given {@code status} does not match one of the existing statuses.
      */
     public static Status parseStatus(String status) throws ParseException {
         requireNonNull(status);
-        String normalizedStatus = status.trim()
-                .toUpperCase()
-                .replaceAll("\\s+", "_"); // "pending resume screening" -> "pending_resume_screening"
+        String normalizedStatus = status.trim().toUpperCase();
         try {
             return Status.valueOf(normalizedStatus.toUpperCase());
         } catch (IllegalArgumentException e) {

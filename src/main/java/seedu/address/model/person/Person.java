@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.model.role.RoleTitle;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -26,6 +27,7 @@ public class Person {
 
     // Data fields
     private final Address address;
+    private final RoleTitle role;
     private final Note note;
     private final Status status;
     private final Set<Tag> tags = new HashSet<>();
@@ -33,13 +35,14 @@ public class Person {
     /**
      * Every field must be present and not null.
      */
-    public Person(Name name, Phone phone, Email email, Address address, Note note, Status status,
-            Set<Tag> tags) {
-        requireAllNonNull(name, phone, email, address, note, status, tags);
+    public Person(Name name, Phone phone, Email email, Address address, RoleTitle role, Note note,
+            Status status, Set<Tag> tags) {
+        requireAllNonNull(name, phone, email, address, role, note, status, tags);
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
+        this.role = role;
         this.note = note;
         this.status = status;
         this.tags.addAll(tags);
@@ -59,6 +62,20 @@ public class Person {
 
     public Address getAddress() {
         return address;
+    }
+
+    /**
+     * Returns the title of the role opening this candidate is applying for.
+     */
+    public RoleTitle getRole() {
+        return role;
+    }
+
+    /**
+     * Returns a copy of this candidate with {@code newRole} as its role.
+     */
+    public Person withRole(RoleTitle newRole) {
+        return new Person(name, phone, email, address, newRole, note, status, tags);
     }
 
     public Note getNote() {
@@ -109,6 +126,7 @@ public class Person {
                 && phone.equals(otherPerson.phone)
                 && email.equals(otherPerson.email)
                 && address.equals(otherPerson.address)
+                && role.equals(otherPerson.role)
                 && note.equals(otherPerson.note)
                 && status == otherPerson.status
                 && tags.equals(otherPerson.tags);
@@ -117,7 +135,7 @@ public class Person {
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, address, note, status, tags);
+        return Objects.hash(name, phone, email, address, role, note, status, tags);
     }
 
     @Override
@@ -127,6 +145,7 @@ public class Person {
                 .add("phone", phone)
                 .add("email", email)
                 .add("address", address)
+                .add("role", role)
                 .add("note", note)
                 .add("status", status)
                 .add("tags", tags)

@@ -5,6 +5,7 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -26,6 +27,16 @@ public class UniqueRoleList implements Iterable<Role> {
     public boolean contains(Role role) {
         requireNonNull(role);
         return internalList.stream().anyMatch(role::isSameRole);
+    }
+
+    /**
+     * Returns the role whose title matches {@code title}, ignoring case, if there is one.
+     */
+    public Optional<Role> findByTitle(RoleTitle title) {
+        requireNonNull(title);
+        return internalList.stream()
+                .filter(role -> role.getTitle().isSameTitle(title))
+                .findFirst();
     }
 
     /**
@@ -55,6 +66,17 @@ public class UniqueRoleList implements Iterable<Role> {
         }
 
         internalList.set(index, editedRole);
+    }
+
+    /**
+     * Removes {@code role} from the list.
+     * The role must exist in the list.
+     */
+    public void remove(Role role) {
+        requireNonNull(role);
+        if (!internalList.remove(role)) {
+            throw new RoleNotFoundException();
+        }
     }
 
     /**

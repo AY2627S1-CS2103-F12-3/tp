@@ -3,6 +3,8 @@ package seedu.address.logic.commands;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
+import static seedu.address.testutil.TypicalRoles.CLOSED_DESIGNER;
+import static seedu.address.testutil.TypicalRoles.PRODUCT_ANALYST;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,6 +38,33 @@ public class AddCommandIntegrationTest {
         assertCommandSuccess(new AddCommand(validPerson), model,
                 String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validPerson)),
                 expectedModel);
+    }
+
+    @Test
+    public void execute_roleInDifferentCase_savesRoleTitle() {
+        Person personWithUpperCaseRole = new PersonBuilder().withRole("PRODUCT ANALYST").build();
+        Person expectedPerson = new PersonBuilder().withRole(PRODUCT_ANALYST.getTitle().value).build();
+
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.addPerson(expectedPerson);
+
+        assertCommandSuccess(new AddCommand(personWithUpperCaseRole), model,
+                String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(expectedPerson)),
+                expectedModel);
+    }
+
+    @Test
+    public void execute_roleNotFound_throwsCommandException() {
+        Person personWithUnknownRole = new PersonBuilder().withRole("Chief Executive").build();
+        assertCommandFailure(new AddCommand(personWithUnknownRole), model,
+                String.format(AddCommand.MESSAGE_ROLE_NOT_FOUND, personWithUnknownRole.getRole()));
+    }
+
+    @Test
+    public void execute_closedRole_throwsCommandException() {
+        Person personForClosedRole = new PersonBuilder().withRole(CLOSED_DESIGNER.getTitle().value).build();
+        assertCommandFailure(new AddCommand(personForClosedRole), model,
+                String.format(AddCommand.MESSAGE_ROLE_CLOSED, CLOSED_DESIGNER.getTitle()));
     }
 
     @Test

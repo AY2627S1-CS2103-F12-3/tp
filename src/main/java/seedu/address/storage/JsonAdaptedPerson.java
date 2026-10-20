@@ -17,6 +17,7 @@ import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.Status;
+import seedu.address.model.role.RoleTitle;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -31,6 +32,7 @@ class JsonAdaptedPerson {
     private final String phone;
     private final String email;
     private final String address;
+    private final String role;
     private final String note;
     private final String status;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
@@ -41,12 +43,13 @@ class JsonAdaptedPerson {
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("address") String address,
-            @JsonProperty("note") String note, @JsonProperty("status") String status,
-            @JsonProperty("tags") List<JsonAdaptedTag> tags) {
+            @JsonProperty("role") String role, @JsonProperty("note") String note,
+            @JsonProperty("status") String status, @JsonProperty("tags") List<JsonAdaptedTag> tags) {
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
+        this.role = role;
         this.note = note;
         this.status = status;
         if (tags != null) {
@@ -62,6 +65,7 @@ class JsonAdaptedPerson {
         phone = source.getPhone().value;
         email = source.getEmail().value;
         address = source.getAddress().value;
+        role = source.getRole().value;
         note = source.getNote().value;
         status = source.getStatus().name();
         tags.addAll(source.getTags().stream()
@@ -112,13 +116,33 @@ class JsonAdaptedPerson {
         }
         final Address modelAddress = new Address(address);
 
+        final RoleTitle modelRole = toModelRole();
+
         // Notes are optional, so a missing note (e.g., in a file saved before notes existed) means no note.
         final Note modelNote = (note == null) ? new Note("") : new Note(note);
 
         final Status modelStatus = toModelStatus();
 
         final Set<Tag> modelTags = new HashSet<>(personTags);
-        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelNote, modelStatus, modelTags);
+        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelRole, modelNote, modelStatus,
+                modelTags);
+    }
+
+    /**
+     * Converts the stored role title into the model's {@code RoleTitle} object.
+     * Unlike a status, a missing role has no sensible default, so it makes the candidate invalid.
+     *
+     * @throws IllegalValueException if the stored role title is missing or invalid.
+     */
+    private RoleTitle toModelRole() throws IllegalValueException {
+        if (role == null) {
+            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT,
+                    RoleTitle.class.getSimpleName()));
+        }
+        if (!RoleTitle.isValidRoleTitle(role)) {
+            throw new IllegalValueException(RoleTitle.MESSAGE_CONSTRAINTS);
+        }
+        return new RoleTitle(role);
     }
 
     /**

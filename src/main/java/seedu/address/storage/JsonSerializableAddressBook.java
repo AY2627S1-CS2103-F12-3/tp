@@ -22,6 +22,7 @@ class JsonSerializableAddressBook {
 
     public static final String MESSAGE_DUPLICATE_PERSON = "Persons list contains duplicate person(s).";
     public static final String MESSAGE_DUPLICATE_ROLE = "Roles list contains duplicate role(s).";
+    public static final String MESSAGE_UNKNOWN_ROLE = "Persons list contains a person whose role does not exist.";
 
     private final List<JsonAdaptedPerson> persons = new ArrayList<>();
     private final List<JsonAdaptedRole> roles = new ArrayList<>();
@@ -57,19 +58,25 @@ class JsonSerializableAddressBook {
      */
     public AddressBook toModelType() throws IllegalValueException {
         AddressBook addressBook = new AddressBook();
-        for (JsonAdaptedPerson jsonAdaptedPerson : persons) {
-            Person person = jsonAdaptedPerson.toModelType();
-            if (addressBook.hasPerson(person)) {
-                throw new IllegalValueException(MESSAGE_DUPLICATE_PERSON);
-            }
-            addressBook.addPerson(person);
-        }
+
+        // Roles are loaded first so that each person's role can be checked against them.
         for (JsonAdaptedRole jsonAdaptedRole : roles) {
             Role role = jsonAdaptedRole.toModelType();
             if (addressBook.hasRole(role)) {
                 throw new IllegalValueException(MESSAGE_DUPLICATE_ROLE);
             }
             addressBook.addRole(role);
+        }
+        for (JsonAdaptedPerson jsonAdaptedPerson : persons) {
+            Person person = jsonAdaptedPerson.toModelType();
+            if (addressBook.hasPerson(person)) {
+                throw new IllegalValueException(MESSAGE_DUPLICATE_PERSON);
+            }
+
+            // A closed role is valid here, as closing a role keeps its candidates.
+            Role role = addressBook.findRole(person.getRole())
+                    .orElseThrow(() -> new IllegalValueException(MESSAGE_UNKNOWN_ROLE));
+            addressBook.addPerson(person.withRole(role.getTitle()));
         }
         return addressBook;
     }
