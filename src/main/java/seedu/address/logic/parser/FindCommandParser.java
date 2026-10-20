@@ -7,11 +7,14 @@ import java.util.List;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.commons.core.LogsCenter;
+import java.util.logging.Logger;
 
 /**
  * Parses input arguments and creates a new FindCommand object
  */
 public class FindCommandParser implements Parser<FindCommand> {
+    private static final Logger logger = LogsCenter.getLogger(FindCommandParser.class);
 
     /**
      * Parses the given {@code String} of arguments in the context of the FindCommand
@@ -26,6 +29,8 @@ public class FindCommandParser implements Parser<FindCommand> {
         }
 
         String[] nameKeywords = trimmedArgs.split("\\s+");
+        assert nameKeywords.length > 0;
+        logger.info("Parsing find command with " + nameKeywords.length + " keyword(s)");
 
         return new FindCommand(new NameContainsKeywordsPredicate(List.of(nameKeywords)));
     }

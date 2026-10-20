@@ -6,12 +6,15 @@ import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.model.Model;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.commons.core.LogsCenter;
+import java.util.logging.Logger;
 
 /**
  * Finds and lists all persons in the address book whose name contains any of the argument keywords.
  * Keyword matching is case insensitive.
  */
 public class FindCommand extends Command {
+    private static final Logger logger = LogsCenter.getLogger(FindCommand.class);
 
     public static final String COMMAND_WORD = "find";
 
@@ -23,13 +26,17 @@ public class FindCommand extends Command {
     private final NameContainsKeywordsPredicate predicate;
 
     public FindCommand(NameContainsKeywordsPredicate predicate) {
+        requireNonNull(predicate);
         this.predicate = predicate;
     }
 
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
+        assert model.getFilteredPersonList() != null;
+        logger.info("Applying candidate find filter");
         model.updateFilteredPersonList(predicate);
+        assert model.getFilteredPersonList().stream().allMatch(predicate);
         return new CommandResult(
                 String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, model.getFilteredPersonList().size()));
     }
