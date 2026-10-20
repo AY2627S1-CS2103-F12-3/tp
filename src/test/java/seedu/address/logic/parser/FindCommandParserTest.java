@@ -1,5 +1,6 @@
 package seedu.address.logic.parser;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
@@ -38,6 +39,20 @@ public class FindCommandParserTest {
         FindCommand expected = new FindCommand(new NameContainsKeywordsPredicate(
                 List.of("Alice"), List.of("Software", "Engineer"), Set.of(RoleStatus.OPEN), List.of()));
         assertParseSuccess(parser, "Alice r/Software Engineer st/open", expected);
+    }
+
+    @Test
+    public void parse_roleAndStatusWithoutName_returnsFindCommand() throws Exception {
+        FindCommand expected = new FindCommand(new NameContainsKeywordsPredicate(
+                List.of(), List.of("Software"), Set.of(RoleStatus.OPEN), List.of()));
+        assertEquals(expected.toString(), parser.parse(" r/Software st/open").toString());
+    }
+
+    @Test
+    public void parse_statusOnly_returnsFindCommand() throws Exception {
+        FindCommand expected = new FindCommand(new NameContainsKeywordsPredicate(
+                List.of(), List.of(), Set.of(RoleStatus.CLOSED), List.of()));
+        assertEquals(expected.toString(), parser.parse(" st/closed").toString());
     }
 
 }

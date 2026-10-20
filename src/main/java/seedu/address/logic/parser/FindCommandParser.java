@@ -29,7 +29,7 @@ public class FindCommandParser implements Parser<FindCommand> {
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
         }
 
-        ArgumentMultimap map = ArgumentTokenizer.tokenize(trimmedArgs, CliSyntax.PREFIX_ROLE_TITLE,
+        ArgumentMultimap map = ArgumentTokenizer.tokenize(args, CliSyntax.PREFIX_ROLE_TITLE,
                 new Prefix("st/"));
         List<String> names = Arrays.stream(map.getPreamble().split("\\s+")).filter(s -> !s.isBlank()).toList();
         List<String> roleKeywords = map.getAllValues(CliSyntax.PREFIX_ROLE_TITLE).stream()

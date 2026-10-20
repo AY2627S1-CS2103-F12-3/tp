@@ -97,6 +97,28 @@ public class NameContainsKeywordsPredicateTest {
     }
 
     @Test
+    public void test_roleFilters_eachOptionalFilterPath() {
+        Role role = new RoleBuilder().withTitle("Engineer").withStatus(RoleStatus.OPEN).build();
+        Person person = new PersonBuilder().withName("Alice").withTags("Engineer").build();
+        assertTrue(new NameContainsKeywordsPredicate(List.of("Alice"), List.of(), Set.of(), List.of(role))
+                .test(person));
+        assertTrue(new NameContainsKeywordsPredicate(List.of("Alice"), List.of("Engineer"), Set.of(), List.of(role))
+                .test(person));
+        assertTrue(new NameContainsKeywordsPredicate(List.of("Alice"), List.of(),
+                Set.of(RoleStatus.OPEN), List.of(role))
+                .test(person));
+    }
+
+    @Test
+    public void equals_roleFiltersDiffer_returnsFalse() {
+        NameContainsKeywordsPredicate rolePredicate = new NameContainsKeywordsPredicate(
+                List.of("Alice"), List.of("Engineer"), Set.of(RoleStatus.OPEN), List.of());
+        NameContainsKeywordsPredicate statusPredicate = new NameContainsKeywordsPredicate(
+                List.of("Alice"), List.of("Engineer"), Set.of(RoleStatus.CLOSED), List.of());
+        assertFalse(rolePredicate.equals(statusPredicate));
+    }
+
+    @Test
     public void test_roleFilters_mismatch() {
         Role closedRole = new RoleBuilder().withTitle("Software Engineer").withStatus(RoleStatus.CLOSED).build();
         Person person = new PersonBuilder().withName("Alice").withTags("OtherRole").build();
