@@ -3,10 +3,14 @@ package seedu.address.logic.parser;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 
 import java.util.List;
+import java.util.Set;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.role.RoleStatus;
 
 /**
  * Parses input arguments and creates a new FindCommand object
@@ -25,9 +29,15 @@ public class FindCommandParser implements Parser<FindCommand> {
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
         }
 
-        String[] nameKeywords = trimmedArgs.split("\\s+");
-
-        return new FindCommand(new NameContainsKeywordsPredicate(List.of(nameKeywords)));
+        ArgumentMultimap map = ArgumentTokenizer.tokenize(trimmedArgs, CliSyntax.PREFIX_ROLE_TITLE,
+                new Prefix("st/"));
+        List<String> names = Arrays.stream(map.getPreamble().split("\\s+")).filter(s -> !s.isBlank()).toList();
+        List<String> roleKeywords = map.getAllValues(CliSyntax.PREFIX_ROLE_TITLE).stream()
+                .flatMap(s -> Arrays.stream(s.trim().split("\\s+"))).filter(s -> !s.isBlank()).toList();
+        Set<RoleStatus> statuses = map.getAllValues(new Prefix("st/")).stream()
+                .flatMap(s -> Arrays.stream(s.trim().split("\\s+")))
+                .map(s -> RoleStatus.valueOf(s.toUpperCase())).collect(Collectors.toSet());
+        return new FindCommand(new NameContainsKeywordsPredicate(names, roleKeywords, statuses, List.of()));
     }
 
 }

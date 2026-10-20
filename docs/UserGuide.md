@@ -151,11 +151,19 @@ Examples:
 *  `note 2 Discuss t/java experience` Sets the note of the 2nd person to `Discuss t/java experience`.
 *  `note 3` Clears the note of the 3rd person.
 
-### Locating persons by name: `find`
+### Locating persons by name, role and role status: `find`
 
 Finds persons whose names contain any of the given keywords.
 
-Format: `find KEYWORD [MORE_KEYWORDS]`
+Format: `find [KEYWORD ...] [r/ ROLE ...] [st/ STATUS ...]`
+
+`r/` filters by role title and `st/` filters by role status (`OPEN` or `CLOSED`).
+For example, `find r/Software Engineer st/OPEN` shows candidates in open Software
+Engineer roles. The displayed feedback identifies the filter used.
+
+When a candidate is updated and no longer matches the current filter, they disappear
+from the list and the displayed numbers shift. For updating many candidates, use the
+batch `status` command instead of relying on numbers one at a time.
 
 * The search is case-insensitive; for example, `hans` matches `Hans`.
 * Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
