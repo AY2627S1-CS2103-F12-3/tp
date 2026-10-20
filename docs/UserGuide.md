@@ -567,5 +567,5 @@ Action     | Format, Examples
 **Role edit** | `role edit INDEX [r/ROLE_TITLE] [x/EXPERIENCE_LEVEL]`<br> e.g., `list role` followed by `role edit 1 r/Platform Engineer x/5 years`
 **Role close** | `role close INDEX`<br> e.g., `list role` followed by `role close 1`
 **Role delete** | `role delete INDEX`<br> e.g., `list role` followed by `role delete 1`
-**Status** | `status INDEX STATUS`<br> e.g., `status 1 HIRED`
+**Status** | `status INDEX... STATUS`<br> e.g., `status 1 2 3 HIRED`
 **Help**   | `help`
