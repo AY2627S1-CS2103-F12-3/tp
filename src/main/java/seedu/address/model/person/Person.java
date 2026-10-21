@@ -119,7 +119,7 @@ public class Person {
 
     /**
      * Returns true if both persons have the same phone number.
-     * Numbers are compared as saved, so {@code 6591234567} and {@code 91234567} are different numbers.
+     * Numbers are compared as saved, so {@code +6591234567} and {@code 91234567} are different numbers.
      */
     public boolean hasSamePhone(Person otherPerson) {
         requireNonNull(otherPerson);

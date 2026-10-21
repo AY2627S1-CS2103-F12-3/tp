@@ -9,7 +9,9 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_ROLE_TITLE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.Optional;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -47,6 +49,8 @@ public class AddCommand extends Command {
     public static final String MESSAGE_ROLE_CLOSED =
             "The role “%1$s” is closed, so no new candidates can be added to it.";
 
+    private static final Logger logger = LogsCenter.getLogger(AddCommand.class);
+
     private final Person toAdd;
 
     /**
@@ -63,8 +67,9 @@ public class AddCommand extends Command {
 
         Optional<Person> existingPerson = model.findSamePerson(toAdd);
         if (existingPerson.isPresent()) {
-            throw new CommandException(
-                    Messages.getErrorMessageForDuplicatePerson(toAdd, existingPerson.get()));
+            String message = Messages.getErrorMessageForDuplicatePerson(toAdd, existingPerson.get());
+            logger.info("Rejected duplicate candidate " + toAdd.getName() + ": " + message);
+            throw new CommandException(message);
         }
 
         Role role = findOpenRole(model);

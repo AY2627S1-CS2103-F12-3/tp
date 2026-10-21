@@ -14,7 +14,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.CollectionUtil;
 import seedu.address.commons.util.ToStringBuilder;
@@ -53,6 +55,8 @@ public class EditCommand extends Command {
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
     public static final String MESSAGE_ROLE_NOT_EDITABLE = "A candidate's role cannot be edited.";
 
+    private static final Logger logger = LogsCenter.getLogger(EditCommand.class);
+
     private final Index index;
     private final EditPersonDescriptor editPersonDescriptor;
 
@@ -86,8 +90,9 @@ public class EditCommand extends Command {
         // The candidate being edited is excluded, so keeping their own email or phone is not a duplicate.
         Optional<Person> existingPerson = model.findSamePersonExcluding(editedPerson, personToEdit);
         if (existingPerson.isPresent()) {
-            throw new CommandException(
-                    Messages.getErrorMessageForDuplicatePerson(editedPerson, existingPerson.get()));
+            String message = Messages.getErrorMessageForDuplicatePerson(editedPerson, existingPerson.get());
+            logger.info("Rejected edit of candidate " + personToEdit.getName() + ": " + message);
+            throw new CommandException(message);
         }
 
         model.setPerson(personToEdit, editedPerson);

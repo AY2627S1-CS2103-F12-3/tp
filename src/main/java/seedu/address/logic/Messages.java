@@ -1,5 +1,7 @@
 package seedu.address.logic;
 
+import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
+
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -44,7 +46,8 @@ public class Messages {
      * shares with them.
      */
     public static String getErrorMessageForDuplicatePerson(Person person, Person existingPerson) {
-        assert person.isSamePerson(existingPerson);
+        requireAllNonNull(person, existingPerson);
+        assert person.isSamePerson(existingPerson) : "Message requested for candidates who do not clash";
 
         String message = person.hasSameEmail(existingPerson)
                 ? MESSAGE_DUPLICATE_EMAIL

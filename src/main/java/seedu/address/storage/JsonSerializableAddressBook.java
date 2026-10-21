@@ -20,7 +20,8 @@ import seedu.address.model.role.Role;
 @JsonRootName(value = "addressbook")
 class JsonSerializableAddressBook {
 
-    public static final String MESSAGE_DUPLICATE_PERSON = "Persons list contains duplicate person(s).";
+    public static final String MESSAGE_DUPLICATE_PERSON =
+            "Candidates list contains candidates with the same email or phone number.";
     public static final String MESSAGE_DUPLICATE_ROLE = "Roles list contains duplicate role(s).";
     public static final String MESSAGE_UNKNOWN_ROLE = "Persons list contains a person whose role does not exist.";
 
