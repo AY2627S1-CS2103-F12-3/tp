@@ -96,6 +96,7 @@ public class StatusCommand extends Command {
 
         verifyPendingStatusAllowed(model, peopleToEdit);
         verifyHiringAllowed(model, peopleToEdit);
+        assert peopleToEdit.size() == indices.size() : "Each distinct index must resolve to a distinct candidate";
 
         for (Person p : peopleToEdit) {
             Person editedPerson = createNewStatusPerson(p, status);
@@ -153,7 +154,8 @@ public class StatusCommand extends Command {
      * @return a new {@code Person} with updated status. All other attributes are identical.
      */
     private static Person createNewStatusPerson(Person personToEdit, Status newStatus) {
-        assert personToEdit != null;
+        assert personToEdit != null : "Candidate to update must not be null";
+        assert newStatus != null : "New status must not be null";
 
         Name name = personToEdit.getName();
         Phone phone = personToEdit.getPhone();

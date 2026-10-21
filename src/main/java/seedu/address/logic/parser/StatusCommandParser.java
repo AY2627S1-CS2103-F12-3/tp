@@ -26,7 +26,6 @@ public class StatusCommandParser implements Parser<StatusCommand> {
         requireNonNull(args);
 
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_STATUS);
-
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_STATUS);
 
         if (argMultimap.getValue(PREFIX_STATUS).isEmpty()) {
@@ -47,6 +46,9 @@ public class StatusCommandParser implements Parser<StatusCommand> {
         }
 
         Status status = ParserUtil.parseStatus(argMultimap.getValue(PREFIX_STATUS).get());
+
+        assert !indices.isEmpty() : "Successful parsing must produce at least one candidate index";
+        assert status != null : "Successful parsing must produce a non-null status";
         return new StatusCommand(indices, status);
     }
 }
