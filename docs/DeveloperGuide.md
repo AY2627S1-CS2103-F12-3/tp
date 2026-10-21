@@ -285,6 +285,8 @@ If recovery cannot complete safely, startup remains blocked rather than risking 
 backup. If the file is genuinely absent instead, startup still uses
 `SampleDataUtil#getSampleAddressBook`. A valid empty file loads empty lists, not sample data.
 
+Recovery diagnostics follow the same lifecycle: `MainApp` emits a loading `WARNING`, `RecruitmentDataRecovery` records each completed backup and replacement at `INFO`, and unsafe recovery ends with a `SEVERE` event from `MainApp`. Success messages name the paths actually used and are not emitted for a stage that failed. Existing startup and recovery tests now check these events alongside preserved file contents and the absence of a command UI after failure. The shared `LogCapture` test utility restores logging configuration after each capture. See [Recovery diagnostics](Logging.md#recruitment-data-recovery-diagnostics) for interpretation and privacy limitations; no extra production logging or recovery-policy change is needed.
+
 ### Role lifecycle and candidate safeguards
 
 #### Closing recruitment

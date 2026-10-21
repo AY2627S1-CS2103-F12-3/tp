@@ -9,13 +9,10 @@ import static seedu.address.testutil.TypicalRoles.CLOSED_DESIGNER;
 import static seedu.address.testutil.TypicalRoles.PRODUCT_ANALYST;
 import static seedu.address.testutil.TypicalRoles.SOFTWARE_ENGINEER;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
-import java.util.logging.Logger;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +29,7 @@ import seedu.address.model.person.Status;
 import seedu.address.model.role.Role;
 import seedu.address.model.role.RoleTitle;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
+import seedu.address.testutil.LogCapture;
 import seedu.address.testutil.PersonBuilder;
 
 public class RoleWorkflowDiagnosticsTest {
@@ -54,7 +52,7 @@ public class RoleWorkflowDiagnosticsTest {
     public void execute_addRole_logsSuccessAndDuplicateWithoutChangingRejectionState() throws Exception {
         Role role = new Role(new RoleTitle("QA Engineer"), SOFTWARE_ENGINEER.getExperienceLevel());
         AddRoleCommand command = new AddRoleCommand(role);
-        try (InMemoryLogs logs = new InMemoryLogs()) {
+        try (LogCapture logs = new LogCapture()) {
             assertEquals(String.format(AddRoleCommand.MESSAGE_SUCCESS, role.getTitle()),
                     command.execute(model).getFeedbackToUser());
             AddressBook savedState = new AddressBook(model.getAddressBook());
@@ -65,7 +63,7 @@ public class RoleWorkflowDiagnosticsTest {
             logs.assertContains(AddRoleCommand.class, Level.INFO, "Added open role in memory.");
             logs.assertContains(AddRoleCommand.class, Level.FINE,
                     "Rejected role addition: title already exists.");
-            logs.assertNoCandidateDetails();
+            assertNoCandidateDetails(logs);
         }
     }
 
@@ -74,7 +72,7 @@ public class RoleWorkflowDiagnosticsTest {
         model.setRoleListDisplayed(true);
         model.updateFilteredPersonList(person -> false);
         RoleTitle newTitle = new RoleTitle("Platform Engineer");
-        try (InMemoryLogs logs = new InMemoryLogs()) {
+        try (LogCapture logs = new LogCapture()) {
             new EditRoleCommand(INDEX_FIRST_PERSON, newTitle, null).execute(model);
             assertEquals(CANDIDATE.withRole(newTitle), model.getAddressBook().getPersonList().getFirst());
             assertTrue(model.getFilteredPersonList().isEmpty());
@@ -88,14 +86,14 @@ public class RoleWorkflowDiagnosticsTest {
                     "Updated role details in memory at displayed index 1.");
             logs.assertContains(EditRoleCommand.class, Level.FINE,
                     "Rejected role edit: title already exists.");
-            logs.assertNoCandidateDetails();
+            assertNoCandidateDetails(logs);
         }
     }
 
     @Test
     public void execute_closeRole_logsOutcomesAndRetainsCandidates() throws Exception {
         model.setRoleListDisplayed(true);
-        try (InMemoryLogs logs = new InMemoryLogs()) {
+        try (LogCapture logs = new LogCapture()) {
             AddressBook savedState = new AddressBook(model.getAddressBook());
             CloseRoleCommand command = new CloseRoleCommand(INDEX_FIRST_PERSON);
             assertThrows(CommandException.class, () -> command.execute(model));
@@ -116,7 +114,7 @@ public class RoleWorkflowDiagnosticsTest {
                     "Closed role in memory at displayed index 1.");
             logs.assertContains(CloseRoleCommand.class, Level.FINE,
                     "Rejected role closure: role is already closed.");
-            logs.assertNoCandidateDetails();
+            assertNoCandidateDetails(logs);
         }
     }
 
@@ -127,21 +125,21 @@ public class RoleWorkflowDiagnosticsTest {
         model.addPerson(new PersonBuilder(CANDIDATE).withName("Other Applicant")
                 .withStatus(Status.HIRED).build());
         AddressBook savedState = new AddressBook(model.getAddressBook());
-        try (InMemoryLogs logs = new InMemoryLogs()) {
+        try (LogCapture logs = new LogCapture()) {
             CloseRoleCommand command = new CloseRoleCommand(INDEX_FIRST_PERSON);
             assertThrows(CommandException.class, () -> command.execute(model));
 
             assertEquals(savedState, model.getAddressBook());
             logs.assertContains(CloseRoleCommand.class, Level.FINE,
                     "Rejected role closure: 2 candidates are marked HIRED.");
-            logs.assertNoCandidateDetails();
+            assertNoCandidateDetails(logs);
         }
     }
 
     @Test
     public void execute_deleteRole_logsCandidateGuardAndSuccessfulRemoval() throws Exception {
         model.setRoleListDisplayed(true);
-        try (InMemoryLogs logs = new InMemoryLogs()) {
+        try (LogCapture logs = new LogCapture()) {
             AddressBook savedState = new AddressBook(model.getAddressBook());
             DeleteRoleCommand command = new DeleteRoleCommand(INDEX_FIRST_PERSON);
             assertThrows(CommandException.class, () -> command.execute(model));
@@ -155,13 +153,13 @@ public class RoleWorkflowDiagnosticsTest {
                     "Rejected role deletion: 1 associated candidate(s).");
             logs.assertContains(DeleteRoleCommand.class, Level.INFO,
                     "Deleted role in memory at displayed index 2.");
-            logs.assertNoCandidateDetails();
+            assertNoCandidateDetails(logs);
         }
     }
 
     @Test
     public void execute_transferCandidate_logsTransferAndClosedDestinationGuard() throws Exception {
-        try (InMemoryLogs logs = new InMemoryLogs()) {
+        try (LogCapture logs = new LogCapture()) {
             assertEquals(String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS,
                     Messages.format(CANDIDATE.withRole(PRODUCT_ANALYST.getTitle()))),
                     roleEdit(PRODUCT_ANALYST.getTitle()).execute(model).getFeedbackToUser());
@@ -174,7 +172,7 @@ public class RoleWorkflowDiagnosticsTest {
                     "Updated candidate role in memory at displayed index 1.");
             logs.assertContains(EditCommand.class, Level.FINE,
                     "Rejected candidate role transfer: destination role is closed.");
-            logs.assertNoCandidateDetails();
+            assertNoCandidateDetails(logs);
         }
     }
 
@@ -185,13 +183,13 @@ public class RoleWorkflowDiagnosticsTest {
                 .withRole(PRODUCT_ANALYST.getTitle().value)
                 .withStatus(Status.HIRED).build());
         AddressBook savedState = new AddressBook(model.getAddressBook());
-        try (InMemoryLogs logs = new InMemoryLogs()) {
+        try (LogCapture logs = new LogCapture()) {
             assertThrows(CommandException.class, () -> roleEdit(PRODUCT_ANALYST.getTitle()).execute(model));
 
             assertEquals(savedState, model.getAddressBook());
             logs.assertContains(CandidateRoleChecks.class, Level.FINE,
                     "Rejected hiring change: destination role already has another hired candidate.");
-            logs.assertNoCandidateDetails();
+            assertNoCandidateDetails(logs);
         }
     }
 
@@ -228,49 +226,13 @@ public class RoleWorkflowDiagnosticsTest {
                 new EditPersonDescriptorBuilder().withRole(title.value).build());
     }
 
-    /** Captures records without replacing logging configuration or writing another log file. */
-    private static class InMemoryLogs extends Handler implements AutoCloseable {
-        private final Logger logger = Logger.getLogger("ab3");
-        private final Level previousLevel = logger.getLevel();
-        private final List<LogRecord> records = new ArrayList<>();
-
-        InMemoryLogs() {
-            setLevel(Level.ALL);
-            logger.setLevel(Level.ALL);
-            logger.addHandler(this);
-        }
-
-        void assertContains(Class<?> source, Level level, String message) {
-            boolean isRecorded = records.stream().anyMatch(record ->
-                    record.getLoggerName().equals("ab3." + source.getSimpleName())
-                            && record.getLevel().equals(level) && record.getMessage().equals(message));
-            assertTrue(isRecorded, "Missing " + level + " diagnostic from " + source.getSimpleName() + ": " + message);
-        }
-
-        void assertNoCandidateDetails() {
-            assertFalse(records.isEmpty());
-            for (LogRecord record : records) {
-                for (String detail : List.of(CANDIDATE.getName().toString(), CANDIDATE.getPhone().toString(),
-                        CANDIDATE.getEmail().toString(), CANDIDATE.getNote().toString())) {
-                    assertFalse(record.getMessage().contains(detail),
-                            "Diagnostic includes candidate details");
-                }
+    private void assertNoCandidateDetails(LogCapture logs) {
+        assertFalse(logs.getRecords().isEmpty());
+        for (LogRecord record : logs.getRecords()) {
+            for (String detail : List.of(CANDIDATE.getName().toString(), CANDIDATE.getPhone().toString(),
+                    CANDIDATE.getEmail().toString(), CANDIDATE.getNote().toString())) {
+                assertFalse(record.getMessage().contains(detail), "Diagnostic includes candidate details");
             }
-        }
-
-        @Override
-        public void publish(LogRecord record) {
-            records.add(record);
-        }
-
-        @Override
-        public void flush() {
-        }
-
-        @Override
-        public void close() {
-            logger.removeHandler(this);
-            logger.setLevel(previousLevel);
         }
     }
 }
