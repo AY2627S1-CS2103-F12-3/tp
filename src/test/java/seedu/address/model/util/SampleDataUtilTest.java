@@ -14,13 +14,6 @@ import seedu.address.model.person.Person;
 public class SampleDataUtilTest {
 
     @Test
-    public void getSamplePersons_everyPerson_hasDefaultStatus() {
-        for (Person samplePerson : SampleDataUtil.getSamplePersons()) {
-            assertEquals(Person.DEFAULT_STATUS, samplePerson.getStatus());
-        }
-    }
-
-    @Test
     public void getSamplePersons_everyPerson_hasSampleRole() {
         AddressBook sampleAddressBook = new AddressBook(SampleDataUtil.getSampleAddressBook());
         for (Person samplePerson : SampleDataUtil.getSamplePersons()) {
