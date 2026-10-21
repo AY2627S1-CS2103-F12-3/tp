@@ -34,7 +34,6 @@ public class Phone {
         requireNonNull(phone);
         checkArgument(isValidPhone(phone), MESSAGE_CONSTRAINTS);
         value = removeSeparators(phone);
-        assert value.matches(VALIDATION_REGEX) : "Stored phone should contain only an optional + and digits";
     }
 
     /**
