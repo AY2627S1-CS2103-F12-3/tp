@@ -1,0 +1,35 @@
+@startuml
+!include style.puml
+skinparam ParticipantFontColor black
+
+participant ":LogicManager" as Logic
+participant ":EditRoleCommand" as Command
+participant ":ModelManager" as Model
+participant ":AddressBook" as AddressBook
+participant ":StorageManager" as Storage
+
+Logic -> Command : execute(model)
+activate Command
+note over Command
+Successful execution path shown.
+Parser has validated supplied fields.
+Check displayed index and duplicate title.
+end note
+Command -> Model : setRole(target, editedRole)
+activate Model
+Model -> AddressBook : setRole(target, editedRole)
+activate AddressBook
+note over AddressBook
+Validate role replacement before changing lists.
+On rename, update every matching candidate,
+including those outside the current filter.
+Keep candidate details and role status.
+end note
+AddressBook --> Model
+deactivate AddressBook
+Model --> Command
+deactivate Model
+Command --> Logic : CommandResult
+deactivate Command
+Logic -> Storage : saveAddressBook(model.getAddressBook())
+@enduml

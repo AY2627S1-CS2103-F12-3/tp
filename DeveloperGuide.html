@@ -47,15 +47,7 @@ values through <code class="hljs inline no-lang">ParserUtil</code>. Missing-pref
 or invalid-value errors when several problems occur together.</p> <p><code class="hljs inline no-lang">AddRoleCommand</code> checks <code class="hljs inline no-lang">Model#hasRole</code> before calling <code class="hljs inline no-lang">Model#addRole</code>. The model updates the underlying
 observable collection and resets the role filter to show all roles. The command returns
 <code class="hljs inline no-lang">Added open role: TITLE.</code> with the default candidate-list view; <code class="hljs inline no-lang">list role</code> displays the updated roles.
-Parsing or duplicate rejection leaves the stored records unchanged.</p> <h4 id="correcting-a-role-s-required-experience">Correcting a role&#39;s required experience<a class="fa fa-anchor" href="#correcting-a-role-s-required-experience" onclick="event.stopPropagation()"></a></h4> <p><code class="hljs inline no-lang">RoleCommandParser</code> delegates <code class="hljs inline no-lang">edit</code> to <code class="hljs inline no-lang">EditRoleCommandParser</code>. The parser reads the displayed-role index with <code class="hljs inline no-lang">ParserUtil#parseRoleIndex</code>, requires exactly one <code class="hljs inline no-lang">x/</code> using the existing duplicate-prefix check, and validates its value with <code class="hljs inline no-lang">ParserUtil#parseExperienceLevel</code>. It also recognises <code class="hljs inline no-lang">r/</code> so an unsupported title edit cannot silently become part of the experience description. An invalid index is reported first, followed by unsupported title input, missing/repeated experience prefixes, and experience-value validation.</p> <p><code class="hljs inline no-lang">EditRoleCommand</code> requires the role view, resolves the index against <code class="hljs inline no-lang">Model#getFilteredRoleList</code>,
-and replaces the immutable role through <code class="hljs inline no-lang">Model#setRole</code>, retaining its title and <code class="hljs inline no-lang">RoleStatus</code>.
-Corrections are allowed for both open and closed roles and never reopen recruitment. All candidate
-objects and their associations remain unchanged. Selecting the current experience level is a
-successful no-op. The role filter and candidate filter are preserved.</p> <p>The existing observable-role-list binding refreshes the role card without a new UI component.
-The result shows <code class="hljs inline no-lang">Edited role: TITLE.</code> and keeps the role view; <code class="hljs inline no-lang">LogicManager</code> logs the command and
-saves the complete state through the existing path. Parsing and command-validation failures do not
-save or mutate records. The existing save-error behaviour described below remains unchanged.
-Title editing is deliberately separate because it also needs to update candidate associations.</p> <h4 id="saving-and-restoring-associations">Saving and restoring associations<a class="fa fa-anchor" href="#saving-and-restoring-associations" onclick="event.stopPropagation()"></a></h4> <p>After a command executes successfully, <code class="hljs inline no-lang">LogicManager#execute</code> asks <code class="hljs inline no-lang">Storage</code> to save the complete
+Parsing or duplicate rejection leaves the stored records unchanged.</p> <h4 id="correcting-a-role-s-title-or-required-experience">Correcting a role&#39;s title or required experience<a class="fa fa-anchor" href="#correcting-a-role-s-title-or-required-experience" onclick="event.stopPropagation()"></a></h4> <p><code class="hljs inline no-lang">RoleCommandParser</code> delegates <code class="hljs inline no-lang">edit</code> to <code class="hljs inline no-lang">EditRoleCommandParser</code>. The parser reads the displayed-role index with <code class="hljs inline no-lang">ParserUtil#parseRoleIndex</code>, rejects repeated <code class="hljs inline no-lang">r/</code> or <code class="hljs inline no-lang">x/</code> prefixes using the existing duplicate-prefix helper, and requires at least one editable field. Supplied values use <code class="hljs inline no-lang">ParserUtil#parseRoleTitle</code> and <code class="hljs inline no-lang">ParserUtil#parseExperienceLevel</code>; omitted fields are left unchanged. An invalid index is reported first, followed by duplicate prefixes, missing fields, title validation and experience validation.</p> <p><code class="hljs inline no-lang">EditRoleCommand</code> requires the role view and resolves the index against <code class="hljs inline no-lang">Model#getFilteredRoleList</code>. It constructs the complete replacement role, preserving its status and omitted fields, then checks the full role collection for a different role with the requested title. Duplicate comparison ignores case and surrounding whitespace, including closed roles; capitalization corrections to the selected role are allowed. The shared duplicate-role message is held in <code class="hljs inline no-lang">Messages</code>. Corrections never reopen recruitment or merge two openings.</p> <p><code class="hljs inline no-lang">Model#setRole</code> delegates to <code class="hljs inline no-lang">AddressBook#setRole</code>. The model validates the role replacement through <code class="hljs inline no-lang">UniqueRoleList</code> before changing either collection. If the title&#39;s exact spelling changes, every candidate whose old title matches case-insensitively is updated to the new title using <code class="hljs inline no-lang">Person#withRole</code>. This includes candidates hidden by the current filter. Their other details and order are unchanged; unrelated candidates retain their existing instances. An experience-only edit does not replace candidate objects. The existing observable lists are retained, so role and candidate cards refresh without new UI components. Filter predicates are retained and reevaluated after list changes.</p> <p>The result shows <code class="hljs inline no-lang">Edited role: TITLE.</code> with the updated title and keeps the role view. <code class="hljs inline no-lang">EditRoleCommand</code> logs accepted corrections and rejected duplicate titles; <code class="hljs inline no-lang">LogicManager</code> saves both collections through the existing path. Parser or command-validation failures leave records, filters and the saved file unchanged. The existing save-error behavior described below remains unchanged: this is not a transactional filesystem save. Once renamed, a role&#39;s old title is available again; no title alias or storage-schema migration is introduced.</p> <span class="image-wrapper"><img src="/tp/diagrams/EditRoleSequenceDiagram.png" alt="Sequence for validating a role edit, updating associated candidates and saving both collections" width="800" height="" loading="eager" class="img-fluid rounded"><span class="image-caption"><!--[--><!--]--></span></span> <h4 id="saving-and-restoring-associations">Saving and restoring associations<a class="fa fa-anchor" href="#saving-and-restoring-associations" onclick="event.stopPropagation()"></a></h4> <p>After a command executes successfully, <code class="hljs inline no-lang">LogicManager#execute</code> asks <code class="hljs inline no-lang">Storage</code> to save the complete
 address book, including both collections. This also happens for successful read-only commands.
 Parsing and command-validation failures do not reach the save call. Save errors become
 <code class="hljs inline no-lang">CommandException</code>s; earlier in-memory changes are not rolled back. Normal command saves are not
@@ -359,7 +351,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | Priority | As a … | I want to … | So that I can … |
 |----------|--------|-------------|-----------------|
 | `* * *` | department recruiter | add a role opening with its title and required experience level | track an active recruitment need in my department |
-| `* *` | department recruiter | correct a role&#39;s required experience without recreating it | keep its candidates and recruitment history intact |
+| `* *` | department recruiter | correct a role&#39;s title or required experience without recreating it | keep its candidates and recruitment history intact |
 | `* * *` | department recruiter | view all role openings and whether they are open or closed | review the roles tracked by my department |
 | `* *` | department recruiter | see pending and final-outcome totals for each role | assess recruitment progress without inspecting every candidate |
 | `* * *` | department recruiter | close a role opening | prevent new candidates from being added after recruitment ends while retaining existing candidate records |
@@ -871,6 +863,34 @@ Use case ends.
 
 Use case ends.
 
+#### UC26 — Correct Role Details
+
+**System:** RecruiterBuddy<br>
+**Actor:** Recruiter<br>
+**Guarantees:** Role status and candidate details are preserved. Rejected input changes no records.
+
+**Main success scenario:**
+
+1. Recruiter requests the list of roles.
+1. RecruiterBuddy displays the roles and their indices.
+1. Recruiter identifies a displayed role and provides a corrected title, required experience, or both.
+1. RecruiterBuddy updates the role and every associated candidate&#39;s role title, then saves the records.
+1. RecruiterBuddy confirms the update using the role&#39;s updated title.
+
+Use case ends.
+
+**Extensions:**
+
+* 3a. The index or field input is invalid, no fields are supplied, or a field is repeated.
+  * 3a1. RecruiterBuddy reports the input error without changing records.
+  * Use case ends.
+* 4a. Another role already has the requested title, ignoring case and surrounding whitespace.
+  * 4a1. RecruiterBuddy rejects the complete edit without changing either role fields or candidates.
+  * Use case ends.
+* 4b. The updated records cannot be saved.
+  * 4b1. RecruiterBuddy reports the save error instead of the normal confirmation; changes may remain in the current session.
+  * Use case ends.
+
 *{More to be added}*
 
 ### Non-Functional Requirements
@@ -1000,7 +1020,7 @@ Always switch back with `list` or `list role` before using indices for that list
    printable characters versus 51. The boundary values succeed; the longer values fail.
    Use different valid titles for the experience checks so duplicate rejection does not mask validation.
 
-#### Role experience corrections
+#### Role corrections
 
 1. Run `list role`, then `role edit 1 x/5 years`.<br>
    Expected: `Edited role: QA Engineer.` The role card shows `5 years`, with the title and `OPEN`
@@ -1017,11 +1037,20 @@ Always switch back with `list` or `list role` before using indices for that list
    changing its filter; only Alice is still displayed. Run `list` to restore all candidates.
 
 1. Run `list role` and try `role edit 0 x/Senior`, `role edit 99 x/Senior`, `role edit 1`,
-   `role edit 1 x/`, `role edit 1 x/Junior x/Senior`, and `role edit 1 x/Senior r/New title`.<br>
-   Expected: Respectively, invalid-index errors, missing `x/`, invalid experience, repeated `x/`,
-   and invalid-format errors. Records, current filters, and saved data remain unchanged.
+   `role edit 1 x/`, `role edit 1 x/Junior x/Senior`, and `role edit 1 x/Senior r/`.<br>
+   Expected: Respectively, invalid-index errors, no editable fields, invalid experience, repeated `x/`,
+   and invalid title errors. Records, current filters, and saved data remain unchanged.
    An experience of exactly 50 printable characters succeeds; 51 is rejected. Embedded tabs,
    line separators, and control characters are not valid experience descriptions.
+
+1. Run `find Alice`, `list role`, then `role edit 1 r/Platform Engineer x/Senior`.<br>
+   Expected: `Edited role: Platform Engineer.` Both Alice and hidden Ben now refer to Platform Engineer; names, contact details, notes, tags and statuses are unchanged. The role remains OPEN, its experience is Senior, and the role view remains displayed. Run `help` to show candidates without resetting the filter; only Alice is displayed, with the new title. Run `list` to see both candidates. Restart and verify that the role and both associations persist.
+
+1. Restore the fixture, run `list role`, then try `role edit 1 r/qa analyst x/Senior` and `role edit 1 r/QA Engineer r/Other`.<br>
+   Expected: The first reports the duplicate QA Analyst title without changing experience or candidates; the second reports repeated `r/`. Repeat the duplicate check after closing the empty analyst role: its title remains reserved. An invalid title or experience in a combined edit must leave both fields and all candidates unchanged.
+
+1. Restore the fixture, run `list role`, then `role edit 1 r/qa ENGINEER`.<br>
+   Expected: The role and both candidates use exactly `qa ENGINEER`. Repeating that edit is a successful no-op. Rename the empty analyst role after closing it; it remains CLOSED. Create a new role with its old title: existing candidates, if any, remain with the renamed role rather than the new opening.
 
 #### Closure and candidate outcomes
 
@@ -1247,7 +1276,7 @@ Replacement-write failures are exercised deterministically by `MainAppTest` usin
 operation. They must block commands and identify the backup containing the original bytes. This
 avoids relying on a manual timing race between backup and replacement creation.
 
-  </div> <nav id="page-nav" data-v-6b1b63d2><!--[--><div class="nav-component slim-scroll"><nav id="mb-page-nav" class="nav nav-pills flex-column my-0 small no-flex-wrap" data-v-6b1b63d2><!--[--><a class="nav-link py-1" href="#recruiterbuddy-developer-guide">RecruiterBuddy Developer Guide‎</a> <nav class="nav nav-pills flex-column my-0 nested no-flex-wrap"><a class="nav-link py-1" href="#acknowledgements">Acknowledgements‎</a> <a class="nav-link py-1" href="#setting-up-getting-started">Setting up, getting started‎</a> <a class="nav-link py-1" href="#design">Design‎</a> <nav class="nav nav-pills flex-column my-0 nested no-flex-wrap"><a class="nav-link py-1" href="#architecture">Architecture‎</a> <a class="nav-link py-1" href="#ui-component">UI component‎</a> <a class="nav-link py-1" href="#logic-component">Logic component‎</a> <a class="nav-link py-1" href="#model-component">Model component‎</a> <a class="nav-link py-1" href="#storage-component">Storage component‎</a> <a class="nav-link py-1" href="#common-classes">Common classes‎</a></nav> <a class="nav-link py-1" href="#implementation">Implementation‎</a> <nav class="nav nav-pills flex-column my-0 nested no-flex-wrap"><a class="nav-link py-1" href="#role-creation-and-persistence">Role creation and persistence‎</a></nav></nav><!--]--><!--v-if--></nav></div><!--]--><!--v-if--></nav> <div class="scroll-top-button fa-lg d-print-none" style="display:none;bottom:2%;right:2%;position:fixed;" aria-hidden="true"><!--[--><i class="fas fa-arrow-circle-up"></i><!--]--></div></div> <footer><div class="text-center"><small>[<span><strong>Powered by</strong></span> <img src="https://markbind.org/favicon.ico" width="30"> <a href="https://markbind.org/">MarkBind 7.2.1</a>, generated on Wed, 21 Oct 2026, 17:40:23 GMT+8]</small></div></footer><!--]--></div>
+  </div> <nav id="page-nav" data-v-6b1b63d2><!--[--><div class="nav-component slim-scroll"><nav id="mb-page-nav" class="nav nav-pills flex-column my-0 small no-flex-wrap" data-v-6b1b63d2><!--[--><a class="nav-link py-1" href="#recruiterbuddy-developer-guide">RecruiterBuddy Developer Guide‎</a> <nav class="nav nav-pills flex-column my-0 nested no-flex-wrap"><a class="nav-link py-1" href="#acknowledgements">Acknowledgements‎</a> <a class="nav-link py-1" href="#setting-up-getting-started">Setting up, getting started‎</a> <a class="nav-link py-1" href="#design">Design‎</a> <nav class="nav nav-pills flex-column my-0 nested no-flex-wrap"><a class="nav-link py-1" href="#architecture">Architecture‎</a> <a class="nav-link py-1" href="#ui-component">UI component‎</a> <a class="nav-link py-1" href="#logic-component">Logic component‎</a> <a class="nav-link py-1" href="#model-component">Model component‎</a> <a class="nav-link py-1" href="#storage-component">Storage component‎</a> <a class="nav-link py-1" href="#common-classes">Common classes‎</a></nav> <a class="nav-link py-1" href="#implementation">Implementation‎</a> <nav class="nav nav-pills flex-column my-0 nested no-flex-wrap"><a class="nav-link py-1" href="#role-creation-and-persistence">Role creation and persistence‎</a></nav></nav><!--]--><!--v-if--></nav></div><!--]--><!--v-if--></nav> <div class="scroll-top-button fa-lg d-print-none" style="display:none;bottom:2%;right:2%;position:fixed;" aria-hidden="true"><!--[--><i class="fas fa-arrow-circle-up"></i><!--]--></div></div> <footer><div class="text-center"><small>[<span><strong>Powered by</strong></span> <img src="https://markbind.org/favicon.ico" width="30"> <a href="https://markbind.org/">MarkBind 7.2.1</a>, generated on Wed, 21 Oct 2026, 18:24:23 GMT+8]</small></div></footer><!--]--></div>
 </body><script src="/tp/markbind/js/bootstrap-utility.min.js"></script>
 <script src="/tp/markbind/js/polyfill.min.js"></script>
 <script src="/tp/markbind/js/vue.global.prod.min.js"></script>
