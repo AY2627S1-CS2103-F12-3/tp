@@ -1,5 +1,7 @@
 package seedu.address.storage;
 
+import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,9 +37,11 @@ class JsonSerializableAddressBook {
     public JsonSerializableAddressBook(@JsonProperty("persons") List<JsonAdaptedPerson> persons,
             @JsonProperty("roles") List<JsonAdaptedRole> roles) {
         if (persons != null) {
+            requireAllNonNull(persons);
             this.persons.addAll(persons);
         }
         if (roles != null) {
+            requireAllNonNull(roles);
             this.roles.addAll(roles);
         }
     }

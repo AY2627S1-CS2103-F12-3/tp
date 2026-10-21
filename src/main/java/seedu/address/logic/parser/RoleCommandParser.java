@@ -10,6 +10,7 @@ import seedu.address.logic.commands.AddRoleCommand;
 import seedu.address.logic.commands.CloseRoleCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.DeleteRoleCommand;
+import seedu.address.logic.commands.EditRoleCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 
 /**
@@ -21,6 +22,7 @@ public class RoleCommandParser implements Parser<Command> {
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Manages role openings.\n"
             + "Available commands:\n"
             + AddRoleCommand.MESSAGE_USAGE + "\n"
+            + EditRoleCommand.MESSAGE_USAGE + "\n"
             + CloseRoleCommand.MESSAGE_USAGE + "\n"
             + DeleteRoleCommand.MESSAGE_USAGE;
 
@@ -38,6 +40,7 @@ public class RoleCommandParser implements Parser<Command> {
 
         return switch (subcommand) {
             case AddRoleCommand.COMMAND_WORD -> new AddRoleCommandParser().parse(arguments);
+            case EditRoleCommand.COMMAND_WORD -> new EditRoleCommandParser().parse(arguments);
             case CloseRoleCommand.COMMAND_WORD -> new CloseRoleCommandParser().parse(arguments);
             case DeleteRoleCommand.COMMAND_WORD -> new DeleteRoleCommandParser().parse(arguments);
             default -> throw new ParseException(MESSAGE_UNKNOWN_COMMAND);

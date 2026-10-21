@@ -1,6 +1,7 @@
 package seedu.address.model;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.List;
 import java.util.Objects;
@@ -138,11 +139,21 @@ public class AddressBook implements ReadOnlyAddressBook {
     }
 
     /**
-     * Replaces {@code target} with {@code editedRole}.
+     * Replaces {@code target} with {@code editedRole} and updates all associated candidate titles.
+     * If the title changes, every candidate with the old title is updated to the new title;
+     * their other details are unchanged. Role validation precedes all changes.
      */
     public void setRole(Role target, Role editedRole) {
-        requireNonNull(editedRole);
+        requireAllNonNull(target, editedRole);
         roles.setRole(target, editedRole);
+        if (!target.getTitle().equals(editedRole.getTitle())) {
+            List<Person> updatedPersons = persons.asUnmodifiableObservableList().stream()
+                    .map(person -> person.getRole().isSameTitle(target.getTitle())
+                            ? person.withRole(editedRole.getTitle()) : person)
+                    .toList();
+            // The existing list is unique and only role titles change, so duplicate checks still pass.
+            persons.setPersons(updatedPersons);
+        }
     }
 
     /**

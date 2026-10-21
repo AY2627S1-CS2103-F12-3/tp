@@ -42,9 +42,9 @@ public class CommandTestUtil {
     public static final String VALID_NOTE_BOB = "Referred by Alice";
     public static final String VALID_TAG_HUSBAND = "husband";
     public static final String VALID_TAG_FRIEND = "friend";
-    public static final String VALID_STATUS_1_STRING = "PENDING_RECRUITER_INTERVIEW";
+    public static final String VALID_STATUS_1_STRING = "INTERVIEW";
     public static final Status VALID_STATUS_1 = Status.valueOf(VALID_STATUS_1_STRING);
-    public static final String VALID_STATUS_2_STRING = "PENDING_OFFER_EXTENSION";
+    public static final String VALID_STATUS_2_STRING = "OFFER";
     public static final Status VALID_STATUS_2 = Status.valueOf(VALID_STATUS_2_STRING);
 
     public static final String NAME_DESC_AMY = " " + PREFIX_NAME + VALID_NAME_AMY;

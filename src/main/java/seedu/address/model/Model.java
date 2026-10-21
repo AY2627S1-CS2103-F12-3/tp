@@ -120,7 +120,7 @@ public interface Model {
     void deleteRole(Role role);
 
     /**
-     * Replaces {@code target} with {@code editedRole}.
+     * Replaces {@code target} with {@code editedRole}, updating every associated candidate's role title.
      */
     void setRole(Role target, Role editedRole);
 

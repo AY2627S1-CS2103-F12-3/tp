@@ -19,7 +19,7 @@ import seedu.address.model.tag.Tag;
 public class Person {
 
     /** Status of a newly added candidate, and of a saved candidate that has no status. */
-    public static final Status DEFAULT_STATUS = Status.PENDING_RESUME_SCREENING;
+    public static final Status DEFAULT_STATUS = Status.RESUME;
 
     // Identity fields
     private final Name name;

@@ -74,8 +74,8 @@ public class CloseRoleCommandTest {
 
     @Test
     public void execute_eachPendingStatus_rejectsClosure() {
-        for (Status status : new Status[]{Status.PENDING_RESUME_SCREENING, Status.PENDING_RECRUITER_INTERVIEW,
-            Status.PENDING_OFFER_EXTENSION, Status.PENDING_OFFER_DECISION}) {
+        for (Status status : new Status[]{Status.RESUME, Status.INTERVIEW,
+            Status.OFFER, Status.DECISION}) {
             Person person = candidate("Pending Candidate", status);
             model.addPerson(person);
             model.updateFilteredPersonList(candidate -> false);
@@ -87,8 +87,8 @@ public class CloseRoleCommandTest {
 
     @Test
     public void execute_multiplePendingCandidates_reportsTotal() {
-        model.addPerson(candidate("First Candidate", Status.PENDING_OFFER_DECISION));
-        model.addPerson(candidate("Second Candidate", Status.PENDING_RESUME_SCREENING));
+        model.addPerson(candidate("First Candidate", Status.DECISION));
+        model.addPerson(candidate("Second Candidate", Status.RESUME));
         assertCommandFailure(command, model, String.format(CloseRoleCommand.MESSAGE_PENDING_CANDIDATES,
                 SOFTWARE_ENGINEER.getTitle(), 2));
     }
