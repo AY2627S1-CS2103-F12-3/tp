@@ -18,7 +18,8 @@
   starting point for RecruiterBuddy.
 * Kavin Parthipan (`kpkavin04`) used OpenAI Codex to assist with requirements analysis, implementation,
   tests, review, and documentation for candidate role reassignment, the persistent role model,
-  role commands, and associated candidate-status and displayed-list safeguards.
+  role commands, associated candidate-status and displayed-list safeguards, and safe startup after
+  recruitment-data loading failures.
   This acknowledgement covers that contribution, not other team members' tool usage.
 
 --------------------------------------------------------------------------------------------------------------------
@@ -227,8 +228,8 @@ Title editing is deliberately separate because it also needs to update candidate
 After a command executes successfully, `LogicManager#execute` asks `Storage` to save the complete
 address book, including both collections. This also happens for successful read-only commands.
 Parsing and command-validation failures do not reach the save call. Save errors become
-`CommandException`s; earlier in-memory changes are not rolled back. This is not a transactional save
-or an automatic backup mechanism.
+`CommandException`s; earlier in-memory changes are not rolled back. Normal command saves are not
+transactional and do not create backups. Startup recovery below handles unreadable data separately.
 
 `JsonSerializableAddressBook#toModelType` reconstructs roles before candidates. Each `JsonAdaptedRole`
 validates its required fields and exact `OPEN`/`CLOSED` enum name. Duplicate titles are rejected using
@@ -242,10 +243,53 @@ a missing role status is invalid. There is no automatic migration from old conta
 Loading validates fields, duplicate records, and references; it does not enforce all command-level
 recruitment rules, such as the maximum number of hired candidates in hand-edited data.
 
-Invalid data is reported as `DataLoadingException`. `MainApp` starts with an empty `AddressBook`
-after a load failure, without partially importing valid records or immediately overwriting the file.
-If the file is absent instead, it uses `SampleDataUtil#getSampleAddressBook`. The next successfully
-executed command saves the current state, so users must recover invalid files before issuing commands.
+#### Protecting unreadable recruitment data
+
+Invalid data is reported as `DataLoadingException`. JSON `null` roots and null candidate, role or tag
+entries also fail loading rather than bypassing the failure path with a null-pointer exception.
+`JsonUtil#fromJsonString` reads through a managed Jackson parser and checks for end of input after
+deserializing the first value. Additional root values or malformed trailing text fail loading;
+ordinary surrounding whitespace remains valid. This prevents a later save from silently discarding
+content that Jackson would otherwise ignore. Recovery preserves the entire original file, not just
+the first object, and does not attempt to combine multiple objects.
+`JsonUtil#readJsonFile` returns an empty optional only when the file is known not to exist; an
+indeterminate existence check does not silently treat an inaccessible file as missing.
+
+`MainApp#init` attempts recovery after a recruitment-data loading failure. `RecruitmentDataRecovery`
+first checks that the source is a regular file without following symbolic links, then moves it to a
+sibling `.bak` path. `Files.move` does not use `REPLACE_EXISTING`: an existing backup, including one
+created after the naming decision, is not replaced. A local timestamp in `yyyyMMdd-HHmmss-SSS` format
+and then a numbered suffix resolve collisions. The format avoids characters forbidden in Windows
+filenames. The original bytes are moved, not parsed, repaired or partially imported.
+
+Only after backup succeeds does recovery write an empty `JsonSerializableAddressBook` at the original
+path using `CREATE_NEW`. This refuses to overwrite a file that appears during recovery. Persisting
+the empty replacement before initializing commands also makes the next startup stay empty, even if
+the user exits without executing a command. The existing missing-file sample-data policy is not used
+for this recovery path.
+
+`MainApp#start` asks `UiManager` to show a warning on the JavaFX thread before opening the command
+window. The warning names the full backup and replacement paths and explains manual restoration.
+No automatic merge is attempted: users must preserve new records separately before restoring.
+`StartupDataNotice` holds the notification text and fatal/non-fatal outcome independently of JavaFX.
+Lifecycle tests capture those real notices through the notification boundary; separate notice tests
+check paths and restoration instructions without substituting the message-generation logic.
+
+If backup or replacement creation throws an I/O or security exception, initialization returns before
+creating the model, logic or command UI. The startup error names the original path, failure reason,
+and backup path if the move succeeded. JavaFX shuts down after dismissal. A directory or symbolic
+link is not moved. `MainApp#stop` skips preference saving when no model was initialized. Preference
+loading still runs before recruitment data is loaded. Preference files use the same single-root
+JSON check; invalid preferences retain the existing default-settings fallback rather than using
+recruitment-data backup recovery.
+
+<puml src="diagrams/RecruitmentDataStartupActivityDiagram.puml" width="550"
+  alt="Startup branches for valid, missing and unreadable recruitment data" />
+
+Recovery preserves the source before exposing any command that can reach the normal save path.
+If recovery cannot complete safely, startup remains blocked rather than risking the original or its
+backup. If the file is genuinely absent instead, startup still uses
+`SampleDataUtil#getSampleAddressBook`. A valid empty file loads empty lists, not sample data.
 
 ### Role lifecycle and candidate safeguards
 
@@ -1012,7 +1056,7 @@ Use case ends.
 11.  A command rejected because of invalid syntax or invalid input values should leave recruitment records and user-defined configuration unchanged, both in memory and in saved data file.
 12.  Command syntax should be simple and intuitive, such that an experienced user (has spent > 1 hour using the application) can memorize the syntax for all basic commands.
 13.  Upon rejecting a command, the issue and its fixes should be identified, such that the user can achieve a valid input within n successive tries, where n is the number of errors in the initial input.
-14.  If an application-data file cannot be read or fails validation during startup, the startup process should not modify or delete that file.
+14.  If recruitment data cannot be read or fails validation during startup, preserve its original contents in a non-overwriting sibling backup before creating an empty replacement. If safe recovery fails, do not expose commands; identify the preserved data location and recovery steps.
 15.  All persistent RecruiterBuddy data should be stored locally in human-readable text files that can be inspected and modified using a plain-text editor. This includes recruitment records, saved candidate status history, and user-defined configuration such as command shortcuts.
 16.  If writing updated data fails while the previously saved file remains accessible, RecruiterBuddy should leave that file's contents unchanged.
 
@@ -1301,12 +1345,38 @@ Close the application window before editing or moving data files.
    backup before continuing with the other scenarios.
 
 1. Invalid file: back up the fixture file while the app is closed. Replace the JSON with `{` and restart.<br>
-   Expected: Empty lists; the invalid file is unchanged by startup. Close the window without entering
-   commands, including `exit`. Restore the backup. Repeat separately with a duplicated role title,
+   Expected: A `Recruitment data backed up` warning identifies the full backup and replacement paths
+   and restoration steps. The original is renamed to `addressbook.json.bak` with identical bytes.
+   Dismiss the warning: the command window opens with empty lists and a valid empty data file.
+   Exit without a command and restart: the lists stay empty without another warning. Restore your
+   fixture while the app is closed. Repeat separately
+   with two valid recruitment JSON objects joined together (both directly and separated by whitespace),
+   a valid object followed by `null`, `[]`, or arbitrary text, JSON `null`, null role or candidate records,
+   a duplicated role title,
    a role status of `open` instead of `OPEN`, and a candidate whose `role` names a nonexistent role.<br>
-   Expected: Each invalid file prevents the whole data set from loading; valid records are not imported
-   separately. Recover from the backup between attempts. A successful command such as `list` would
-   overwrite the invalid file, so do not issue commands before recovering it.
+   Expected: Each invalid file is backed up before starting empty; valid records are not imported
+   separately. Earlier backups remain unchanged. Repeated failures use a timestamped backup name,
+   then a numbered suffix if needed. Run `role add r/Recovery Test x/Entry level`, exit and restart:
+   the new role persists and the backup stays unchanged. Restore your fixture between attempts.
+
+1. Unreadable path: move the fixture file to your backup location, then create a directory named
+   `data/addressbook.json` containing a small marker file. Restart.<br>
+   Expected: The startup error identifies the data path and the app closes after dismissal. The
+   directory and marker file are unchanged. Remove only the disposable marker and directory, then
+   restore the fixture file. With a regular file without read permission, recovery can still succeed
+   if the parent folder allows renaming and creating files. Otherwise, the app stops with a specific
+   error and the original remains untouched. Test permission failures under an account that cannot
+   bypass the restrictions.
+
+1. Backup collision: while the app is closed, retain a marker file at `addressbook.json.bak`, then
+   make `addressbook.json` invalid and restart.<br>
+   Expected: The marker backup is unchanged; the notice identifies a different timestamped backup
+   containing the invalid file's original bytes. The application opens with empty lists.
+
+1. Valid empty file: save a copy of the fixture, replace its contents with
+   `{"persons":[],"roles":[]}`, then restart.<br>
+   Expected: The normal command window opens with empty lists and no startup error. Close the window
+   and restore the fixture.
 
 1. Default candidate status: remove only Alice's `status` field from a valid fixture file, then restart.<br>
    Expected: Alice loads with `Pending Resume Screening`; `list role` then `role close 1` reports two
@@ -1316,3 +1386,7 @@ Close the application window before editing or moving data files.
    Expected: The records load, but `list role` then `role close 1` reports
    `Cannot close role: QA Engineer. More than one candidate is marked HIRED.` The role stays open.
    Use a separate fixture copy for this check; do not create inconsistent real recruitment data.
+
+Replacement-write failures are exercised deterministically by `MainAppTest` using a failing recovery
+operation. They must block commands and identify the backup containing the original bytes. This
+avoids relying on a manual timing race between backup and replacement creation.
