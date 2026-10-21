@@ -1,5 +1,7 @@
 package seedu.address.storage;
 
+import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -57,6 +59,7 @@ class JsonAdaptedPerson {
         this.interview = interview;
         this.status = status;
         if (tags != null) {
+            requireAllNonNull(tags);
             this.tags.addAll(tags);
         }
     }

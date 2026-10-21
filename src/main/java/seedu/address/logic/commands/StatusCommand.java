@@ -39,7 +39,8 @@ public class StatusCommand extends Command {
             + "Example: " + COMMAND_WORD + " 1 " + Status.values()[0].name();
 
     public static final String MESSAGE_ADD_STATUS_SUCCESS = "Status of candidate: %1$s";
-    public static final String MESSAGE_ROLE_ALREADY_HAS_HIRED_CANDIDATE = "%1$s already has a hired candidate.";
+    public static final String MESSAGE_ROLE_ALREADY_HAS_HIRED_CANDIDATE =
+            CandidateRoleChecks.MESSAGE_ROLE_ALREADY_HAS_HIRED_CANDIDATE;
     public static final String MESSAGE_PENDING_STATUS_FOR_CLOSED_ROLE =
             "Cannot set a pending status for %1$s because role %2$s is closed.";
 
@@ -83,7 +84,7 @@ public class StatusCommand extends Command {
 
         Person personToEdit = lastShownList.get(index.getZeroBased());
         verifyPendingStatusAllowed(model, personToEdit);
-        verifyHiringAllowed(model, personToEdit);
+        CandidateRoleChecks.verifyHiringAllowed(model, personToEdit, personToEdit.getRole(), status);
         Person editedPerson = addStatusToPerson(personToEdit, status);
 
         model.setPerson(personToEdit, editedPerson);
@@ -98,23 +99,6 @@ public class StatusCommand extends Command {
         if (status.isPending() && model.findRole(personToEdit.getRole()).filter(Role::isClosed).isPresent()) {
             throw new CommandException(String.format(MESSAGE_PENDING_STATUS_FOR_CLOSED_ROLE,
                     personToEdit.getName(), personToEdit.getRole()));
-        }
-    }
-
-    /**
-     * Checks that assigning {@code HIRED} will not fill the same role more than once.
-     */
-    private void verifyHiringAllowed(Model model, Person personToEdit) throws CommandException {
-        if (status != Status.HIRED) {
-            return;
-        }
-        boolean hasOtherHiredCandidate = model.getAddressBook().getPersonList().stream()
-                .anyMatch(candidate -> !candidate.isSamePerson(personToEdit)
-                        && candidate.getStatus() == Status.HIRED
-                        && candidate.getRole().isSameTitle(personToEdit.getRole()));
-        if (hasOtherHiredCandidate) {
-            throw new CommandException(String.format(MESSAGE_ROLE_ALREADY_HAS_HIRED_CANDIDATE,
-                    personToEdit.getRole()));
         }
     }
 

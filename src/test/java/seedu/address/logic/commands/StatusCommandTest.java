@@ -39,8 +39,8 @@ public class StatusCommandTest {
     @Test
     public void execute_finalToPendingForOpenRole_allowsAllTransitions() throws Exception {
         for (Status original : new Status[]{Status.HIRED, Status.REJECTED, Status.WITHDRAWN}) {
-            for (Status pending : new Status[]{Status.PENDING_RESUME_SCREENING, Status.PENDING_RECRUITER_INTERVIEW,
-                Status.PENDING_OFFER_EXTENSION, Status.PENDING_OFFER_DECISION}) {
+            for (Status pending : new Status[]{Status.RESUME, Status.INTERVIEW,
+                Status.OFFER, Status.DECISION}) {
                 Person candidate = new PersonBuilder().withStatus(original).build();
                 setHiringCandidates(candidate);
                 new StatusCommand(INDEX_FIRST_PERSON, pending).execute(model);
@@ -58,8 +58,8 @@ public class StatusCommandTest {
                     .withStatus(original).withNote("Retain history").withTags("referral").build();
             setHiringCandidates(new PersonBuilder().withName("Other Candidate").build(), candidate);
             model.updateFilteredPersonList(person -> person.isSamePerson(candidate));
-            for (Status pending : new Status[]{Status.PENDING_RESUME_SCREENING, Status.PENDING_RECRUITER_INTERVIEW,
-                Status.PENDING_OFFER_EXTENSION, Status.PENDING_OFFER_DECISION}) {
+            for (Status pending : new Status[]{Status.RESUME, Status.INTERVIEW,
+                Status.OFFER, Status.DECISION}) {
                 assertCommandFailure(new StatusCommand(INDEX_FIRST_PERSON, pending), model,
                         String.format(StatusCommand.MESSAGE_PENDING_STATUS_FOR_CLOSED_ROLE,
                                 candidate.getName(), candidate.getRole()));
@@ -71,7 +71,7 @@ public class StatusCommandTest {
     public void execute_closedRoleTitleWithDifferentCase_rejectsPendingStatus() {
         Person candidate = new PersonBuilder().withRole("product designer").withStatus(Status.REJECTED).build();
         setHiringCandidates(candidate);
-        assertCommandFailure(new StatusCommand(INDEX_FIRST_PERSON, Status.PENDING_RESUME_SCREENING), model,
+        assertCommandFailure(new StatusCommand(INDEX_FIRST_PERSON, Status.RESUME), model,
                 String.format(StatusCommand.MESSAGE_PENDING_STATUS_FOR_CLOSED_ROLE,
                         candidate.getName(), candidate.getRole()));
     }
