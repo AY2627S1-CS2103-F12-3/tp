@@ -41,7 +41,7 @@ public class ParserUtilTest {
     private static final String VALID_TAG_2 = "neighbour";
     private static final String VALID_ROLE_TITLE = "Software Engineer";
     private static final String VALID_EXPERIENCE_LEVEL = "2 years";
-    private static final String VALID_STATUS_STRING = "PENDING_RECRUITER_INTERVIEW";
+    private static final String VALID_STATUS_STRING = "INTERVIEW";
     private static final Status VALID_STATUS = Status.valueOf(VALID_STATUS_STRING);
 
     private static final String WHITESPACE = " \t\r\n";

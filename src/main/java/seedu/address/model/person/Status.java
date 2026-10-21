@@ -7,26 +7,28 @@ import java.util.stream.Collectors;
  * Enum denoting the different possible candidate statuses.
  */
 public enum Status {
-    PENDING_RESUME_SCREENING("Pending Resume Screening"),
-    PENDING_RECRUITER_INTERVIEW("Pending Recruiter Interview"),
-    PENDING_OFFER_EXTENSION("Pending Offer Extension"),
-    PENDING_OFFER_DECISION("Pending Offer Decision"),
-    HIRED("Hired"),
-    REJECTED("Rejected"),
-    WITHDRAWN("Withdrawn");
+    RESUME("Resume", true),
+    INTERVIEW("Interview", true),
+    OFFER("Offer", true),
+    DECISION("Decision", true),
+    HIRED("Hired", false),
+    REJECTED("Rejected", false),
+    WITHDRAWN("Withdrawn", false);
 
     public static final String MESSAGE_CONSTRAINTS_START = "Status must be one of the following: ";
     private final String displayName;
+    private final boolean isPending;
 
-    Status(String displayName) {
+    Status(String displayName, boolean isPending) {
         this.displayName = displayName;
+        this.isPending = isPending;
     }
 
     /**
      * Returns true if the candidate still needs a final recruitment outcome.
      */
     public boolean isPending() {
-        return this != HIRED && this != REJECTED && this != WITHDRAWN;
+        return this.isPending;
     }
 
     /**

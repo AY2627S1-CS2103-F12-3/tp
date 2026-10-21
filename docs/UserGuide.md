@@ -173,6 +173,39 @@ If validation fails, no role is created:
 Closing a role does not release its title. An unused role can instead be removed with `role delete`
 before creating another role with that title.
 
+### Editing a role: `role edit`
+
+Corrects a role's title or required experience level without removing the role or losing its recruitment history.
+
+Format: `role edit INDEX [r/ROLE_TITLE] [x/EXPERIENCE_LEVEL]`
+
+* Run `list role` first. `INDEX` must be a positive integer shown in the current role list.
+* Supply at least one field, with each supplied prefix appearing only once. Either field order is accepted.
+* Values use the same title and experience constraints as [`role add`](#adding-a-role-role-add). Surrounding whitespace is removed. Titles remain unique across OPEN and CLOSED roles, ignoring case but not internal spaces.
+* Both OPEN and CLOSED roles may be corrected. Editing a closed role does not reopen it or transfer candidates to another opening.
+* Renaming updates every associated candidate, including candidates hidden by a filter. Candidate statuses, contact details, notes and tags are preserved. Omitted role fields remain unchanged.
+* Capitalization-only corrections update the role and all its candidates to the supplied spelling. Supplying unchanged values succeeds without changing the stored data.
+* After a rename, the old title is available for a new role. Existing candidates remain associated with the renamed role; the old title is not an alias.
+
+Examples, after running `list role`:
+
+* `role edit 1 x/5 years`
+* `role edit 1 r/Platform Engineer`
+* `role edit 1 r/Platform Engineer x/Senior`
+
+Success shows `Edited role: ROLE_TITLE.`, using the updated title. The role card refreshes, the role list stays displayed, and the complete change is saved automatically. Role and candidate filter predicates are preserved and reevaluated against the updated records.
+
+Validation failures leave all records, filters, and the saved data unchanged:
+
+* Invalid or missing index: `Role index must refer to a displayed role.`
+* Candidate list displayed: `The role list is not displayed. Use list role first.`
+* No fields supplied: `At least one field to edit must be provided.`
+* Repeated prefix: `Multiple values specified for the following single-valued field(s): PREFIX`. If both prefixes repeat, the message names both.
+* Empty or invalid title: `Role title must be 1–100 characters and contain a letter.`
+* Empty or invalid experience: `Required experience level must be 1–50 characters and must not contain a new line.`
+* Another role has the requested title: `A role named “ROLE_TITLE” already exists.` This also applies if the other role is closed.
+* Extra text before the first prefix: `Invalid command format!`, followed by usage and an example.
+
 ### Closing a role: `role close`
 
 Ends recruitment while retaining the role and all its candidate records.
@@ -183,7 +216,7 @@ Run `list role` first. `INDEX` must be a positive integer shown in the current r
 The role must be `OPEN`. Every associated candidate must be `HIRED`, `REJECTED`, or `WITHDRAWN`,
 and at most one may be `HIRED`. A role with no candidates, or no hired candidate, may also be closed.
 Checks include candidates hidden by filters. Candidates loaded without a saved status receive
-`PENDING_RESUME_SCREENING` and must receive a final outcome before closure.
+`RESUME` and must receive a final outcome before closure.
 
 Example: `list role`, followed by `role close 1`.
 
@@ -237,15 +270,26 @@ Shows every unique role in RecruiterBuddy. Each role is displayed in its own box
 
 Format: `list role`
 
+Each role card also shows `Pending`, `Hired`, `Rejected`, and `Withdrawn` candidate totals, including
+zeros. For example: `Pending: 3`, `Hired: 1`, `Rejected: 2`, `Withdrawn: 0`.
+
+* Totals include every candidate associated with that role, even when a candidate-name filter hides
+  some records. Filtering candidates does not change the totals.
+* `Pending` combines all recruitment stages before a final outcome. `Hired`, `Rejected`, and
+  `Withdrawn` count their respective final outcomes; each candidate contributes to exactly one total.
+* Both `OPEN` and `CLOSED` roles show totals. An empty role shows zero for all four categories.
+* Totals refresh from the current records after additions, removals, and status changes, and are
+  reconstructed when data is loaded. They do not change candidate statuses or close roles automatically.
+
 Role indices can be used only while the role list is displayed. If a successful command such as
 adding or finding a candidate switches back to the candidate list, run `list role` again before
-using `role close` or `role delete`. Failed commands leave the current list displayed.
+using `role edit`, `role close`, or `role delete`. Failed commands leave the current list displayed.
 
 ### Editing a candidate: `edit`
 
 Edits an existing candidate.
 
-Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
+Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITLE] [t/TAG]...`
 
 * Edits the candidate at the specified `INDEX`. The index refers to the index number shown in the displayed candidate list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
@@ -253,11 +297,32 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
 * `NAME` and `PHONE_NUMBER` follow the same rules as in [`add`](#adding-a-candidate-add), including typing `a/l` and `a/p` in names as `A/L` and `A/P`.
 * When editing tags, all of the candidate's existing tags are removed; adding tags is not cumulative.
 * To remove all of a candidate's tags, enter `t/` without a tag after it.
-* A candidate's role cannot be edited, so `r/` is rejected. The candidate's status and note are also kept; use `status` or `note` to change them.
+* Use `r/ROLE_TITLE` to correct the candidate's role, on its own or with other edits. The title must
+  match an existing role, ignoring case and surrounding spaces; the saved title uses that role's spelling.
+* A transfer can leave an open or closed role, but the destination must be **OPEN**. Selecting the
+  existing role is allowed without transferring, even when it is closed.
+* The candidate's status and note are preserved. Use `status` or `note` to change them separately.
+  A `HIRED` candidate cannot transfer to a role that already has another hired candidate, including
+  one hidden by the current candidate filter. Non-hired candidates can transfer to an open role
+  even when it already has a hire. A transfer never opens or closes either role automatically.
+* Each field except `t/` may appear only once. Empty or invalid role titles are rejected using the
+  same [role-title rules](#adding-a-role-role-add) as role creation.
+* Success shows `Edited candidate: ...` with the updated name and details, refreshes the candidate
+  list to show all candidates, and saves the change. Validation failures leave records and filters unchanged.
+
+Role-related errors:
+
+* Unknown role: `No role named “ROLE_TITLE” exists. Add the role first, then edit the candidate.`
+* Closed destination: `The role “ROLE_TITLE” is closed, so candidates cannot be moved to it.`
+* Destination already has a hire: `ROLE_TITLE already has a hired candidate.`
 
 Examples:
+
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st candidate to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd candidate to be `Betsy Crower` and clears all existing tags.
+*  `edit 1 r/Data Analyst` Moves the 1st candidate to the existing open Data Analyst role, preserving
+   their status, note and other details.
+*  `edit 1 n/Alex Tan r/Data Analyst` Corrects the name and role together; the success message names Alex Tan.
 
 ### Adding or clearing a note: `note`
 
@@ -301,7 +366,7 @@ Format: `status INDEX STATUS`
 
 * Updates the status of the candidate at the specified `INDEX`. The index refers to the index number shown in the displayed candidate list. The index **must be a positive integer** 1, 2, 3, ... and cannot exceed the length of the _displayed_ candidate list.
 * The candidate's original status is replaced with the one specified in `STATUS`.
-* `STATUS` must be one of the following: `PENDING_RESUME_SCREENING`, `PENDING_RECRUITER_INTERVIEW`, `PENDING_OFFER_EXTENSION`, `PENDING_OFFER_DECISION`, `HIRED`, `REJECTED`, or `WITHDRAWN`.
+* `STATUS` must be one of the following: `RESUME`, `INTERVIEW`, `OFFER`, `DECISION`, `HIRED`, `REJECTED`, or `WITHDRAWN`.
 * `STATUS` is not case-sensitive; for example, `hired`, `Hired` and `hiRED` are treated as the same as `HIRED`.
 * Each role has one vacancy. Assigning `HIRED` fails if another candidate for the same role is already
   `HIRED`, including candidates hidden by filters. Role titles are compared without case sensitivity.
@@ -318,9 +383,8 @@ Format: `status INDEX STATUS`
 
 Example:
 
-* `status 1 pending_offer_extension`
-* `status 2 PENDING_RECRUITER_INTERVIEW`
-* `status 1 HIRED`
+* `status 1 offer`
+* `status 2 INTERVIEW`
 
 ### Deleting a candidate: `delete`
 
@@ -354,13 +418,15 @@ RecruiterBuddy automatically saves the complete candidate and role data after a 
 successfully, including commands such as `list` that do not change records. You do not need to save
 manually. Commands rejected during parsing or validation do not trigger a save.
 
-Saved roles retain their titles, required experience levels, and `OPEN` or `CLOSED` statuses after
+Upon startup, RecruiterBuddy automatically loads data saved during the previous session. Saved roles retain their titles, required experience levels, and `OPEN` or `CLOSED` statuses after
 restarting. Candidates associated with closed roles are retained too. If no data file exists,
 RecruiterBuddy starts with sample roles and candidates, not an empty data set.
 
 If saving fails, an error reports the file-access problem instead of the normal success message.
 Changes already made may remain in the current session without being saved. Resolve the file-access
 problem and run a successful command to retry saving before exiting.
+
+**Caution:** due to changes in Status names, save files from v1.3 and earlier are incompatible with later versions and will fail to load. Please backup obsolete save files and manually change any invalid Status names to valid ones (see below for information on editing the save file).
 
 ### Editing the data file
 
@@ -397,7 +463,7 @@ When editing candidates, roles and their associations:
   because closing preserves candidates. On loading, the role's stored capitalisation is used for
   its candidates. If you rename a role in the file, update every associated candidate's `role` too.
 * A candidate's saved `status` uses an uppercase status name, such as `HIRED`. If absent, it defaults
-  to `PENDING_RESUME_SCREENING`. A missing candidate `role` has no default and prevents loading;
+  to `RESUME`. A missing candidate `role` has no default and prevents loading;
   older contact-only files therefore need role information added before they can be used.
 * Keep recruitment outcomes consistent: at most one candidate per role should be `HIRED`, and closed
   roles should have no pending candidates. The status and close commands enforce these rules during
@@ -406,13 +472,36 @@ When editing candidates, roles and their associations:
 <box type="warning" seamless>
 
 **Caution:**
-Malformed JSON, invalid role fields, duplicate role titles, or a candidate referring to a nonexistent
-role prevent the whole file from loading; valid records are not loaded separately.
-RecruiterBuddy then starts with empty lists. Startup alone does not overwrite the invalid data file,
-but the next successfully executed command, including `list`, can overwrite it with the current data.
-If the lists unexpectedly appear empty, close the application window without entering any commands
-(including `exit`), then restore your backup or fix the file before restarting. No automatic backup
-or migration of old contact-only files is provided.
+The data file must contain exactly one JSON object. Keep the `persons` and `roles` lists inside
+that object instead of appending another object. Whitespace before or after it is allowed.
+Additional JSON values or other trailing text,
+malformed JSON, invalid role fields, duplicate role titles, or a candidate referring to a nonexistent
+role prevent the whole file from loading; valid records are not loaded separately. If two objects
+are accidentally joined together, neither is imported and the entire file is preserved in the backup.
+If a regular data file cannot be read or validated, RecruiterBuddy first renames it to
+`addressbook.json.bak` in the same folder, preserving its contents. Existing backups are never
+overwritten: if that name is taken, a timestamp is appended, for example
+`addressbook.json.bak.20261018-160000-123`. A numbered suffix resolves further collisions.
+
+After preserving the original, RecruiterBuddy saves a new file containing empty candidate and role
+lists. A **Recruitment data backed up** warning shows the backup's full path and restoration
+instructions. Dismiss it to continue using the app with empty lists. Restarting without entering
+any commands also keeps those lists empty; it does not load sample data.
+
+To restore your records, close RecruiterBuddy and save a separate copy of any new data you entered.
+Correct the backup's JSON or file permissions, then copy the corrected file to the original
+`data/addressbook.json` path and restart. Backups are not repaired, imported or merged automatically.
+Keep your backup until you have checked that restoration succeeded.
+
+If the backup or replacement cannot be created, an **Unable to load recruitment data** error
+identifies the data path, failure reason and backup path if one was created. The application then
+closes without opening commands. If backup failed, the original remains at its original path; if
+replacement failed after backup, the original remains in the named backup. Resolve the access problem
+or restore corrected data before restarting. Directories and symbolic links are not renamed as
+data-file backups.
+
+A genuinely missing file still starts the application with sample data; a valid file containing
+empty lists stays empty. There is no automatic migration of old contact-only files.
 </box>
 
 ### Archiving data files `[coming in v2.0]`
@@ -443,12 +532,13 @@ Action     | Format, Examples
 **Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... ` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 r/Software Engineer t/referral t/java`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
+**Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITLE] [t/TAG]...`<br> e.g.,`edit 2 n/James Lee r/Data Analyst`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List**   | `list`
 **List roles** | `list role`
 **Note**   | `note INDEX [NOTE]`<br> e.g., `note 1 Interview 2026-10-20 14:00`
 **Role add** | `role add r/ROLE_TITLE x/EXPERIENCE_LEVEL`<br> e.g., `role add r/Software Engineer x/2 years`
+**Role edit** | `role edit INDEX [r/ROLE_TITLE] [x/EXPERIENCE_LEVEL]`<br> e.g., `list role` followed by `role edit 1 r/Platform Engineer x/5 years`
 **Role close** | `role close INDEX`<br> e.g., `list role` followed by `role close 1`
 **Role delete** | `role delete INDEX`<br> e.g., `list role` followed by `role delete 1`
 **Status** | `status INDEX STATUS`<br> e.g., `status 1 HIRED`
