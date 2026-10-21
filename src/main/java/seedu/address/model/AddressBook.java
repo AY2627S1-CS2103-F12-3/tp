@@ -1,6 +1,7 @@
 package seedu.address.model;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.List;
 import java.util.Objects;
@@ -124,11 +125,19 @@ public class AddressBook implements ReadOnlyAddressBook {
     }
 
     /**
-     * Replaces {@code target} with {@code editedRole}.
+     * Replaces {@code target} with {@code editedRole} and updates all associated candidate titles.
+     * Role validation precedes all changes; role-only copies preserve candidate identity and details.
      */
     public void setRole(Role target, Role editedRole) {
-        requireNonNull(editedRole);
+        requireAllNonNull(target, editedRole);
         roles.setRole(target, editedRole);
+        if (!target.getTitle().equals(editedRole.getTitle())) {
+            List<Person> updatedPersons = persons.asUnmodifiableObservableList().stream()
+                    .map(person -> person.getRole().isSameTitle(target.getTitle())
+                            ? person.withRole(editedRole.getTitle()) : person)
+                    .toList();
+            persons.setPersons(updatedPersons);
+        }
     }
 
     /**

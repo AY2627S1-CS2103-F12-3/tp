@@ -9,13 +9,12 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.EditRoleCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.role.ExperienceLevel;
+import seedu.address.model.role.RoleTitle;
 
 /**
- * Parses a displayed role index and its replacement experience level.
+ * Parses a displayed role index and optional replacement title and experience level.
  */
 public class EditRoleCommandParser implements Parser<EditRoleCommand> {
-
-    public static final String MESSAGE_MISSING_FIELD = "Missing required field: " + PREFIX_EXPERIENCE_LEVEL + ".";
 
     @Override
     public EditRoleCommand parse(String args) throws ParseException {
@@ -24,16 +23,15 @@ public class EditRoleCommandParser implements Parser<EditRoleCommand> {
         String invalidFormatMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditRoleCommand.MESSAGE_USAGE);
         Index index = ParserUtil.parseRoleIndex(argMultimap.getPreamble(), invalidFormatMessage);
 
-        // Recognize r/ so a title edit cannot silently become part of the experience description.
-        if (argMultimap.getValue(PREFIX_ROLE_TITLE).isPresent()) {
-            throw new ParseException(invalidFormatMessage);
+        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_ROLE_TITLE, PREFIX_EXPERIENCE_LEVEL);
+        if (argMultimap.getValue(PREFIX_ROLE_TITLE).isEmpty()
+                && argMultimap.getValue(PREFIX_EXPERIENCE_LEVEL).isEmpty()) {
+            throw new ParseException(EditRoleCommand.MESSAGE_NOT_EDITED);
         }
-        if (argMultimap.getValue(PREFIX_EXPERIENCE_LEVEL).isEmpty()) {
-            throw new ParseException(MESSAGE_MISSING_FIELD);
-        }
-        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_EXPERIENCE_LEVEL);
-        ExperienceLevel experienceLevel = ParserUtil.parseExperienceLevel(
-                argMultimap.getValue(PREFIX_EXPERIENCE_LEVEL).get());
-        return new EditRoleCommand(index, experienceLevel);
+        RoleTitle title = argMultimap.getValue(PREFIX_ROLE_TITLE).isPresent()
+                ? ParserUtil.parseRoleTitle(argMultimap.getValue(PREFIX_ROLE_TITLE).get()) : null;
+        ExperienceLevel experienceLevel = argMultimap.getValue(PREFIX_EXPERIENCE_LEVEL).isPresent()
+                ? ParserUtil.parseExperienceLevel(argMultimap.getValue(PREFIX_EXPERIENCE_LEVEL).get()) : null;
+        return new EditRoleCommand(index, title, experienceLevel);
     }
 }

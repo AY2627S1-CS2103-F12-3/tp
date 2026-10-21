@@ -5,6 +5,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_EXPERIENCE_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ROLE_TITLE;
 
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.RoleCommandParser;
 import seedu.address.model.Model;
@@ -27,7 +28,7 @@ public class AddRoleCommand extends Command {
             + PREFIX_EXPERIENCE_LEVEL + "2 years";
 
     public static final String MESSAGE_SUCCESS = "Added open role: %1$s.";
-    public static final String MESSAGE_DUPLICATE_ROLE = "A role named “%1$s” already exists.";
+    public static final String MESSAGE_DUPLICATE_ROLE = Messages.MESSAGE_DUPLICATE_ROLE;
 
     private final Role toAdd;
 
