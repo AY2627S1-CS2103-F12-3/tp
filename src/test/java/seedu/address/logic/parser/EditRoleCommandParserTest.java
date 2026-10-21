@@ -12,9 +12,11 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.EditRoleCommand;
 import seedu.address.model.role.ExperienceLevel;
+import seedu.address.model.role.RoleTitle;
 
 public class EditRoleCommandParserTest {
     private static final int MAX_EXPERIENCE_LENGTH = 50;
+    private static final int MAX_TITLE_LENGTH = 100;
     private static final String INVALID_FORMAT_MESSAGE =
             String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditRoleCommand.MESSAGE_USAGE);
 
@@ -37,8 +39,8 @@ public class EditRoleCommandParserTest {
     }
 
     @Test
-    public void parse_missingExperience_failure() {
-        assertParseFailure(parser, " 1", EditRoleCommandParser.MESSAGE_MISSING_FIELD);
+    public void parse_noFields_failure() {
+        assertParseFailure(parser, " 1", EditRoleCommand.MESSAGE_NOT_EDITED);
     }
 
     @Test
@@ -69,10 +71,37 @@ public class EditRoleCommandParserTest {
     }
 
     @Test
-    public void parse_titleEdit_failure() {
-        for (String args : new String[] {" 1 r/New title", " 1 x/Senior r/New title",
-            " 1 r/New title x/Senior", " 1 x/Senior r/"}) {
-            assertParseFailure(parser, args, INVALID_FORMAT_MESSAGE);
+    public void parse_validTitle_success() {
+        for (String title : new String[] {"A", "A".repeat(MAX_TITLE_LENGTH), "R&D / Engineer's - 2.0", "工程师"}) {
+            assertParseSuccess(parser, " 1 r/  " + title + "  ",
+                    new EditRoleCommand(Index.fromOneBased(1), new RoleTitle(title), null));
         }
+    }
+
+    @Test
+    public void parse_combinedEdits_acceptsEitherFieldOrder() {
+        EditRoleCommand expected = new EditRoleCommand(Index.fromOneBased(1), new RoleTitle("New title"),
+                new ExperienceLevel("Senior"));
+        assertParseSuccess(parser, " 1 r/New title x/Senior", expected);
+        assertParseSuccess(parser, " 1 x/Senior r/New title", expected);
+    }
+
+    @Test
+    public void parse_invalidTitle_failure() {
+        for (String title : new String[] {"", "  ", "123", "Bad@Title", "A".repeat(MAX_TITLE_LENGTH + 1),
+            "Software\nEngineer", "Software\tEngineer"}) {
+            assertParseFailure(parser, " 1 r/" + title, RoleTitle.MESSAGE_CONSTRAINTS);
+        }
+        assertParseFailure(parser, " 1 x/Senior r/", RoleTitle.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, " 1 r/Valid title x/", ExperienceLevel.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
+    public void parse_repeatedTitleOrBothFields_failure() {
+        assertParseFailure(parser, " 1 r/New title r/New title",
+                Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_ROLE_TITLE));
+        assertParseFailure(parser, " 1 r/A r/B x/Junior x/Senior",
+                Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_ROLE_TITLE,
+                        CliSyntax.PREFIX_EXPERIENCE_LEVEL));
     }
 }

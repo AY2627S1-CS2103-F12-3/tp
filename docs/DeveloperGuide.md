@@ -205,21 +205,17 @@ observable collection and resets the role filter to show all roles. The command 
 `Added open role: TITLE.` with the default candidate-list view; `list role` displays the updated roles.
 Parsing or duplicate rejection leaves the stored records unchanged.
 
-#### Correcting a role's required experience
+#### Correcting a role's title or required experience
 
-`RoleCommandParser` delegates `edit` to `EditRoleCommandParser`. The parser reads the displayed-role index with `ParserUtil#parseRoleIndex`, requires exactly one `x/` using the existing duplicate-prefix check, and validates its value with `ParserUtil#parseExperienceLevel`. It also recognises `r/` so an unsupported title edit cannot silently become part of the experience description. An invalid index is reported first, followed by unsupported title input, missing/repeated experience prefixes, and experience-value validation.
+`RoleCommandParser` delegates `edit` to `EditRoleCommandParser`. The parser reads the displayed-role index with `ParserUtil#parseRoleIndex`, rejects repeated `r/` or `x/` prefixes using the existing duplicate-prefix helper, and requires at least one editable field. Supplied values use `ParserUtil#parseRoleTitle` and `ParserUtil#parseExperienceLevel`; omitted fields are left unchanged. An invalid index is reported first, followed by duplicate prefixes, missing fields, title validation and experience validation.
 
-`EditRoleCommand` requires the role view, resolves the index against `Model#getFilteredRoleList`,
-and replaces the immutable role through `Model#setRole`, retaining its title and `RoleStatus`.
-Corrections are allowed for both open and closed roles and never reopen recruitment. All candidate
-objects and their associations remain unchanged. Selecting the current experience level is a
-successful no-op. The role filter and candidate filter are preserved.
+`EditRoleCommand` requires the role view and resolves the index against `Model#getFilteredRoleList`. It constructs the complete replacement role, preserving its status and omitted fields, then checks the full role collection for a different role with the requested title. Duplicate comparison ignores case and surrounding whitespace, including closed roles; capitalization corrections to the selected role are allowed. The shared duplicate-role message is held in `Messages`. Corrections never reopen recruitment or merge two openings.
 
-The existing observable-role-list binding refreshes the role card without a new UI component.
-The result shows `Edited role: TITLE.` and keeps the role view; `LogicManager` logs the command and
-saves the complete state through the existing path. Parsing and command-validation failures do not
-save or mutate records. The existing save-error behaviour described below remains unchanged.
-Title editing is deliberately separate because it also needs to update candidate associations.
+`Model#setRole` delegates to `AddressBook#setRole`. The model validates the role replacement through `UniqueRoleList` before changing either collection. If the title's exact spelling changes, every candidate whose old title matches case-insensitively is updated to the new title using `Person#withRole`. This includes candidates hidden by the current filter. Their other details and order are unchanged; unrelated candidates retain their existing instances. An experience-only edit does not replace candidate objects. The existing observable lists are retained, so role and candidate cards refresh without new UI components. Filter predicates are retained and reevaluated after list changes.
+
+The result shows `Edited role: TITLE.` with the updated title and keeps the role view. `EditRoleCommand` logs accepted corrections and rejected duplicate titles; `LogicManager` saves both collections through the existing path. Parser or command-validation failures leave records, filters and the saved file unchanged. The existing save-error behavior described below remains unchanged: this is not a transactional filesystem save. Once renamed, a role's old title is available again; no title alias or storage-schema migration is introduced.
+
+<puml src="diagrams/EditRoleSequenceDiagram.puml" width="800" alt="Sequence for validating a role edit, updating associated candidates and saving both collections" />
 
 #### Saving and restoring associations
 
@@ -553,7 +549,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | Priority | As a … | I want to … | So that I can … |
 |----------|--------|-------------|-----------------|
 | `* * *` | department recruiter | add a role opening with its title and required experience level | track an active recruitment need in my department |
-| `* *` | department recruiter | correct a role's required experience without recreating it | keep its candidates and recruitment history intact |
+| `* *` | department recruiter | correct a role's title or required experience without recreating it | keep its candidates and recruitment history intact |
 | `* * *` | department recruiter | view all role openings and whether they are open or closed | review the roles tracked by my department |
 | `* *` | department recruiter | see pending and final-outcome totals for each role | assess recruitment progress without inspecting every candidate |
 | `* * *` | department recruiter | close a role opening | prevent new candidates from being added after recruitment ends while retaining existing candidate records |
@@ -1065,6 +1061,34 @@ Use case ends.
 
 Use case ends.
 
+#### UC26 — Correct Role Details
+
+**System:** RecruiterBuddy<br>
+**Actor:** Recruiter<br>
+**Guarantees:** Role status and candidate details are preserved. Rejected input changes no records.
+
+**Main success scenario:**
+
+1. Recruiter requests the list of roles.
+1. RecruiterBuddy displays the roles and their indices.
+1. Recruiter identifies a displayed role and provides a corrected title, required experience, or both.
+1. RecruiterBuddy updates the role and every associated candidate's role title, then saves the records.
+1. RecruiterBuddy confirms the update using the role's updated title.
+
+Use case ends.
+
+**Extensions:**
+
+* 3a. The index or field input is invalid, no fields are supplied, or a field is repeated.
+  * 3a1. RecruiterBuddy reports the input error without changing records.
+  * Use case ends.
+* 4a. Another role already has the requested title, ignoring case and surrounding whitespace.
+  * 4a1. RecruiterBuddy rejects the complete edit without changing either role fields or candidates.
+  * Use case ends.
+* 4b. The updated records cannot be saved.
+  * 4b1. RecruiterBuddy reports the save error instead of the normal confirmation; changes may remain in the current session.
+  * Use case ends.
+
 *{More to be added}*
 
 ### Non-Functional Requirements
@@ -1194,7 +1218,7 @@ Always switch back with `list` or `list role` before using indices for that list
    printable characters versus 51. The boundary values succeed; the longer values fail.
    Use different valid titles for the experience checks so duplicate rejection does not mask validation.
 
-#### Role experience corrections
+#### Role corrections
 
 1. Run `list role`, then `role edit 1 x/5 years`.<br>
    Expected: `Edited role: QA Engineer.` The role card shows `5 years`, with the title and `OPEN`
@@ -1211,11 +1235,20 @@ Always switch back with `list` or `list role` before using indices for that list
    changing its filter; only Alice is still displayed. Run `list` to restore all candidates.
 
 1. Run `list role` and try `role edit 0 x/Senior`, `role edit 99 x/Senior`, `role edit 1`,
-   `role edit 1 x/`, `role edit 1 x/Junior x/Senior`, and `role edit 1 x/Senior r/New title`.<br>
-   Expected: Respectively, invalid-index errors, missing `x/`, invalid experience, repeated `x/`,
-   and invalid-format errors. Records, current filters, and saved data remain unchanged.
+   `role edit 1 x/`, `role edit 1 x/Junior x/Senior`, and `role edit 1 x/Senior r/`.<br>
+   Expected: Respectively, invalid-index errors, no editable fields, invalid experience, repeated `x/`,
+   and invalid title errors. Records, current filters, and saved data remain unchanged.
    An experience of exactly 50 printable characters succeeds; 51 is rejected. Embedded tabs,
    line separators, and control characters are not valid experience descriptions.
+
+1. Run `find Alice`, `list role`, then `role edit 1 r/Platform Engineer x/Senior`.<br>
+   Expected: `Edited role: Platform Engineer.` Both Alice and hidden Ben now refer to Platform Engineer; names, contact details, notes, tags and statuses are unchanged. The role remains OPEN, its experience is Senior, and the role view remains displayed. Run `help` to show candidates without resetting the filter; only Alice is displayed, with the new title. Run `list` to see both candidates. Restart and verify that the role and both associations persist.
+
+1. Restore the fixture, run `list role`, then try `role edit 1 r/qa analyst x/Senior` and `role edit 1 r/QA Engineer r/Other`.<br>
+   Expected: The first reports the duplicate QA Analyst title without changing experience or candidates; the second reports repeated `r/`. Repeat the duplicate check after closing the empty analyst role: its title remains reserved. An invalid title or experience in a combined edit must leave both fields and all candidates unchanged.
+
+1. Restore the fixture, run `list role`, then `role edit 1 r/qa ENGINEER`.<br>
+   Expected: The role and both candidates use exactly `qa ENGINEER`. Repeating that edit is a successful no-op. Rename the empty analyst role after closing it; it remains CLOSED. Create a new role with its old title: existing candidates, if any, remain with the renamed role rather than the new opening.
 
 #### Closure and candidate outcomes
 
