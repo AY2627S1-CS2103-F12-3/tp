@@ -76,6 +76,9 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
+* A parameter may contain text such as `s/o` or `c/o`, as long as it is not one of the command's prefixes.<br>
+  For example, in `n/Ravi s/o Kumar` the name is `Ravi s/o Kumar`, because `s/` is not a prefix of `add`.
+
 * Extraneous parameters for `help`, `exit`, and `clear` are ignored.<br>
   For example, `help 123` is interpreted as `help`. `list` accepts only `list` or `list role`; anything else is rejected.
 
@@ -97,6 +100,17 @@ Adds a candidate who is applying for a role.
 
 Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
 
+* `NAME`:
+  * Is 1 to 100 characters long.
+  * Starts with a letter, which can be from any language, such as `José` or `山田太郎`.
+  * Can contain letters, digits, spaces and the symbols `'` `-` `.` `,` `/` `(` `)`.
+
+  Capitalisation is kept as you type it.
+* `PHONE_NUMBER`:
+  * Has 8 to 15 digits, with an optional `+` at the start.
+  * Can include spaces and hyphens, such as `+65 9123-4567`.
+
+  Spaces and hyphens are ignored and removed when the number is saved, so `+65 9123-4567` is shown as `+6591234567`.
 * `ROLE` must be the title of an existing role that is `OPEN`. Use [`role add`](#adding-a-role-role-add) to create the role first.
 * `ROLE` is matched ignoring case; for example, `r/software engineer` matches the role `Software Engineer`. The candidate is saved with the role's own spelling of the title.
 * Each candidate needs their own email and phone number. A candidate cannot be added if another candidate already uses the same email or the same phone number, and the error message names that candidate.
@@ -112,9 +126,15 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
 **Tip:** A candidate can have any number of tags, including zero.
 </box>
 
+<box type="tip" seamless>
+
+**Tip:** You can type `s/o` and `d/o` in names as usual. For `a/l` and `a/p`, type `A/L` and `A/P` instead, since a lowercase `a/` starts the address.
+</box>
+
 Examples:
 * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 r/Software Engineer`
-* `add n/Betsy Crowe t/referral e/betsycrowe@example.com a/Newgate Prison p/1234567 r/product manager t/java`
+* `add n/Betsy Crowe t/referral e/betsycrowe@example.com a/Newgate Prison p/12345678 r/product manager t/java`
+* `add n/Ravi s/o Kumar p/+65 9123-4567 e/ravi@example.com a/Bedok North r/Software Engineer` Adds `Ravi s/o Kumar` with the phone number `+6591234567`.
 
 ### Adding a role: `role add`
 
@@ -273,11 +293,12 @@ using `role edit`, `role close`, or `role delete`. Failed commands leave the cur
 
 Edits an existing candidate.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITLE] [t/TAG]...`
+Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITLE] [t/TAG]...`
 
 * Edits the candidate at the specified `INDEX`. The index refers to the index number shown in the displayed candidate list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
+* `NAME` and `PHONE_NUMBER` follow the same rules as in [`add`](#adding-a-candidate-add), including typing `a/l` and `a/p` in names as `A/L` and `A/P`.
 * When editing tags, all of the candidate's existing tags are removed; adding tags is not cumulative.
 * To remove all of a candidate's tags, enter `t/` without a tag after it.
 * Use `r/ROLE_TITLE` to correct the candidate's role, on its own or with other edits. The title must
@@ -438,6 +459,8 @@ For example, this complete file contains one role and no candidates:
 
 When editing candidates, roles and their associations:
 
+* Candidate names and phone numbers must follow the same rules as in [`add`](#adding-a-candidate-add).
+  Files from older versions may contain phone numbers with fewer than 8 digits, which need updating before the file can load.
 * Every role needs `title`, `experienceLevel`, and `status`. Title and experience values must satisfy
   the same constraints as `role add`; role status must be exactly `OPEN` or `CLOSED` in uppercase.
 * Do not repeat role titles, even with different capitalisation or experience levels.

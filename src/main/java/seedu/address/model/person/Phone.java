@@ -9,28 +9,43 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
  */
 public class Phone {
 
+    public static final int MIN_DIGITS = 8;
+    public static final int MAX_DIGITS = 15;
 
-    public static final String MESSAGE_CONSTRAINTS =
-            "Phone numbers should only contain digits, and should be at least 3 digits long";
-    public static final String VALIDATION_REGEX = "\\d{3,}";
+    public static final String MESSAGE_CONSTRAINTS = "Phone numbers should have " + MIN_DIGITS + " to "
+            + MAX_DIGITS + " digits, with an optional + at the start. Spaces and hyphens are ignored, "
+            + "such as in +65 9123-4567.";
+
+    /** An optional leading '+' and the allowed number of digits, checked after separators are removed. */
+    public static final String VALIDATION_REGEX = "\\+?\\d{" + MIN_DIGITS + "," + MAX_DIGITS + "}";
+
+    private static final String SEPARATOR_REGEX = "[ -]";
+
+    /** The phone number without separators, e.g. {@code +6591234567}. */
     public final String value;
 
     /**
-     * Constructs a {@code Phone}.
+     * Constructs a {@code Phone}, removing all spaces and hyphens so that differently formatted inputs
+     * of the same number are stored identically.
      *
      * @param phone A valid phone number.
      */
     public Phone(String phone) {
         requireNonNull(phone);
         checkArgument(isValidPhone(phone), MESSAGE_CONSTRAINTS);
-        value = phone;
+        value = removeSeparators(phone);
     }
 
     /**
-     * Returns true if a given string is a valid phone number.
+     * Returns true if a given string is a valid phone number once its spaces and hyphens are ignored.
      */
     public static boolean isValidPhone(String test) {
-        return test.matches(VALIDATION_REGEX);
+        requireNonNull(test);
+        return removeSeparators(test).matches(VALIDATION_REGEX);
+    }
+
+    private static String removeSeparators(String phone) {
+        return phone.replaceAll(SEPARATOR_REGEX, "");
     }
 
     @Override
