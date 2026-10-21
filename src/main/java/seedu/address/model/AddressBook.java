@@ -126,7 +126,8 @@ public class AddressBook implements ReadOnlyAddressBook {
 
     /**
      * Replaces {@code target} with {@code editedRole} and updates all associated candidate titles.
-     * Role validation precedes all changes; role-only copies preserve candidate identity and details.
+     * If the title changes, every candidate with the old title is updated to the new title;
+     * their other details are unchanged. Role validation precedes all changes.
      */
     public void setRole(Role target, Role editedRole) {
         requireAllNonNull(target, editedRole);
@@ -136,6 +137,7 @@ public class AddressBook implements ReadOnlyAddressBook {
                     .map(person -> person.getRole().isSameTitle(target.getTitle())
                             ? person.withRole(editedRole.getTitle()) : person)
                     .toList();
+            // The existing list is unique and only role titles change, so duplicate checks still pass.
             persons.setPersons(updatedPersons);
         }
     }
