@@ -118,6 +118,24 @@ public class RoleCandidateCountsIntegrationTest {
     }
 
     @Test
+    public void execute_reassignsCandidateRole_updatesBothCountsAndPersists() throws Exception {
+        logic.execute("find Alice");
+        var candidates = logic.getPersonList();
+        AtomicInteger changes = new AtomicInteger();
+        candidates.addListener((ListChangeListener<Person>) change -> changes.incrementAndGet());
+
+        logic.execute("edit 1 r/Product Analyst");
+
+        assertTrue(changes.get() > 0);
+        assertSame(candidates, logic.getPersonList());
+        assertEquals(3, logic.getFilteredPersonList().size());
+        assertCounts(SOFTWARE_ENGINEER, 0, 0, 1, 0);
+        assertCounts(PRODUCT_ANALYST, 1, 0, 0, 0);
+        assertCounts(CLOSED_DESIGNER, 0, 0, 0, 1);
+        assertEquals(model.getAddressBook(), addressBookStorage.readAddressBook().orElseThrow());
+    }
+
+    @Test
     public void execute_saveAndReload_reconstructsCountsWithoutPersistingSummary() throws Exception {
         logic.execute("status 1 HIRED");
         var candidates = logic.getPersonList();

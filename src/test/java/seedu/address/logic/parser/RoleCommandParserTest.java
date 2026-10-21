@@ -13,11 +13,19 @@ import seedu.address.logic.commands.AddRoleCommand;
 import seedu.address.logic.commands.CloseRoleCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.DeleteRoleCommand;
+import seedu.address.logic.commands.EditRoleCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.role.ExperienceLevel;
 
 public class RoleCommandParserTest {
 
     private final RoleCommandParser parser = new RoleCommandParser();
+
+    @Test
+    public void parse_editRoleCommand_success() throws Exception {
+        assertEquals(new EditRoleCommand(Index.fromOneBased(1), new ExperienceLevel("Senior")),
+                parser.parse("edit 1 x/Senior"));
+    }
 
     @Test
     public void parse_deleteRoleCommand_success() throws Exception {

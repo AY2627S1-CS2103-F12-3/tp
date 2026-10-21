@@ -317,8 +317,8 @@ public class LogicManagerTest {
         ReadOnlyAddressBook saved = addressBookStorage.readAddressBook().orElseThrow();
         Person candidate = saved.getPersonList().getFirst();
 
-        for (Status pending : new Status[]{Status.PENDING_RESUME_SCREENING, Status.PENDING_RECRUITER_INTERVIEW,
-            Status.PENDING_OFFER_EXTENSION, Status.PENDING_OFFER_DECISION}) {
+        for (Status pending : new Status[]{Status.RESUME, Status.INTERVIEW,
+            Status.OFFER, Status.DECISION}) {
             assertThrows(CommandException.class, String.format(StatusCommand.MESSAGE_PENDING_STATUS_FOR_CLOSED_ROLE,
                     candidate.getName(), candidate.getRole()), () -> logic.execute("status 1 " + pending.name()));
             assertEquals(saved, model.getAddressBook());
@@ -332,9 +332,9 @@ public class LogicManagerTest {
     public void execute_pendingCorrectionForOpenRole_persistsAndPreventsClosure() throws Exception {
         model.addRole(SOFTWARE_ENGINEER);
         model.addPerson(new PersonBuilder().withStatus(Status.HIRED).build());
-        logic.execute("status 1 PENDING_OFFER_DECISION");
+        logic.execute("status 1 DECISION");
         ReadOnlyAddressBook saved = addressBookStorage.readAddressBook().orElseThrow();
-        assertEquals(Status.PENDING_OFFER_DECISION, saved.getPersonList().getFirst().getStatus());
+        assertEquals(Status.DECISION, saved.getPersonList().getFirst().getStatus());
         assertEquals(RoleStatus.OPEN, saved.getRoleList().getFirst().getStatus());
         logic.execute("list role");
         assertThrows(CommandException.class, String.format(CloseRoleCommand.MESSAGE_PENDING_CANDIDATES,

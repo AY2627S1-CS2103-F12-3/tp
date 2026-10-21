@@ -16,10 +16,7 @@
 * This project builds on [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) by the
   [SE-EDU initiative](https://se-education.org). Its existing architecture and documentation form the
   starting point for RecruiterBuddy.
-* Kavin Parthipan (`kpkavin04`) used OpenAI Codex to assist with requirements analysis, implementation,
-  tests, review, and documentation for the persistent role model, role commands, role-card summaries, and associated
-  candidate-status and displayed-list safeguards. This acknowledgement covers that contribution,
-  not other team members' tool usage.
+* Kavin Parthipan (`kpkavin04`) used OpenAI Codex to assist with requirements analysis, implementation, tests, review, and documentation for candidate role reassignment, the persistent role model, role commands, role-card summaries, associated candidate-status and displayed-list safeguards, and safe startup after recruitment-data loading failures. This acknowledgement covers that contribution, not other team members' tool usage.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -208,13 +205,29 @@ observable collection and resets the role filter to show all roles. The command 
 `Added open role: TITLE.` with the default candidate-list view; `list role` displays the updated roles.
 Parsing or duplicate rejection leaves the stored records unchanged.
 
+#### Correcting a role's required experience
+
+`RoleCommandParser` delegates `edit` to `EditRoleCommandParser`. The parser reads the displayed-role index with `ParserUtil#parseRoleIndex`, requires exactly one `x/` using the existing duplicate-prefix check, and validates its value with `ParserUtil#parseExperienceLevel`. It also recognises `r/` so an unsupported title edit cannot silently become part of the experience description. An invalid index is reported first, followed by unsupported title input, missing/repeated experience prefixes, and experience-value validation.
+
+`EditRoleCommand` requires the role view, resolves the index against `Model#getFilteredRoleList`,
+and replaces the immutable role through `Model#setRole`, retaining its title and `RoleStatus`.
+Corrections are allowed for both open and closed roles and never reopen recruitment. All candidate
+objects and their associations remain unchanged. Selecting the current experience level is a
+successful no-op. The role filter and candidate filter are preserved.
+
+The existing observable-role-list binding refreshes the role card without a new UI component.
+The result shows `Edited role: TITLE.` and keeps the role view; `LogicManager` logs the command and
+saves the complete state through the existing path. Parsing and command-validation failures do not
+save or mutate records. The existing save-error behaviour described below remains unchanged.
+Title editing is deliberately separate because it also needs to update candidate associations.
+
 #### Saving and restoring associations
 
 After a command executes successfully, `LogicManager#execute` asks `Storage` to save the complete
 address book, including both collections. This also happens for successful read-only commands.
 Parsing and command-validation failures do not reach the save call. Save errors become
-`CommandException`s; earlier in-memory changes are not rolled back. This is not a transactional save
-or an automatic backup mechanism.
+`CommandException`s; earlier in-memory changes are not rolled back. Normal command saves are not
+transactional and do not create backups. Startup recovery below handles unreadable data separately.
 
 `JsonSerializableAddressBook#toModelType` reconstructs roles before candidates. Each `JsonAdaptedRole`
 validates its required fields and exact `OPEN`/`CLOSED` enum name. Duplicate titles are rejected using
@@ -223,15 +236,58 @@ replaces the candidate's role title with that role's canonical stored title. Clo
 references because closure retains candidates.
 
 An absent `roles` array is treated as empty, but loading still fails if a candidate lacks a role or
-references a missing one. A missing candidate status defaults to `PENDING_RESUME_SCREENING`, whereas
+references a missing one. A missing candidate status defaults to `RESUME`, whereas
 a missing role status is invalid. There is no automatic migration from old contact-only records.
 Loading validates fields, duplicate records, and references; it does not enforce all command-level
 recruitment rules, such as the maximum number of hired candidates in hand-edited data.
 
-Invalid data is reported as `DataLoadingException`. `MainApp` starts with an empty `AddressBook`
-after a load failure, without partially importing valid records or immediately overwriting the file.
-If the file is absent instead, it uses `SampleDataUtil#getSampleAddressBook`. The next successfully
-executed command saves the current state, so users must recover invalid files before issuing commands.
+#### Protecting unreadable recruitment data
+
+Invalid data is reported as `DataLoadingException`. JSON `null` roots and null candidate, role or tag
+entries also fail loading rather than bypassing the failure path with a null-pointer exception.
+`JsonUtil#fromJsonString` reads through a managed Jackson parser and checks for end of input after
+deserializing the first value. Additional root values or malformed trailing text fail loading;
+ordinary surrounding whitespace remains valid. This prevents a later save from silently discarding
+content that Jackson would otherwise ignore. Recovery preserves the entire original file, not just
+the first object, and does not attempt to combine multiple objects.
+`JsonUtil#readJsonFile` returns an empty optional only when the file is known not to exist; an
+indeterminate existence check does not silently treat an inaccessible file as missing.
+
+`MainApp#init` attempts recovery after a recruitment-data loading failure. `RecruitmentDataRecovery`
+first checks that the source is a regular file without following symbolic links, then moves it to a
+sibling `.bak` path. `Files.move` does not use `REPLACE_EXISTING`: an existing backup, including one
+created after the naming decision, is not replaced. A local timestamp in `yyyyMMdd-HHmmss-SSS` format
+and then a numbered suffix resolve collisions. The format avoids characters forbidden in Windows
+filenames. The original bytes are moved, not parsed, repaired or partially imported.
+
+Only after backup succeeds does recovery write an empty `JsonSerializableAddressBook` at the original
+path using `CREATE_NEW`. This refuses to overwrite a file that appears during recovery. Persisting
+the empty replacement before initializing commands also makes the next startup stay empty, even if
+the user exits without executing a command. The existing missing-file sample-data policy is not used
+for this recovery path.
+
+`MainApp#start` asks `UiManager` to show a warning on the JavaFX thread before opening the command
+window. The warning names the full backup and replacement paths and explains manual restoration.
+No automatic merge is attempted: users must preserve new records separately before restoring.
+`StartupDataNotice` holds the notification text and fatal/non-fatal outcome independently of JavaFX.
+Lifecycle tests capture those real notices through the notification boundary; separate notice tests
+check paths and restoration instructions without substituting the message-generation logic.
+
+If backup or replacement creation throws an I/O or security exception, initialization returns before
+creating the model, logic or command UI. The startup error names the original path, failure reason,
+and backup path if the move succeeded. JavaFX shuts down after dismissal. A directory or symbolic
+link is not moved. `MainApp#stop` skips preference saving when no model was initialized. Preference
+loading still runs before recruitment data is loaded. Preference files use the same single-root
+JSON check; invalid preferences retain the existing default-settings fallback rather than using
+recruitment-data backup recovery.
+
+<puml src="diagrams/RecruitmentDataStartupActivityDiagram.puml" width="550"
+  alt="Startup branches for valid, missing and unreadable recruitment data" />
+
+Recovery preserves the source before exposing any command that can reach the normal save path.
+If recovery cannot complete safely, startup remains blocked rather than risking the original or its
+backup. If the file is genuinely absent instead, startup still uses
+`SampleDataUtil#getSampleAddressBook`. A valid empty file loads empty lists, not sample data.
 
 ### Role lifecycle and candidate safeguards
 
@@ -243,8 +299,7 @@ executed command saves the current state, so users must recover invalid files be
 `Model#getFilteredRoleList` and rejects an already closed role.
 
 Candidate checks use the complete `ReadOnlyAddressBook#getPersonList`, not the filtered candidate
-list, matching role titles without case sensitivity. `Status#isPending` classifies every status
-except `HIRED`, `REJECTED`, and `WITHDRAWN` as pending. Closure rejects pending candidates with their
+list, matching role titles without case sensitivity. `Status#isPending` classifies statuses `RESUME`, `INTERVIEW`, `OFFER` and `DECISION` as pending. Closure rejects pending candidates with their
 count, then rejects more than one hired candidate. No candidates, or no hired candidate, is allowed.
 After validation, `Model#setRole` replaces the immutable role with a `CLOSED` copy. Candidate records
 and statuses remain unchanged. The observable role list refreshes, the command result keeps it
@@ -264,8 +319,9 @@ or reassigns candidates. It is immediate and has no undo operation in the MVP.
 
 #### Status changes and one hire per role
 
-Before assigning `HIRED`, `StatusCommand` checks all stored candidates for another hire with a
-case-insensitively matching role title, excluding the selected candidate by candidate identity.
+Before assigning `HIRED`, `StatusCommand` uses `CandidateRoleChecks` to check all stored candidates
+for another hire with a case-insensitively matching role title, excluding the selected candidate by
+candidate identity.
 Reapplying `HIRED` to that candidate is allowed if there is no other hire. Moving an existing hire to
 another permitted status frees the vacancy; hiring a candidate never closes the role automatically.
 
@@ -284,7 +340,7 @@ in-memory mutation, as explained in [Saving and restoring associations](#saving-
 
 Listing roles retains the candidate filter. Candidate-index commands use the view flag rather than
 an artificial empty candidate list. If a successful candidate addition switches the UI to candidates,
-both role commands reject indices until `list role` is run again. See the
+role edit, close, and delete reject indices until `list role` is run again. See the
 [role management manual checks](#role-management) for reproducible regression scenarios.
 
 ### Candidate-status totals on role cards
@@ -311,9 +367,35 @@ and command feedback are unchanged.
 
 Unit tests cover classification, title matching, empty states, snapshots, and mixed-role data.
 Logic integration tests check unfiltered observation, status changes, additions, deletion, role
-reassignment through the existing model API, resets, and reload. The existing Codecov exclusions for
+reassignment through the edit command and model API, resets, and reload. The existing Codecov exclusions for
 `RoleCard`, `RoleListPanel`, and `MainWindow` remain unchanged; manual packaged-JAR tests cover their
 rendering and refresh wiring rather than treating excluded UI code as automatically verified.
+
+### Correcting a candidate's role
+
+`EditCommandParser` accepts `r/` as an optional, non-repeatable edit field. It uses
+`ParserUtil#parseRoleTitle` for the existing title constraints and stores the result in
+`EditPersonDescriptor`, including its copy, equality and diagnostic-string behaviour.
+
+`EditCommand` resolves an explicitly requested role through `Model#findRole` before replacing any
+records or changing filters. A missing role is rejected; a different role must be open. The source
+may be open or closed, and selecting the existing role remains a permitted no-op. Resolution uses
+case-insensitive matching and the stored role's canonical spelling. Omitting `r/` preserves the role.
+The shared `EditCommand#isRoleChanged` predicate keeps the closed-destination and hiring guards
+consistent about whether the operation actually transfers the candidate.
+
+The edited immutable `Person` keeps its status and note, and keeps every other field not explicitly
+edited. The existing candidate-identity duplicate check is unchanged. For a real role transfer,
+`CandidateRoleChecks#verifyHiringAllowed` rejects a `HIRED` candidate if another stored candidate
+for the destination is hired. It uses all records, not the filtered list, and excludes the original
+candidate by identity rather than the edited name. `StatusCommand` shares this check to prevent the
+two workflows from implementing different single-vacancy rules.
+
+After validation succeeds, `Model#setPerson` updates the observable candidate collection and the
+candidate filter resets to show all records. The existing `Edited candidate: ...` result formats the
+updated candidate, including the new name and canonical role. Normal `LogicManager` saving persists
+the association without a JSON schema change. Validation failures leave records and filters
+unchanged and do not save. Neither role's status changes automatically.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -471,11 +553,13 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | Priority | As a … | I want to … | So that I can … |
 |----------|--------|-------------|-----------------|
 | `* * *` | department recruiter | add a role opening with its title and required experience level | track an active recruitment need in my department |
+| `* *` | department recruiter | correct a role's required experience without recreating it | keep its candidates and recruitment history intact |
 | `* * *` | department recruiter | view all role openings and whether they are open or closed | review the roles tracked by my department |
 | `* *` | department recruiter | see pending and final-outcome totals for each role | assess recruitment progress without inspecting every candidate |
 | `* * *` | department recruiter | close a role opening | prevent new candidates from being added after recruitment ends while retaining existing candidate records |
 | `* * *` | department recruiter | delete a role with no associated candidates | remove an erroneous vacancy and reuse its title without losing candidate records |
 | `* * *` | department recruiter | add a candidate to a specific open role with their contact details and address | keep the candidate's recruitment information in one place |
+| `* * *` | department recruiter | correct a candidate's role without recreating their record | preserve their recruitment progress, notes and contact information |
 | `* * *` | department recruiter | be stopped from adding a candidate who is already recorded | avoid creating duplicate candidate profiles |
 | `* * *` | department recruiter | view all candidates | review the department's recruitment pipeline |
 | `* * *` | department recruiter | assign a candidate one controlled recruitment status | record where the candidate stands in the recruitment process |
@@ -999,7 +1083,7 @@ Use case ends.
 11.  A command rejected because of invalid syntax or invalid input values should leave recruitment records and user-defined configuration unchanged, both in memory and in saved data file.
 12.  Command syntax should be simple and intuitive, such that an experienced user (has spent > 1 hour using the application) can memorize the syntax for all basic commands.
 13.  Upon rejecting a command, the issue and its fixes should be identified, such that the user can achieve a valid input within n successive tries, where n is the number of errors in the initial input.
-14.  If an application-data file cannot be read or fails validation during startup, the startup process should not modify or delete that file.
+14.  If recruitment data cannot be read or fails validation during startup, preserve its original contents in a non-overwriting sibling backup before creating an empty replacement. If safe recovery fails, do not expose commands; identify the preserved data location and recovery steps.
 15.  All persistent RecruiterBuddy data should be stored locally in human-readable text files that can be inspected and modified using a plain-text editor. This includes recruitment records, saved candidate status history, and user-defined configuration such as command shortcuts.
 16.  If writing updated data fails while the previously saved file remains accessible, RecruiterBuddy should leave that file's contents unchanged.
 
@@ -1059,7 +1143,7 @@ add n/Ben Test p/91234562 e/ben@example.com a/2 Test Road r/QA Engineer
 ```
 
 Expected fixture: `list role` shows `QA Engineer` at index 1 and `QA Analyst` at index 2, both `OPEN`.
-`list` shows Alice at index 1 and Ben at index 2, both `Pending Resume Screening`.
+`list` shows Alice at index 1 and Ben at index 2, both `Resume`.
 Always switch back with `list` or `list role` before using indices for that list.
 
 #### Role-card candidate totals
@@ -1110,6 +1194,29 @@ Always switch back with `list` or `list role` before using indices for that list
    printable characters versus 51. The boundary values succeed; the longer values fail.
    Use different valid titles for the experience checks so duplicate rejection does not mask validation.
 
+#### Role experience corrections
+
+1. Run `list role`, then `role edit 1 x/5 years`.<br>
+   Expected: `Edited role: QA Engineer.` The role card shows `5 years`, with the title and `OPEN`
+   status unchanged. Both candidates are retained with their original details and statuses.
+   Restart and run `list role`; the updated experience is restored.
+
+1. Run `list role`, `role close 2`, then `role edit 2 x/Senior`.<br>
+   Expected: `Edited role: QA Analyst.` Its experience changes to `Senior` but its status stays
+   `CLOSED`. Repeating the same edit succeeds without changing the data.
+
+1. Run `find Alice`, then `role edit 1 x/Senior`.<br>
+   Expected: The role-view guard asks for `list role`; no data changes. Run `list role`, then
+   `role edit 1 x/Senior`. The role card updates. Run `help` to return to the candidate view without
+   changing its filter; only Alice is still displayed. Run `list` to restore all candidates.
+
+1. Run `list role` and try `role edit 0 x/Senior`, `role edit 99 x/Senior`, `role edit 1`,
+   `role edit 1 x/`, `role edit 1 x/Junior x/Senior`, and `role edit 1 x/Senior r/New title`.<br>
+   Expected: Respectively, invalid-index errors, missing `x/`, invalid experience, repeated `x/`,
+   and invalid-format errors. Records, current filters, and saved data remain unchanged.
+   An experience of exactly 50 printable characters succeeds; 51 is rejected. Embedded tabs,
+   line separators, and control characters are not valid experience descriptions.
+
 #### Closure and candidate outcomes
 
 1. Run `find Alice`, `list role`, then `role close 1`.<br>
@@ -1127,11 +1234,11 @@ Always switch back with `list` or `list role` before using indices for that list
    Expected: Closure succeeds even with no hire. Separately, `list role` followed by `role close 2`
    closes the empty analyst role. No candidate is automatically hired, rejected, or removed.
 
-1. Run `status 1 HIRED`, then `status 1 PENDING_RECRUITER_INTERVIEW`.<br>
+1. Run `status 1 HIRED`, then `status 1 INTERVIEW`.<br>
    Expected: Returning to pending succeeds while the role is open. Repeat with each of the four
-   `PENDING_*` statuses after assigning a final outcome. `list role` followed by `role close 1`
+   pending statuses (`RESUME`, `INTERVIEW`, `OFFER`, `DECISION`) after assigning a final outcome. `list role` followed by `role close 1`
    fails while a pending candidate remains. Run `list`, `status 1 HIRED`, `status 2 REJECTED`,
-   `list role`, and `role close 1`, then run `list` and `status 1 PENDING_RECRUITER_INTERVIEW`.<br>
+   `list role`, and `role close 1`, then run `list` and `status 1 INTERVIEW`.<br>
    Expected: `Cannot set a pending status for Alice Test because role QA Engineer is closed.`
    Each of the other pending statuses is rejected too. Final-to-final corrections still succeed,
    provided they do not create a second hire; the role remains closed.
@@ -1204,8 +1311,38 @@ Always switch back with `list` or `list role` before using indices for that list
    1. Test case: `edit 1 p/91112222`<br>
       Expected: Alex Yeoh's phone number changes. The role, status and note are unchanged.
 
-   1. Test case: `edit 1 r/Data Analyst`<br>
-      Expected: The candidate is not changed. The error message says that a candidate's role cannot be edited.
+   1. Test case: `edit 1 r/  data analyst  `<br>
+      Expected: The card shows `Data Analyst`, preserving the status and note. The success message
+      names Alex Yeoh. Restart and confirm the role remains Data Analyst.
+
+   1. Test case: `edit 1 n/Alex Tan r/Software Engineer`<br>
+      Expected: Both fields change; the success message names Alex Tan, not Alex Yeoh.
+
+1. Role-transfer safeguards
+
+   1. Prerequisites: Use the disposable role-management fixture above with Alice and Ben for QA
+      Engineer and an empty, open QA Analyst role. Restore the fixture between independent checks.
+
+   1. Run `status 1 HIRED`, `status 2 REJECTED`, then `list role` and `role close 1`. Run `list`, then
+      `edit 1 r/QA Analyst`.<br>
+      Expected: Alice transfers from the closed engineer role to the open analyst role and stays hired.
+      The engineer role stays closed. Ben remains rejected and associated with the engineer role.
+
+   1. From the same closed-source setup, run `edit 1 n/Alice Corrected r/qa engineer` before transferring.<br>
+      Expected: The same-role edit succeeds and uses `QA Engineer` spelling without reopening it.
+      Selecting a different closed role instead is rejected with
+      `The role “ROLE_TITLE” is closed, so candidates cannot be moved to it.`
+
+   1. From the closed-source setup before transferring Alice, give QA Analyst another candidate with
+      status `HIRED`. Alice must still be hired for QA Engineer. Filter to Alice using `find Alice`
+      and try `edit 1 r/QA Analyst`.<br>
+      Expected: The hidden hire still blocks Alice's transfer. Records, filters and saved bytes stay unchanged.
+      A non-hired candidate may transfer to the same open role; their status is preserved.
+
+   1. Try `edit 1 r/Unknown Role`, `edit 1 r/`, and `edit 1 r/QA Analyst r/QA Engineer`.<br>
+      Expected: The unknown role reports
+      `No role named “Unknown Role” exists. Add the role first, then edit the candidate.`
+      Empty and repeated role fields are also rejected. No partial edits are applied.
 
 ### Recording a note
 
@@ -1258,12 +1395,38 @@ Close the application window before editing or moving data files.
    backup before continuing with the other scenarios.
 
 1. Invalid file: back up the fixture file while the app is closed. Replace the JSON with `{` and restart.<br>
-   Expected: Empty lists; the invalid file is unchanged by startup. Close the window without entering
-   commands, including `exit`. Restore the backup. Repeat separately with a duplicated role title,
+   Expected: A `Recruitment data backed up` warning identifies the full backup and replacement paths
+   and restoration steps. The original is renamed to `addressbook.json.bak` with identical bytes.
+   Dismiss the warning: the command window opens with empty lists and a valid empty data file.
+   Exit without a command and restart: the lists stay empty without another warning. Restore your
+   fixture while the app is closed. Repeat separately
+   with two valid recruitment JSON objects joined together (both directly and separated by whitespace),
+   a valid object followed by `null`, `[]`, or arbitrary text, JSON `null`, null role or candidate records,
+   a duplicated role title,
    a role status of `open` instead of `OPEN`, and a candidate whose `role` names a nonexistent role.<br>
-   Expected: Each invalid file prevents the whole data set from loading; valid records are not imported
-   separately. Recover from the backup between attempts. A successful command such as `list` would
-   overwrite the invalid file, so do not issue commands before recovering it.
+   Expected: Each invalid file is backed up before starting empty; valid records are not imported
+   separately. Earlier backups remain unchanged. Repeated failures use a timestamped backup name,
+   then a numbered suffix if needed. Run `role add r/Recovery Test x/Entry level`, exit and restart:
+   the new role persists and the backup stays unchanged. Restore your fixture between attempts.
+
+1. Unreadable path: move the fixture file to your backup location, then create a directory named
+   `data/addressbook.json` containing a small marker file. Restart.<br>
+   Expected: The startup error identifies the data path and the app closes after dismissal. The
+   directory and marker file are unchanged. Remove only the disposable marker and directory, then
+   restore the fixture file. With a regular file without read permission, recovery can still succeed
+   if the parent folder allows renaming and creating files. Otherwise, the app stops with a specific
+   error and the original remains untouched. Test permission failures under an account that cannot
+   bypass the restrictions.
+
+1. Backup collision: while the app is closed, retain a marker file at `addressbook.json.bak`, then
+   make `addressbook.json` invalid and restart.<br>
+   Expected: The marker backup is unchanged; the notice identifies a different timestamped backup
+   containing the invalid file's original bytes. The application opens with empty lists.
+
+1. Valid empty file: save a copy of the fixture, replace its contents with
+   `{"persons":[],"roles":[]}`, then restart.<br>
+   Expected: The normal command window opens with empty lists and no startup error. Close the window
+   and restore the fixture.
 
 1. Default candidate status: remove only Alice's `status` field from a valid fixture file, then restart.<br>
    Expected: Alice loads with `Pending Resume Screening`; `list role` then `role close 1` reports two
@@ -1273,3 +1436,7 @@ Close the application window before editing or moving data files.
    Expected: The records load, but `list role` then `role close 1` reports
    `Cannot close role: QA Engineer. More than one candidate is marked HIRED.` The role stays open.
    Use a separate fixture copy for this check; do not create inconsistent real recruitment data.
+
+Replacement-write failures are exercised deterministically by `MainAppTest` using a failing recovery
+operation. They must block commands and identify the backup containing the original bytes. This
+avoids relying on a manual timing race between backup and replacement creation.
