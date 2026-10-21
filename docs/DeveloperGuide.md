@@ -16,7 +16,7 @@
 * This project builds on [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) by the
   [SE-EDU initiative](https://se-education.org). Its existing architecture and documentation form the
   starting point for RecruiterBuddy.
-* Kavin Parthipan (`kpkavin04`) used OpenAI Codex to assist with requirements analysis, implementation, tests, review, and documentation for candidate role reassignment, the persistent role model, role commands, role-card summaries, associated candidate-status and displayed-list safeguards, and safe startup after recruitment-data loading failures. This acknowledgement covers that contribution, not other team members' tool usage.
+* Kavin Parthipan (`kpkavin04`) used OpenAI Codex to assist with requirements analysis, implementation, tests, review, and documentation for candidate role reassignment, the persistent role model, role commands, role-card summaries, role workflow diagnostics, associated candidate-status and displayed-list safeguards, and safe startup after recruitment-data loading failures. This acknowledgement covers that contribution, not other team members' tool usage.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -392,6 +392,14 @@ candidate filter resets to show all records. The existing `Edited candidate: ...
 updated candidate, including the new name and canonical role. Normal `LogicManager` saving persists
 the association without a JSON schema change. Validation failures leave records and filters
 unchanged and do not save. Neither role's status changes automatically.
+
+### Role workflow diagnostics and internal checks
+
+Role commands and candidate-role transfers reuse `LogsCenter`, with `INFO` for successful in-memory changes and `FINE` for expected recruitment-rule rejections. Closure and deletion refusals include relevant candidate counts, while successful indexed operations identify the displayed index. These events precede storage saving and never claim that persistence succeeded. The messages omit candidate names, contact details, notes and raw commands; the pre-existing central command log is not covered by this restriction. See the [logging guide](Logging.md#role-workflow-diagnostics) for levels and limitations.
+
+Assertions check programmer assumptions rather than user input. `CandidateRoleChecks#verifyHiringAllowed` requires a non-null internal status so a caller cannot accidentally bypass the single-hire check by omitting it. `EditCommand#resolveRole` checks that `Model#findRole` returns a title matching the request before any mutation. Candidate input, missing roles, closed destinations and duplicate hires still use normal validation and `CommandException`; disabling assertions does not disable those checks. Existing collection null and uniqueness checks remain unchanged. No essential work is performed inside an assertion.
+
+`RoleWorkflowDiagnosticsTest` checks operation logs and their levels, guards against logging candidate details, and verifies unchanged state after refusal. Focused contract tests inject programmer errors before mutation, while the existing role, transfer, integration and persistence tests exercise valid paths. See the [testing guide](Testing.md#assertions-and-role-workflow-diagnostics) for assertion-enabled and assertion-disabled checks. Command formats, success/error messages, UI behavior and the storage schema are unchanged.
 
 ### \[Proposed\] Undo/redo feature
 

@@ -1,5 +1,8 @@
 package seedu.address.logic.commands;
 
+import java.util.logging.Logger;
+
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
@@ -13,6 +16,8 @@ final class CandidateRoleChecks {
 
     static final String MESSAGE_ROLE_ALREADY_HAS_HIRED_CANDIDATE = "%1$s already has a hired candidate.";
 
+    private static final Logger logger = LogsCenter.getLogger(CandidateRoleChecks.class);
+
     private CandidateRoleChecks() {
     }
 
@@ -24,6 +29,7 @@ final class CandidateRoleChecks {
      */
     static void verifyHiringAllowed(Model model, Person originalCandidate, RoleTitle destination, Status status)
             throws CommandException {
+        assert status != null : "Hiring checks require a candidate status";
         if (status != Status.HIRED) {
             return;
         }
@@ -32,6 +38,7 @@ final class CandidateRoleChecks {
                         && candidate.getStatus() == Status.HIRED
                         && candidate.getRole().isSameTitle(destination));
         if (hasOtherHiredCandidate) {
+            logger.fine("Rejected hiring change: destination role already has another hired candidate.");
             throw new CommandException(String.format(MESSAGE_ROLE_ALREADY_HAS_HIRED_CANDIDATE, destination));
         }
     }
