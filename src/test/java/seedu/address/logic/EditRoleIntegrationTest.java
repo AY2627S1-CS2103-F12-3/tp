@@ -142,7 +142,8 @@ public class EditRoleIntegrationTest {
 
     @Test
     public void execute_rename_updatesHiddenCandidatesAndObservableListsAndSurvivesReload() throws Exception {
-        Person hidden = new PersonBuilder().withName("Carol").withRole(SOFTWARE_ENGINEER.getTitle().value)
+        Person hidden = new PersonBuilder().withNameAndDistinctContacts("Carol")
+                .withRole(SOFTWARE_ENGINEER.getTitle().value)
                 .withStatus(Status.WITHDRAWN).build();
         model.addPerson(hidden);
         List<Person> original = List.copyOf(model.getAddressBook().getPersonList());
@@ -186,7 +187,7 @@ public class EditRoleIntegrationTest {
 
     @Test
     public void execute_renamedRole_retainsHiringClosureAndDeletionGuards() throws Exception {
-        model.addPerson(new PersonBuilder().withName("Carol").withStatus(Status.RESUME).build());
+        model.addPerson(new PersonBuilder().withNameAndDistinctContacts("Carol").withStatus(Status.RESUME).build());
         logic.execute("role edit 1 r/Platform Engineer");
         logic.execute("list");
 

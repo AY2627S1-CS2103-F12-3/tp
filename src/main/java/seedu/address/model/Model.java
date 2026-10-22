@@ -60,6 +60,17 @@ public interface Model {
     boolean hasPerson(Person person);
 
     /**
+     * Returns a person in the address book with the same identity as {@code person}, if any.
+     */
+    Optional<Person> findSamePerson(Person person);
+
+    /**
+     * Returns a person in the address book, other than {@code excludedPerson}, with the same identity as
+     * {@code person}, if any.
+     */
+    Optional<Person> findSamePersonExcluding(Person person, Person excludedPerson);
+
+    /**
      * Deletes the given person.
      * The person must exist in the address book.
      */

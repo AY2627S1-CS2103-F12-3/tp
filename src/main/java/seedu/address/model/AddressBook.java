@@ -73,6 +73,20 @@ public class AddressBook implements ReadOnlyAddressBook {
     }
 
     /**
+     * Returns a person with the same identity as {@code person}, if any.
+     */
+    public Optional<Person> findSamePerson(Person person) {
+        return persons.findSamePerson(person);
+    }
+
+    /**
+     * Returns a person other than {@code excludedPerson} with the same identity as {@code person}, if any.
+     */
+    public Optional<Person> findSamePersonExcluding(Person person, Person excludedPerson) {
+        return persons.findSamePersonExcluding(person, excludedPerson);
+    }
+
+    /**
      * Adds a person to the address book.
      * The person must not already exist in the address book.
      */

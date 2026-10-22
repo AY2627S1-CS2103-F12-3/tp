@@ -147,15 +147,15 @@ public class EditCandidateRoleCommandTest {
     }
 
     @Test
-    public void execute_duplicateNameDuringTransfer_rejectsEntireEdit() {
+    public void execute_duplicateEmailDuringTransfer_rejectsEntireEdit() {
         Person alice = new PersonBuilder().withName("Alice").build();
         Person bob = new PersonBuilder(BENSON).withName("Bob").build();
         Model model = createModel(alice, bob);
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withRole("Product Analyst")
-                .withName("Bob").build();
+                .withEmail(bob.getEmail().value).build();
 
         assertCommandFailure(new EditCommand(INDEX_FIRST_PERSON, descriptor), model,
-                EditCommand.MESSAGE_DUPLICATE_PERSON);
+                String.format(Messages.MESSAGE_DUPLICATE_EMAIL, bob.getName()));
     }
 
     @Test

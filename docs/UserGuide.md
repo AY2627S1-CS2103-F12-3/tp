@@ -113,7 +113,11 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
   Spaces and hyphens are ignored and removed when the number is saved, so `+65 9123-4567` is shown as `+6591234567`.
 * `ROLE` must be the title of an existing role that is `OPEN`. Use [`role add`](#adding-a-role-role-add) to create the role first.
 * `ROLE` is matched ignoring case; for example, `r/software engineer` matches the role `Software Engineer`. The candidate is saved with the role's own spelling of the title.
-* A candidate cannot be added if another candidate has exactly the same name. Names are case-sensitive, so `John Doe` and `john doe` are treated as different candidates. Candidates with different names may share a phone number or email address.
+* Each candidate needs their own email and phone number. A candidate cannot be added if another candidate already uses the same email or the same phone number, and the error message names that candidate.
+  * Emails are compared ignoring case, so `Alex@Example.com` and `alex@example.com` are the same email.
+  * Phone numbers are compared exactly as saved, so `+6591234567` and `91234567` are different numbers. Type phone numbers in one consistent format, such as always without the country code.
+* Candidates may share a name, as long as their emails and phone numbers are different.
+* Each candidate applies for one role. Since their email and phone number stay the same, the same person cannot be added again for a second role.
 * Newly added candidates are automatically assigned the status `Pending Resume Screening`.
 * The candidate's card shows the role as `Applying for: ROLE`.
 
@@ -307,6 +311,8 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITL
   even when it already has a hire. A transfer never opens or closes either role automatically.
 * Each field except `t/` may appear only once. Empty or invalid role titles are rejected using the
   same [role-title rules](#adding-a-role-role-add) as role creation.
+* The new email and phone number must not be used by another candidate, following the same rules as in
+  [`add`](#adding-a-candidate-add). Keeping a candidate's own email or phone number is fine.
 * Success shows `Edited candidate: ...` with the updated name and details, refreshes the candidate
   list to show all candidates, and saves the change. Validation failures leave records and filters unchanged.
 
@@ -455,10 +461,11 @@ When editing candidates, roles and their associations:
 
 * Candidate names and phone numbers must follow the same rules as in [`add`](#adding-a-candidate-add).
   Files from older versions may contain phone numbers with fewer than 8 digits, which need updating before the file can load.
-
 * Every role needs `title`, `experienceLevel`, and `status`. Title and experience values must satisfy
   the same constraints as `role add`; role status must be exactly `OPEN` or `CLOSED` in uppercase.
 * Do not repeat role titles, even with different capitalisation or experience levels.
+* No two candidates may share an email (ignoring case) or a phone number, following the same rules as in
+  [`add`](#adding-a-candidate-add).
 * Each candidate's `role` field must name an existing role, ignoring case. It may name a closed role,
   because closing preserves candidates. On loading, the role's stored capitalisation is used for
   its candidates. If you rename a role in the file, update every associated candidate's `role` too.
@@ -475,9 +482,10 @@ When editing candidates, roles and their associations:
 The data file must contain exactly one JSON object. Keep the `persons` and `roles` lists inside
 that object instead of appending another object. Whitespace before or after it is allowed.
 Additional JSON values or other trailing text,
-malformed JSON, invalid role fields, duplicate role titles, or a candidate referring to a nonexistent
-role prevent the whole file from loading; valid records are not loaded separately. If two objects
-are accidentally joined together, neither is imported and the entire file is preserved in the backup.
+malformed JSON, invalid role fields, duplicate role titles, candidates sharing an email or phone
+number, or a candidate referring to a nonexistent role prevent the whole file from loading; valid
+records are not loaded separately. If two objects are accidentally joined together, neither is
+imported and the entire file is preserved in the backup.
 If a regular data file cannot be read or validated, RecruiterBuddy first renames it to
 `addressbook.json.bak` in the same folder, preserving its contents. Existing backups are never
 overwritten: if that name is taken, a timestamp is appended, for example

@@ -70,7 +70,7 @@ public class EditRoleCommandTest {
             roleModel.addRole(PRODUCT_ANALYST);
             roleModel.setRoleListDisplayed(true);
             for (Status status : Status.values()) {
-                Person candidate = new PersonBuilder().withName("Candidate " + status.ordinal())
+                Person candidate = new PersonBuilder().withNameAndDistinctContacts("Candidate " + status.ordinal())
                         .withPhone("9123456" + status.ordinal())
                         .withEmail("candidate" + status.ordinal() + "@example.com")
                         .withRole(original.getTitle().value.toLowerCase(Locale.ROOT))
@@ -112,12 +112,12 @@ public class EditRoleCommandTest {
             roleModel.setRoleListDisplayed(true);
             for (Status status : Status.values()) {
                 if (!original.isClosed() || !status.isPending()) {
-                    roleModel.addPerson(new PersonBuilder().withName("Candidate " + status.ordinal())
+                    roleModel.addPerson(new PersonBuilder().withNameAndDistinctContacts("Candidate " + status.ordinal())
                             .withRole(original.getTitle().value.toLowerCase(Locale.ROOT)).withStatus(status)
                             .withNote("Keep interview details").withTags("referral").build());
                 }
             }
-            Person unrelated = new PersonBuilder().withName("Unrelated")
+            Person unrelated = new PersonBuilder().withNameAndDistinctContacts("Unrelated")
                     .withRole(PRODUCT_ANALYST.getTitle().value).build();
             List<Person> expectedCandidates = roleModel.getAddressBook().getPersonList().stream()
                     .map(person -> person.withRole(newTitle)).toList();
