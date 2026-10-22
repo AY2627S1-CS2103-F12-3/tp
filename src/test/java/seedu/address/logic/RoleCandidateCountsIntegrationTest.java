@@ -83,7 +83,7 @@ public class RoleCandidateCountsIntegrationTest {
             observedHires.set(counts.getHiredCount());
         });
 
-        logic.execute("status 1 HIRED");
+        logic.execute("status 1 st/HIRED");
         assertEquals(1, observedHires.get());
         assertCounts(SOFTWARE_ENGINEER, 0, 1, 1, 0);
 
@@ -137,7 +137,7 @@ public class RoleCandidateCountsIntegrationTest {
 
     @Test
     public void execute_saveAndReload_reconstructsCountsWithoutPersistingSummary() throws Exception {
-        logic.execute("status 1 HIRED");
+        logic.execute("status 1 st/HIRED");
         var candidates = logic.getPersonList();
         var saved = addressBookStorage.readAddressBook().orElseThrow();
         assertEquals(model.getAddressBook(), saved);

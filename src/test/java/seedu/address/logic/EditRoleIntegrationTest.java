@@ -191,7 +191,7 @@ public class EditRoleIntegrationTest {
         logic.execute("role edit 1 r/Platform Engineer");
         logic.execute("list");
 
-        assertRejected("status 3 HIRED", CommandException.class, "Platform Engineer already has a hired candidate.");
+        assertRejected("status 3 st/HIRED", CommandException.class, "Platform Engineer already has a hired candidate.");
         logic.execute("list role");
         assertRejected("role close 1", CommandException.class,
                 String.format(CloseRoleCommand.MESSAGE_PENDING_CANDIDATES, "Platform Engineer", 1));
@@ -199,7 +199,7 @@ public class EditRoleIntegrationTest {
                 String.format(DeleteRoleCommand.MESSAGE_ASSOCIATED_CANDIDATES, "Platform Engineer", 2));
 
         logic.execute("list");
-        logic.execute("status 3 REJECTED");
+        logic.execute("status 3 st/REJECTED");
         assertFalse(model.getAddressBook().getRoleList().getFirst().isClosed());
         logic.execute("list role");
         logic.execute("role close 1");

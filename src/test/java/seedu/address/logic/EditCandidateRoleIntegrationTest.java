@@ -114,7 +114,7 @@ public class EditCandidateRoleIntegrationTest {
         logic.execute("edit 1 r/Product Analyst");
         byte[] saved = Files.readAllBytes(storage.getAddressBookFilePath());
 
-        CommandException exception = assertThrows(CommandException.class, () -> logic.execute("status 2 HIRED"));
+        CommandException exception = assertThrows(CommandException.class, () -> logic.execute("status 2 st/HIRED"));
 
         assertEquals(String.format(StatusCommand.MESSAGE_ROLE_ALREADY_HAS_HIRED_CANDIDATE,
                 PRODUCT_ANALYST.getTitle()), exception.getMessage());
