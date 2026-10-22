@@ -129,7 +129,7 @@ public class NameContainsKeywordsPredicateTest {
     }
 
     @Test
-    public void test_roleFilters_withoutName_matchesAssignedRole() {
+    public void test_roleFilters_withoutName() {
         Role openRole = new RoleBuilder().withTitle("Software Engineer").withStatus(RoleStatus.OPEN).build();
         Person person = new PersonBuilder().withName("Alice").withRole("Software Engineer").build();
         assertTrue(new NameContainsKeywordsPredicate(List.of(), List.of("Software", "Engineer"),
@@ -137,7 +137,7 @@ public class NameContainsKeywordsPredicateTest {
     }
 
     @Test
-    public void test_roleFilters_ignoresMatchingTagForDifferentAssignedRole() {
+    public void test_roleFilters_usesAssignedRole() {
         Role openRole = new RoleBuilder().withTitle("Software Engineer").withStatus(RoleStatus.OPEN).build();
         Person person = new PersonBuilder().withName("Alice").withRole("Designer")
                 .withTags("SoftwareEngineer").build();
