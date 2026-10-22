@@ -51,6 +51,11 @@ public interface Model {
     /** Records a snapshot before a mutating command is executed. */
     void recordAddressBookState();
 
+    /** Clears redo history after a mutating command has executed successfully. */
+    default void commitAddressBookState() {
+        // Models that support history may override this method.
+    }
+
     /** Restores the previous recorded address book state. */
     boolean undoAddressBook();
 

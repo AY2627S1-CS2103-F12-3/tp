@@ -77,6 +77,10 @@ public class ModelManager implements Model {
     @Override
     public void recordAddressBookState() {
         undoStack.push(new AddressBook(addressBook));
+    }
+
+    @Override
+    public void commitAddressBookState() {
         redoStack.clear();
     }
 

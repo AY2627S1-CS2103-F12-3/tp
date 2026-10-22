@@ -118,6 +118,19 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_failedChangeAfterUndo_preservesRedoHistory() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
+        String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
+                + EMAIL_DESC_AMY + ADDRESS_DESC_AMY + ROLE_DESC_AMY;
+        logic.execute(addCommand);
+        logic.execute("undo");
+
+        assertCommandException("delete 9", MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        logic.execute("redo");
+        assertEquals(1, model.getAddressBook().getPersonList().size());
+    }
+
+    @Test
     public void execute_addRoleCommand_roleAddedAndPersisted() throws Exception {
         Role role = new RoleBuilder().build();
         String addRoleCommand = "role add r/Software Engineer x/2 years";

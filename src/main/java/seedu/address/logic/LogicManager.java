@@ -52,6 +52,9 @@ public class LogicManager implements Logic {
         }
         try {
             commandResult = command.execute(model);
+            if (command.isUndoable()) {
+                model.commitAddressBookState();
+            }
         } catch (CommandException | RuntimeException e) {
             if (command.isUndoable()) {
                 model.discardAddressBookState();
