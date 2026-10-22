@@ -144,4 +144,33 @@ public class NameContainsKeywordsPredicateTest {
         assertFalse(new NameContainsKeywordsPredicate(List.of(), List.of("Software", "Engineer"),
                 Set.of(RoleStatus.OPEN), List.of(openRole)).test(person));
     }
+
+    @Test
+    public void test_roleFilters_hasRoleFiltersForRoleAndStatus() {
+        Role openRole = new RoleBuilder().withTitle("Software Engineer").withStatus(RoleStatus.OPEN).build();
+        Person person = new PersonBuilder().withRole("Software Engineer").build();
+        assertTrue(new NameContainsKeywordsPredicate(List.of(), List.of("Software"), Set.of(), List.of(openRole))
+                .hasRoleFilters());
+        assertTrue(new NameContainsKeywordsPredicate(List.of(), List.of(), Set.of(RoleStatus.OPEN), List.of(openRole))
+                .hasRoleFilters());
+        assertTrue(new NameContainsKeywordsPredicate(List.of(), List.of("Software"), Set.of(RoleStatus.OPEN),
+                List.of(openRole)).test(person));
+    }
+
+    @Test
+    public void test_roleFilters_mismatchedTitleAndAssignedRole() {
+        Role openRole = new RoleBuilder().withTitle("Software Engineer").withStatus(RoleStatus.OPEN).build();
+        Person person = new PersonBuilder().withRole("Software Engineer").build();
+        assertFalse(new NameContainsKeywordsPredicate(List.of(), List.of("Designer"), Set.of(), List.of(openRole))
+                .test(person));
+        assertFalse(new NameContainsKeywordsPredicate(List.of(), List.of("Software"), Set.of(),
+                List.of(openRole)).test(new PersonBuilder().withRole("Designer").build()));
+    }
+
+    @Test
+    public void equals_roleKeywordsDiffer_returnsFalse() {
+        assertFalse(new NameContainsKeywordsPredicate(List.of("Alice"), List.of("Engineer"), Set.of(), List.of())
+                .equals(new NameContainsKeywordsPredicate(List.of("Alice"), List.of("Designer"), Set.of(),
+                        List.of())));
+    }
 }

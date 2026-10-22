@@ -61,4 +61,11 @@ public class FindCommandParserTest {
         assertParseFailure(parser, "Alice st/   ", "Invalid role status. Use one of: [OPEN, CLOSED].");
     }
 
+    @Test
+    public void parse_blankRoleFilter_ignoresBlankKeyword() throws Exception {
+        FindCommand expected = new FindCommand(new NameContainsKeywordsPredicate(
+                List.of("Alice"), List.of(), Set.of(RoleStatus.OPEN), List.of()));
+        assertEquals(expected.toString(), parser.parse("Alice r/   st/open").toString());
+    }
+
 }

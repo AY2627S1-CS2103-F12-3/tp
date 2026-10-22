@@ -43,9 +43,7 @@ public class FindCommandParser implements Parser<FindCommand> {
         Set<RoleStatus> statuses = new java.util.HashSet<>();
         for (String value : statusValues) {
             for (String status : value.trim().split("\\s+")) {
-                if (!status.isBlank()) {
-                    statuses.add(parseStatus(status));
-                }
+                statuses.add(parseStatus(status));
             }
         }
         return new FindCommand(new NameContainsKeywordsPredicate(names, roleKeywords, statuses, List.of()));
