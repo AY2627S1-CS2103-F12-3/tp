@@ -58,7 +58,9 @@
       "src": "Logging.md",
       "title": "Logging guide",
       "headings": {
-        "logging-guide": "Logging guide"
+        "logging-guide": "Logging guide",
+        "role-workflow-diagnostics": "Role workflow diagnostics",
+        "recruitment-data-recovery-diagnostics": "Recruitment data recovery diagnostics"
       },
       "headingKeywords": {}
     },
@@ -78,7 +80,8 @@
       "headings": {
         "testing-guide": "Testing guide",
         "running-tests": "Running tests",
-        "types-of-tests": "Types of tests"
+        "types-of-tests": "Types of tests",
+        "assertions-and-role-workflow-diagnostics": "Assertions and role workflow diagnostics"
       },
       "headingKeywords": {}
     },
