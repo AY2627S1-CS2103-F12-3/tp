@@ -3,6 +3,7 @@ package seedu.address.storage;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_INTERVIEW_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NOTE_BOB;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.model.person.Interview;
 import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.RoleBuilder;
 
@@ -138,6 +140,32 @@ public class JsonAddressBookStorageTest {
         AddressBook original = new AddressBook();
         original.addRole(SOFTWARE_ENGINEER);
         original.addPerson(new PersonBuilder(HOON).withNote(VALID_NOTE_BOB).build());
+        JsonAddressBookStorage jsonAddressBookStorage = new JsonAddressBookStorage(filePath);
+
+        jsonAddressBookStorage.saveAddressBook(original, filePath);
+        ReadOnlyAddressBook readBack = jsonAddressBookStorage.readAddressBook(filePath).get();
+        assertEquals(original, new AddressBook(readBack));
+    }
+
+    @Test
+    public void readAndSaveAddressBook_personWithInterview_interviewRetained() throws Exception {
+        Path filePath = testFolder.resolve("TempAddressBook.json");
+        AddressBook original = new AddressBook();
+        original.addRole(SOFTWARE_ENGINEER);
+        original.addPerson(new PersonBuilder(HOON).withInterview(VALID_INTERVIEW_BOB).build());
+        JsonAddressBookStorage jsonAddressBookStorage = new JsonAddressBookStorage(filePath);
+
+        jsonAddressBookStorage.saveAddressBook(original, filePath);
+        ReadOnlyAddressBook readBack = jsonAddressBookStorage.readAddressBook(filePath).get();
+        assertEquals(original, new AddressBook(readBack));
+    }
+
+    @Test
+    public void readAndSaveAddressBook_personWithoutInterview_noInterviewRetained() throws Exception {
+        Path filePath = testFolder.resolve("TempAddressBook.json");
+        AddressBook original = new AddressBook();
+        original.addRole(SOFTWARE_ENGINEER);
+        original.addPerson(new PersonBuilder(HOON).withInterview(Interview.NONE).build());
         JsonAddressBookStorage jsonAddressBookStorage = new JsonAddressBookStorage(filePath);
 
         jsonAddressBookStorage.saveAddressBook(original, filePath);

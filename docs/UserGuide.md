@@ -46,7 +46,7 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
 
    * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 r/Data Analyst` : Adds a candidate named `John Doe` who is applying for the sample `Data Analyst` role.
 
-   * `note 1 Interview 2026-10-20 14:00` : Records an interview date and time for the 1st candidate.
+   * `interview 1 d/2026-10-20 14:00` : Schedules an interview for the 1st candidate on 20 October 2026 at 2pm.
 
    * `delete 3` : Deletes the 3rd candidate shown in the current list.
 
@@ -305,7 +305,8 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITL
   match an existing role, ignoring case and surrounding spaces; the saved title uses that role's spelling.
 * A transfer can leave an open or closed role, but the destination must be **OPEN**. Selecting the
   existing role is allowed without transferring, even when it is closed.
-* The candidate's status and note are preserved. Use `status` or `note` to change them separately.
+* The candidate's status, note, and interview are preserved. Use `status`, `note`, or `interview` to change them
+  separately.
   A `HIRED` candidate cannot transfer to a role that already has another hired candidate, including
   one hidden by the current candidate filter. Non-hired candidates can transfer to an open role
   even when it already has a hire. A transfer never opens or closes either role automatically.
@@ -332,7 +333,7 @@ Examples:
 
 ### Adding or clearing a note: `note`
 
-Records a note for an existing candidate, such as an interview date and time.
+Records a note for an existing candidate, such as their skills or availability.
 
 Format: `note INDEX [NOTE]`
 
@@ -340,12 +341,32 @@ Format: `note INDEX [NOTE]`
 * Everything after the index is saved as the note, with leading and trailing spaces removed. The note can contain any text, including text that looks like a prefix, such as `t/` or `n/`.
 * A new note replaces the candidate's existing note.
 * To clear a candidate's note, enter `note INDEX` without a note after it.
-* To record or reschedule an interview, write its date and time in the note. RecruiterBuddy does not check that the date and time are valid.
+* To record an interview date and time, use [`interview`](#scheduling-or-clearing-an-interview-interview) instead, which checks that the date and time are valid.
 
 Examples:
-*  `note 1 Interview 2026-10-20 14:00` Sets the note of the 1st candidate to `Interview 2026-10-20 14:00`.
+*  `note 1 Prefers hybrid work` Sets the note of the 1st candidate to `Prefers hybrid work`.
 *  `note 2 Discuss t/java experience` Sets the note of the 2nd candidate to `Discuss t/java experience`.
 *  `note 3` Clears the note of the 3rd candidate.
+
+### Scheduling or clearing an interview: `interview`
+
+Schedules an interview for an existing candidate, or clears it.
+
+Format: `interview INDEX [d/YYYY-MM-DD HH:MM]`
+
+* Sets the interview of the candidate at the specified `INDEX`. The index refers to the index number shown in the displayed candidate list. The index **must be a positive integer** 1, 2, 3, ...
+* The date and time must be in the format `YYYY-MM-DD HH:MM`, with leading zeros and a 24-hour time, e.g. `2026-10-20 09:00`, not `2026-10-20 9:00`.
+* The date and time must be a real date and a valid 24-hour time, so values such as `2026-02-30` or `24:00` are rejected. 29 February is accepted only in leap years.
+* Past dates are accepted, so you can record interviews that have already happened.
+* A new interview replaces the candidate's existing interview. Each candidate has at most one interview.
+* To clear a candidate's interview, enter `interview INDEX` without `d/`. An empty `d/` is rejected, so a mistyped date never clears an interview by accident.
+* Clearing a candidate who has no interview, or entering the same date and time again, still succeeds and shows the usual result message. The candidate's details stay the same.
+* The interview is shown on the candidate's card. The candidate's note and other details are not changed, and the displayed list stays as it is, so a filtered list remains filtered.
+
+Examples:
+*  `interview 1 d/2026-10-20 14:00` Schedules an interview for the 1st candidate on 20 October 2026 at 2pm.
+*  `interview 1 d/2026-10-22 09:30` Reschedules the 1st candidate's interview to 22 October 2026 at 9:30am.
+*  `interview 2` Clears the interview of the 2nd candidate.
 
 ### Locating candidates by name: `find`
 
@@ -469,6 +490,8 @@ When editing candidates, roles and their associations:
 * Each candidate's `role` field must name an existing role, ignoring case. It may name a closed role,
   because closing preserves candidates. On loading, the role's stored capitalisation is used for
   its candidates. If you rename a role in the file, update every associated candidate's `role` too.
+* A candidate's saved `interview` uses the format `YYYY-MM-DD HH:MM`, such as `2026-10-20 14:00`. An
+  empty or missing `interview` means the candidate has no interview.
 * A candidate's saved `status` uses an uppercase status name, such as `HIRED`. If absent, it defaults
   to `RESUME`. A missing candidate `role` has no default and prevents loading;
   older contact-only files therefore need role information added before they can be used.
@@ -544,7 +567,8 @@ Action     | Format, Examples
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List**   | `list`
 **List roles** | `list role`
-**Note**   | `note INDEX [NOTE]`<br> e.g., `note 1 Interview 2026-10-20 14:00`
+**Interview** | `interview INDEX [d/YYYY-MM-DD HH:MM]`<br> e.g., `interview 1 d/2026-10-20 14:00`, `interview 2`
+**Note**   | `note INDEX [NOTE]`<br> e.g., `note 1 Prefers hybrid work`
 **Role add** | `role add r/ROLE_TITLE x/EXPERIENCE_LEVEL`<br> e.g., `role add r/Software Engineer x/2 years`
 **Role edit** | `role edit INDEX [r/ROLE_TITLE] [x/EXPERIENCE_LEVEL]`<br> e.g., `list role` followed by `role edit 1 r/Platform Engineer x/5 years`
 **Role close** | `role close INDEX`<br> e.g., `list role` followed by `role close 1`

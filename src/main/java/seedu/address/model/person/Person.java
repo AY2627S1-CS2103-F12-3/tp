@@ -30,6 +30,7 @@ public class Person {
     private final Address address;
     private final RoleTitle role;
     private final Note note;
+    private final Interview interview;
     private final Status status;
     private final Set<Tag> tags = new HashSet<>();
 
@@ -37,14 +38,15 @@ public class Person {
      * Every field must be present and not null.
      */
     public Person(Name name, Phone phone, Email email, Address address, RoleTitle role, Note note,
-            Status status, Set<Tag> tags) {
-        requireAllNonNull(name, phone, email, address, role, note, status, tags);
+            Interview interview, Status status, Set<Tag> tags) {
+        requireAllNonNull(name, phone, email, address, role, note, interview, status, tags);
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
         this.role = role;
         this.note = note;
+        this.interview = interview;
         this.status = status;
         this.tags.addAll(tags);
     }
@@ -76,11 +78,25 @@ public class Person {
      * Returns a copy of this candidate with {@code newRole} as its role.
      */
     public Person withRole(RoleTitle newRole) {
-        return new Person(name, phone, email, address, newRole, note, status, tags);
+        return new Person(name, phone, email, address, newRole, note, interview, status, tags);
     }
 
     public Note getNote() {
         return note;
+    }
+
+    /**
+     * Returns this candidate's interview, which is {@link Interview#NONE} if no interview is scheduled.
+     */
+    public Interview getInterview() {
+        return interview;
+    }
+
+    /**
+     * Returns a copy of this candidate with {@code newInterview} as its interview.
+     */
+    public Person withInterview(Interview newInterview) {
+        return new Person(name, phone, email, address, role, note, newInterview, status, tags);
     }
 
     public Status getStatus() {
@@ -147,6 +163,7 @@ public class Person {
                 && address.equals(otherPerson.address)
                 && role.equals(otherPerson.role)
                 && note.equals(otherPerson.note)
+                && interview.equals(otherPerson.interview)
                 && status == otherPerson.status
                 && tags.equals(otherPerson.tags);
     }
@@ -154,7 +171,7 @@ public class Person {
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, address, role, note, status, tags);
+        return Objects.hash(name, phone, email, address, role, note, interview, status, tags);
     }
 
     @Override
@@ -166,6 +183,7 @@ public class Person {
                 .add("address", address)
                 .add("role", role)
                 .add("note", note)
+                .add("interview", interview)
                 .add("status", status)
                 .add("tags", tags)
                 .toString();

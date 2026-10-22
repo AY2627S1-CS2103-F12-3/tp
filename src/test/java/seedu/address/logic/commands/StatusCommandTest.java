@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_INTERVIEW_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_STATUS_1;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_STATUS_2;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
@@ -208,6 +209,23 @@ public class StatusCommandTest {
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(personWithStatus, editedPerson);
+
+        assertCommandSuccess(statusCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_personWithInterview_interviewPreserved() {
+        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person personWithInterview = new PersonBuilder(firstPerson).withStatus(VALID_STATUS_1)
+                .withInterview(VALID_INTERVIEW_BOB).build();
+        model.setPerson(firstPerson, personWithInterview);
+
+        Person editedPerson = new PersonBuilder(personWithInterview).withStatus(VALID_STATUS_2).build();
+        StatusCommand statusCommand = new StatusCommand(INDEX_FIRST_PERSON, VALID_STATUS_2);
+        String expectedMessage = String.format(StatusCommand.MESSAGE_ADD_STATUS_SUCCESS, VALID_STATUS_2);
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(personWithInterview, editedPerson);
 
         assertCommandSuccess(statusCommand, model, expectedMessage, expectedModel);
     }

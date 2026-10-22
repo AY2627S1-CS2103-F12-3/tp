@@ -10,6 +10,7 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.Interview;
 import seedu.address.model.person.Note;
 import seedu.address.model.person.Status;
 import seedu.address.testutil.TypicalPersons;
@@ -30,6 +31,8 @@ public class RoleListIndexGuardTest {
                 new EditCommand.EditPersonDescriptor()).execute(model));
         assertThrows(CommandException.class, () -> new NoteCommand(INDEX_FIRST_PERSON,
                 new Note("note")).execute(model));
+        assertThrows(CommandException.class, () -> new InterviewCommand(INDEX_FIRST_PERSON,
+                Interview.NONE).execute(model));
         assertThrows(CommandException.class, () -> new StatusCommand(INDEX_FIRST_PERSON,
                 Status.HIRED).execute(model));
     }

@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Interview;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Note;
 import seedu.address.model.person.Phone;
@@ -31,10 +32,13 @@ public class ParserUtilTest {
     private static final String INVALID_ROLE_TITLE = "1234";
     private static final String INVALID_EXPERIENCE_LEVEL = "Senior\nLevel";
     private static final String INVALID_STATUS = "ghosted";
+    private static final String INVALID_INTERVIEW_FORMAT = "20/10/2026 14:00";
+    private static final String INVALID_INTERVIEW_DATE_TIME = "2026-02-30 14:00";
 
     private static final String VALID_NAME = "Rachel Walker";
     private static final String VALID_PHONE = "12345678";
     private static final String VALID_ADDRESS = "123 Main Street #0505";
+    private static final String VALID_INTERVIEW = "2026-10-20 14:00";
     private static final String VALID_NOTE = "Interview 2026-10-20 14:00, scored 8/10";
     private static final String VALID_EMAIL = "rachel@example.com";
     private static final String VALID_TAG_1 = "friend";
@@ -166,6 +170,35 @@ public class ParserUtilTest {
     @Test
     public void parseNote_whitespaceOnly_returnsEmptyNote() {
         assertEquals(new Note(""), ParserUtil.parseNote(WHITESPACE));
+    }
+
+    @Test
+    public void parseInterview_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseInterview(null));
+    }
+
+    @Test
+    public void parseInterview_invalidFormat_throwsParseException() {
+        assertThrows(ParseException.class, Interview.MESSAGE_INVALID_FORMAT, () ->
+                ParserUtil.parseInterview(INVALID_INTERVIEW_FORMAT));
+    }
+
+    @Test
+    public void parseInterview_whitespaceOnly_throwsParseException() {
+        assertThrows(ParseException.class, Interview.MESSAGE_INVALID_FORMAT, () ->
+                ParserUtil.parseInterview(WHITESPACE));
+    }
+
+    @Test
+    public void parseInterview_impossibleDateTime_throwsParseException() {
+        assertThrows(ParseException.class, Interview.MESSAGE_INVALID_DATE_TIME, () ->
+                ParserUtil.parseInterview(INVALID_INTERVIEW_DATE_TIME));
+    }
+
+    @Test
+    public void parseInterview_validValueWithWhitespace_returnsTrimmedInterview() throws Exception {
+        String interviewWithWhitespace = WHITESPACE + VALID_INTERVIEW + WHITESPACE;
+        assertEquals(new Interview(VALID_INTERVIEW), ParserUtil.parseInterview(interviewWithWhitespace));
     }
 
     @Test
