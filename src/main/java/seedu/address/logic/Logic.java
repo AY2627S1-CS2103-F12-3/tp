@@ -25,6 +25,11 @@ public interface Logic {
     ObservableList<Person> getFilteredPersonList();
 
     /**
+     * Returns an unmodifiable observable view of all candidates, independent of the current filter.
+     */
+    ObservableList<Person> getPersonList();
+
+    /**
      * Returns an unmodifiable view of the filtered role list.
      */
     ObservableList<Role> getFilteredRoleList();

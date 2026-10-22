@@ -1,5 +1,7 @@
 package seedu.address.storage;
 
+import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,7 +22,8 @@ import seedu.address.model.role.Role;
 @JsonRootName(value = "addressbook")
 class JsonSerializableAddressBook {
 
-    public static final String MESSAGE_DUPLICATE_PERSON = "Persons list contains duplicate person(s).";
+    public static final String MESSAGE_DUPLICATE_PERSON =
+            "Candidates list contains candidates with the same email or phone number.";
     public static final String MESSAGE_DUPLICATE_ROLE = "Roles list contains duplicate role(s).";
     public static final String MESSAGE_UNKNOWN_ROLE = "Persons list contains a person whose role does not exist.";
 
@@ -34,9 +37,11 @@ class JsonSerializableAddressBook {
     public JsonSerializableAddressBook(@JsonProperty("persons") List<JsonAdaptedPerson> persons,
             @JsonProperty("roles") List<JsonAdaptedRole> roles) {
         if (persons != null) {
+            requireAllNonNull(persons);
             this.persons.addAll(persons);
         }
         if (roles != null) {
+            requireAllNonNull(roles);
             this.roles.addAll(roles);
         }
     }

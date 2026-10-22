@@ -1,0 +1,44 @@
+@startuml
+skin rose
+start
+:Initialize preferences and storage;
+:Read recruitment data;
+if (Read and validation succeed?) then (yes)
+    if (Data file is missing?) then (yes)
+        :Use sample recruitment data;
+    else (no)
+        :Use all validated records;
+    endif
+else (no)
+    :Attempt non-overwriting backup
+    of the regular data file;
+    if (Backup succeeds?) then (yes)
+        :Attempt to create valid
+        empty replacement data;
+        if (Replacement succeeds?) then (yes)
+            :Use empty recruitment data;
+        else (no)
+            :Show error naming the backup
+            and replacement failure;
+            :Shut down after dismissal
+            without opening commands;
+            stop
+        endif
+    else (no)
+        :Show error identifying the
+        original path and backup failure;
+        :Shut down after dismissal
+        without opening commands;
+        stop
+    endif
+    :Record successful recovery;
+endif
+:Initialize model and logic;
+if (Data was recovered?) then (yes)
+    :Show warning with backup path
+    and restoration instructions;
+else (no)
+endif
+:Open command window;
+stop
+@enduml

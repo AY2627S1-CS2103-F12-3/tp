@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_INTERVIEW_AMY;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_INTERVIEW;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
@@ -21,9 +23,11 @@ import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
+import seedu.address.logic.commands.InterviewCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.NoteCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.Interview;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
@@ -100,6 +104,13 @@ public class AddressBookParserTest {
         NoteCommand command = (NoteCommand) parser.parseCommand(
                 NoteCommand.COMMAND_WORD + " " + INDEX_FIRST_PERSON.getOneBased() + " " + note);
         assertEquals(new NoteCommand(INDEX_FIRST_PERSON, new Note(note)), command);
+    }
+
+    @Test
+    public void parseCommand_interview() throws Exception {
+        InterviewCommand command = (InterviewCommand) parser.parseCommand(InterviewCommand.COMMAND_WORD + " "
+                + INDEX_FIRST_PERSON.getOneBased() + " " + PREFIX_INTERVIEW + VALID_INTERVIEW_AMY);
+        assertEquals(new InterviewCommand(INDEX_FIRST_PERSON, new Interview(VALID_INTERVIEW_AMY)), command);
     }
 
     @Test
