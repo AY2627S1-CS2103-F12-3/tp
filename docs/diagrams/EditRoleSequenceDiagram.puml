@@ -19,60 +19,61 @@ end note
 [-> Command : execute(model)
 Command -> Model : isRoleListDisplayed()
 Model --> Command : displayed
-break role list is not displayed
+alt role list is not displayed
     [<-- Command : reject: role list not displayed
-end
+else role list is displayed
+    Command -> Model : getFilteredRoleList()
+    Model --> Command : displayedRoles
+    alt index is outside displayedRoles
+        [<-- Command : reject: invalid displayed index
+    else index selects a displayed role
+        Command -> Command : build editedRole from selected target
+        note right of Command
+        Retain omitted fields and role status.
+        end note
 
-Command -> Model : getFilteredRoleList()
-Model --> Command : displayedRoles
-break index is outside displayedRoles
-    [<-- Command : reject: invalid displayed index
-end
-
-Command -> Command : build editedRole from selected target
-note right of Command
-Retain omitted fields and role status.
-end note
-
-opt !target.isSameRole(editedRole)
-    Command -> Model : hasRole(editedRole)
-    Model --> Command : duplicate title?
-end
-note over Command, Model
-Title identity ignores case.
-Check all roles, including closed roles.
-Case-only corrections keep the same identity.
-end note
-
-alt another role has the requested title
-    [<-- Command : reject: duplicate role title
-else title is available or belongs to the selected role
-    Command -> Model : setRole(target, editedRole)
-    Model -> AddressBook : setRole(target, editedRole)
-    AddressBook -> Roles : setRole(target, editedRole)
-    Roles -> Roles : validate target and title uniqueness
-    Roles -> Roles : replace target at its existing index
-    Roles --> AddressBook
-
-    opt title spelling changed (case-sensitive comparison)
-        AddressBook -> Persons : asUnmodifiableObservableList()
-        Persons --> AddressBook : all stored candidates
-        loop each stored candidate (including hidden candidates)
-            opt candidate's role matches old title, ignoring case
-                AddressBook -> AddressBook : copy candidate with new title\nusing candidate.withRole(newTitle)
-            end
+        opt !target.isSameRole(editedRole)
+            Command -> Model : hasRole(editedRole)
+            Model --> Command : duplicate title?
         end
-        AddressBook -> Persons : setPersons(updatedPersons)
-        Persons --> AddressBook
-    end
-    note over AddressBook, Persons
-Case-only renames also propagate. Experience-only edits skip this step.
-Preserve candidate details and order; retain unrelated instances.
-    end note
+        note over Command, Model
+        Title identity ignores case.
+        Check all roles, including closed roles.
+        Case-only corrections keep the same identity.
+        end note
 
-    AddressBook --> Model
-    Model --> Command
-    [<-- Command : CommandResult
+        alt another role has the requested title
+            [<-- Command : reject: duplicate role title
+        else title is available or belongs to the selected role
+            Command -> Model : setRole(target, editedRole)
+            Model -> AddressBook : setRole(target, editedRole)
+            AddressBook -> Roles : setRole(target, editedRole)
+            Roles -> Roles : validate target and title uniqueness
+            Roles -> Roles : replace target at its existing index
+            Roles --> AddressBook
+
+            opt title spelling changed (case-sensitive comparison)
+                AddressBook -> Persons : asUnmodifiableObservableList()
+                Persons --> AddressBook : all stored candidates
+                loop each stored candidate (including hidden candidates)
+                    opt candidate's role matches old title, ignoring case
+                        AddressBook -> AddressBook : copy candidate with new title\nusing candidate.withRole(newTitle)
+                    end
+                end
+                AddressBook -> Persons : setPersons(updatedPersons)
+                Persons --> AddressBook
+            end
+            note over AddressBook, Persons
+        Case-only renames also propagate. Experience-only edits skip this step.
+        Preserve candidate details and order; retain unrelated instances.
+            end note
+
+            AddressBook --> Model
+            Model --> Command
+            [<-- Command : CommandResult
+        end
+
+    end
 end
 
 note over Command
