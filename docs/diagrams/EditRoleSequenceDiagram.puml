@@ -1,35 +1,83 @@
 @startuml
 !include style.puml
 skinparam ParticipantFontColor black
+skinparam ArrowFontStyle plain
 
-participant ":LogicManager" as Logic
 participant ":EditRoleCommand" as Command
 participant ":ModelManager" as Model
 participant ":AddressBook" as AddressBook
-participant ":StorageManager" as Storage
+participant "roles:UniqueRoleList" as Roles
+participant "persons:UniquePersonList" as Persons
 
-Logic -> Command : execute(model)
-activate Command
 note over Command
-Successful execution path shown.
-Parser has validated supplied fields.
-Check displayed index and duplicate title.
+After parsing: valid positive index,
+no repeated prefixes, at least one field,
+valid supplied title / experience.
+Parse failure never executes this sequence.
 end note
-Command -> Model : setRole(target, editedRole)
-activate Model
-Model -> AddressBook : setRole(target, editedRole)
-activate AddressBook
-note over AddressBook
-Validate role replacement before changing lists.
-On rename, update every matching candidate,
-including those outside the current filter.
-Keep candidate details and role status.
+
+[-> Command : execute(model)
+Command -> Model : isRoleListDisplayed()
+Model --> Command : displayed
+break role list is not displayed
+    [<-- Command : reject: role list not displayed
+end
+
+Command -> Model : getFilteredRoleList()
+Model --> Command : displayedRoles
+break index is outside displayedRoles
+    [<-- Command : reject: invalid displayed index
+end
+
+Command -> Command : build editedRole from selected target
+note right of Command
+Retain omitted fields and role status.
 end note
-AddressBook --> Model
-deactivate AddressBook
-Model --> Command
-deactivate Model
-Command --> Logic : CommandResult
-deactivate Command
-Logic -> Storage : saveAddressBook(model.getAddressBook())
+
+opt !target.isSameRole(editedRole)
+    Command -> Model : hasRole(editedRole)
+    Model --> Command : duplicate title?
+end
+note over Command, Model
+Title identity ignores case.
+Check all roles, including closed roles.
+Case-only corrections keep the same identity.
+end note
+
+alt another role has the requested title
+    [<-- Command : reject: duplicate role title
+else title is available or belongs to the selected role
+    Command -> Model : setRole(target, editedRole)
+    Model -> AddressBook : setRole(target, editedRole)
+    AddressBook -> Roles : setRole(target, editedRole)
+    Roles -> Roles : validate target and title uniqueness
+    Roles -> Roles : replace target at its existing index
+    Roles --> AddressBook
+
+    opt title spelling changed (case-sensitive comparison)
+        AddressBook -> Persons : asUnmodifiableObservableList()
+        Persons --> AddressBook : all stored candidates
+        loop each stored candidate (including hidden candidates)
+            opt candidate's role matches old title, ignoring case
+                AddressBook -> AddressBook : copy candidate with new title\nusing candidate.withRole(newTitle)
+            end
+        end
+        AddressBook -> Persons : setPersons(updatedPersons)
+        Persons --> AddressBook
+    end
+    note over AddressBook, Persons
+Case-only renames also propagate. Experience-only edits skip this step.
+Preserve candidate details and order; retain unrelated instances.
+    end note
+
+    AddressBook --> Model
+    Model --> Command
+    [<-- Command : CommandResult
+end
+
+note over Command
+Rejection leaves records, filters and file unchanged.
+After success, LogicManager saves both collections.
+Save failures do not roll back in-memory changes.
+end note
 @enduml

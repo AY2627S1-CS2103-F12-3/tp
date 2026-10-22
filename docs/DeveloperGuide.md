@@ -215,7 +215,14 @@ Parsing or duplicate rejection leaves the stored records unchanged.
 
 The result shows `Edited role: TITLE.` with the updated title and keeps the role view. `EditRoleCommand` logs accepted corrections and rejected duplicate titles; `LogicManager` saves both collections through the existing path. Parser or command-validation failures leave records, filters and the saved file unchanged. The existing save-error behavior described below remains unchanged: this is not a transactional filesystem save. Once renamed, a role's old title is available again; no title alias or storage-schema migration is introduced.
 
-<puml src="diagrams/EditRoleSequenceDiagram.puml" width="800" alt="Sequence for validating a role edit, updating associated candidates and saving both collections" />
+The sequence below starts after parser validation. The `break` fragments end execution on an
+invalid view or index; the duplicate-title alternative also rejects the edit before either list
+changes. The model replaces the role before propagating its new title across the full candidate
+list. Candidate copying is shown as a single action to omit unrelated field-construction details.
+Saving occurs in `LogicManager` after the command returns successfully, as described below.
+
+<puml src="diagrams/EditRoleSequenceDiagram.puml" width="900"
+  alt="Role-edit validation, duplicate-title rejection, role replacement and title propagation to all associated candidates" />
 
 #### Saving and restoring associations
 
