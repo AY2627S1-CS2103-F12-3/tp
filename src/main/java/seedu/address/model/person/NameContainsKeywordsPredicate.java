@@ -1,5 +1,7 @@
 package seedu.address.model.person;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -26,6 +28,10 @@ public class NameContainsKeywordsPredicate implements Predicate<Person> {
     /** Creates a predicate with name, role, status, and role data filters. */
     public NameContainsKeywordsPredicate(List<String> keywords, List<String> roleKeywords,
             Set<RoleStatus> roleStatuses, List<Role> roles) {
+        requireNonNull(keywords);
+        requireNonNull(roleKeywords);
+        requireNonNull(roleStatuses);
+        requireNonNull(roles);
         this.keywords = keywords;
         this.roleKeywords = roleKeywords;
         this.roleStatuses = roleStatuses;
@@ -42,6 +48,7 @@ public class NameContainsKeywordsPredicate implements Predicate<Person> {
 
     @Override
     public boolean test(Person person) {
+        requireNonNull(person);
         boolean nameMatches = !keywords.isEmpty() && keywords.stream()
                 .anyMatch(keyword -> StringUtil.containsWordIgnoreCase(person.getName().fullName, keyword));
         boolean roleMatches = roleKeywords.isEmpty() && roleStatuses.isEmpty()

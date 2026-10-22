@@ -6,11 +6,18 @@
 
 # Assertions and logging
 
-The application uses Java assertions for internal invariants that should always
-hold when the code is correct, such as non-empty parsed keywords, non-null
-collections, and ensuring that every displayed candidate satisfies the active
-filter. Assertions are not a substitute for user-input validation; parsers still
-return normal command errors for invalid input.
+The application uses explicit defensive checks for internal invariants. For
+example, command and predicate constructors reject null inputs, and predicates
+reject null candidates. These checks protect API boundaries without treating
+user input as trusted: parsers still perform normal validation and return
+user-facing errors for invalid commands and statuses.
+
+The earlier assertion work proposed in issue #110 is not being deferred into
+hidden Java `assert` statements. The useful checks are implemented as
+`requireNonNull` validations and are covered by tests; redundant checks for
+non-empty parsed keywords and already-filtered lists were removed because the
+parser and model filtering logic already enforce those conditions. No runtime
+behaviour depends on enabling `-ea`.
 
 Use `-ea` when running the application or tests to enable assertions. Logging
 records useful operational events, such as parsing a `find` command and applying
