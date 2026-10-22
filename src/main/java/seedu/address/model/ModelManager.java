@@ -82,6 +82,18 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public Optional<Person> findSamePerson(Person person) {
+        requireNonNull(person);
+        return addressBook.findSamePerson(person);
+    }
+
+    @Override
+    public Optional<Person> findSamePersonExcluding(Person person, Person excludedPerson) {
+        requireAllNonNull(person, excludedPerson);
+        return addressBook.findSamePersonExcluding(person, excludedPerson);
+    }
+
+    @Override
     public void deletePerson(Person target) {
         addressBook.removePerson(target);
     }

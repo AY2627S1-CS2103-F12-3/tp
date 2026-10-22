@@ -175,8 +175,8 @@ public class LogicManagerTest {
     @Test
     public void execute_secondHire_rejectsChangeAndPreservesSavedData() throws Exception {
         model.addRole(SOFTWARE_ENGINEER);
-        Person first = new PersonBuilder().withName("First Candidate").build();
-        Person second = new PersonBuilder().withName("Second Candidate").build();
+        Person first = new PersonBuilder().withNameAndDistinctContacts("First Candidate").build();
+        Person second = new PersonBuilder().withNameAndDistinctContacts("Second Candidate").build();
         model.addPerson(first);
         model.addPerson(second);
         logic.execute("status 1 HIRED");
@@ -193,8 +193,8 @@ public class LogicManagerTest {
     @Test
     public void execute_roleLifecycle_preservesHistoryUntilExplicitDeletion() throws Exception {
         model.addRole(SOFTWARE_ENGINEER);
-        model.addPerson(new PersonBuilder().withName("First Candidate").build());
-        model.addPerson(new PersonBuilder().withName("Second Candidate").build());
+        model.addPerson(new PersonBuilder().withNameAndDistinctContacts("First Candidate").build());
+        model.addPerson(new PersonBuilder().withNameAndDistinctContacts("Second Candidate").build());
         logic.execute("status 1 HIRED");
         logic.execute("status 2 REJECTED");
         logic.execute("list role");

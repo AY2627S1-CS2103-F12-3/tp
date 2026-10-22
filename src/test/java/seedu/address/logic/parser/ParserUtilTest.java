@@ -36,7 +36,7 @@ public class ParserUtilTest {
     private static final String INVALID_INTERVIEW_DATE_TIME = "2026-02-30 14:00";
 
     private static final String VALID_NAME = "Rachel Walker";
-    private static final String VALID_PHONE = "123456";
+    private static final String VALID_PHONE = "12345678";
     private static final String VALID_ADDRESS = "123 Main Street #0505";
     private static final String VALID_INTERVIEW = "2026-10-20 14:00";
     private static final String VALID_NOTE = "Interview 2026-10-20 14:00, scored 8/10";
@@ -120,6 +120,12 @@ public class ParserUtilTest {
         String phoneWithWhitespace = WHITESPACE + VALID_PHONE + WHITESPACE;
         Phone expectedPhone = new Phone(VALID_PHONE);
         assertEquals(expectedPhone, ParserUtil.parsePhone(phoneWithWhitespace));
+    }
+
+    @Test
+    public void parsePhone_validValueWithSeparators_returnsPhoneWithoutSeparators() throws Exception {
+        Phone parsedPhone = ParserUtil.parsePhone(WHITESPACE + "+65 9123-4567" + WHITESPACE);
+        assertEquals("+6591234567", parsedPhone.value);
     }
 
     @Test

@@ -161,7 +161,7 @@ public class CloseRoleCommandTest {
     }
 
     private static Person candidate(String name, Status status) {
-        return new PersonBuilder().withName(name).withStatus(status).build();
+        return new PersonBuilder().withNameAndDistinctContacts(name).withStatus(status).build();
     }
 
     private void assertSuccessfulClosure() throws Exception {

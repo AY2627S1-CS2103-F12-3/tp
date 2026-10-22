@@ -76,6 +76,18 @@ public class PersonBuilder {
     }
 
     /**
+     * Sets the {@code Name} of the {@code Person}, with an email and phone derived from {@code name}.
+     * Candidates built with different names are then not duplicates of each other, as duplicates are
+     * detected by email or phone.
+     */
+    public PersonBuilder withNameAndDistinctContacts(String name) {
+        this.name = new Name(name);
+        this.email = new Email(name.replaceAll("[^A-Za-z0-9]", "").toLowerCase() + "@example.com");
+        this.phone = new Phone(String.format("9%07d", Math.floorMod(name.hashCode(), 10_000_000)));
+        return this;
+    }
+
+    /**
      * Parses the {@code tags} into a {@code Set<Tag>} and sets it to the {@code Person} that we are building.
      */
     public PersonBuilder withTags(String ... tags) {

@@ -76,6 +76,9 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
+* A parameter may contain text such as `s/o` or `c/o`, as long as it is not one of the command's prefixes.<br>
+  For example, in `n/Ravi s/o Kumar` the name is `Ravi s/o Kumar`, because `s/` is not a prefix of `add`.
+
 * Extraneous parameters for `help`, `exit`, and `clear` are ignored.<br>
   For example, `help 123` is interpreted as `help`. `list` accepts only `list` or `list role`; anything else is rejected.
 
@@ -97,9 +100,24 @@ Adds a candidate who is applying for a role.
 
 Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
 
+* `NAME`:
+  * Is 1 to 100 characters long.
+  * Starts with a letter, which can be from any language, such as `José` or `山田太郎`.
+  * Can contain letters, digits, spaces and the symbols `'` `-` `.` `,` `/` `(` `)`.
+
+  Capitalisation is kept as you type it.
+* `PHONE_NUMBER`:
+  * Has 8 to 15 digits, with an optional `+` at the start.
+  * Can include spaces and hyphens, such as `+65 9123-4567`.
+
+  Spaces and hyphens are ignored and removed when the number is saved, so `+65 9123-4567` is shown as `+6591234567`.
 * `ROLE` must be the title of an existing role that is `OPEN`. Use [`role add`](#adding-a-role-role-add) to create the role first.
 * `ROLE` is matched ignoring case; for example, `r/software engineer` matches the role `Software Engineer`. The candidate is saved with the role's own spelling of the title.
-* A candidate cannot be added if another candidate has exactly the same name. Names are case-sensitive, so `John Doe` and `john doe` are treated as different candidates. Candidates with different names may share a phone number or email address.
+* Each candidate needs their own email and phone number. A candidate cannot be added if another candidate already uses the same email or the same phone number, and the error message names that candidate.
+  * Emails are compared ignoring case, so `Alex@Example.com` and `alex@example.com` are the same email.
+  * Phone numbers are compared exactly as saved, so `+6591234567` and `91234567` are different numbers. Type phone numbers in one consistent format, such as always without the country code.
+* Candidates may share a name, as long as their emails and phone numbers are different.
+* Each candidate applies for one role. Since their email and phone number stay the same, the same person cannot be added again for a second role.
 * Newly added candidates are automatically assigned the status `Pending Resume Screening`.
 * The candidate's card shows the role as `Applying for: ROLE`.
 
@@ -108,9 +126,15 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
 **Tip:** A candidate can have any number of tags, including zero.
 </box>
 
+<box type="tip" seamless>
+
+**Tip:** You can type `s/o` and `d/o` in names as usual. For `a/l` and `a/p`, type `A/L` and `A/P` instead, since a lowercase `a/` starts the address.
+</box>
+
 Examples:
 * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 r/Software Engineer`
-* `add n/Betsy Crowe t/referral e/betsycrowe@example.com a/Newgate Prison p/1234567 r/product manager t/java`
+* `add n/Betsy Crowe t/referral e/betsycrowe@example.com a/Newgate Prison p/12345678 r/product manager t/java`
+* `add n/Ravi s/o Kumar p/+65 9123-4567 e/ravi@example.com a/Bedok North r/Software Engineer` Adds `Ravi s/o Kumar` with the phone number `+6591234567`.
 
 ### Adding a role: `role add`
 
@@ -269,11 +293,12 @@ using `role edit`, `role close`, or `role delete`. Failed commands leave the cur
 
 Edits an existing candidate.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITLE] [t/TAG]...`
+Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITLE] [t/TAG]...`
 
 * Edits the candidate at the specified `INDEX`. The index refers to the index number shown in the displayed candidate list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
+* `NAME` and `PHONE_NUMBER` follow the same rules as in [`add`](#adding-a-candidate-add), including typing `a/l` and `a/p` in names as `A/L` and `A/P`.
 * When editing tags, all of the candidate's existing tags are removed; adding tags is not cumulative.
 * To remove all of a candidate's tags, enter `t/` without a tag after it.
 * Use `r/ROLE_TITLE` to correct the candidate's role, on its own or with other edits. The title must
@@ -287,6 +312,8 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITLE] [t/T
   even when it already has a hire. A transfer never opens or closes either role automatically.
 * Each field except `t/` may appear only once. Empty or invalid role titles are rejected using the
   same [role-title rules](#adding-a-role-role-add) as role creation.
+* The new email and phone number must not be used by another candidate, following the same rules as in
+  [`add`](#adding-a-candidate-add). Keeping a candidate's own email or phone number is fine.
 * Success shows `Edited candidate: ...` with the updated name and details, refreshes the candidate
   list to show all candidates, and saves the change. Validation failures leave records and filters unchanged.
 
@@ -451,11 +478,15 @@ For example, this complete file contains one role and no candidates:
 }
 ```
 
-When editing roles and their candidate associations:
+When editing candidates, roles and their associations:
 
+* Candidate names and phone numbers must follow the same rules as in [`add`](#adding-a-candidate-add).
+  Files from older versions may contain phone numbers with fewer than 8 digits, which need updating before the file can load.
 * Every role needs `title`, `experienceLevel`, and `status`. Title and experience values must satisfy
   the same constraints as `role add`; role status must be exactly `OPEN` or `CLOSED` in uppercase.
 * Do not repeat role titles, even with different capitalisation or experience levels.
+* No two candidates may share an email (ignoring case) or a phone number, following the same rules as in
+  [`add`](#adding-a-candidate-add).
 * Each candidate's `role` field must name an existing role, ignoring case. It may name a closed role,
   because closing preserves candidates. On loading, the role's stored capitalisation is used for
   its candidates. If you rename a role in the file, update every associated candidate's `role` too.
@@ -474,9 +505,10 @@ When editing roles and their candidate associations:
 The data file must contain exactly one JSON object. Keep the `persons` and `roles` lists inside
 that object instead of appending another object. Whitespace before or after it is allowed.
 Additional JSON values or other trailing text,
-malformed JSON, invalid role fields, duplicate role titles, or a candidate referring to a nonexistent
-role prevent the whole file from loading; valid records are not loaded separately. If two objects
-are accidentally joined together, neither is imported and the entire file is preserved in the backup.
+malformed JSON, invalid role fields, duplicate role titles, candidates sharing an email or phone
+number, or a candidate referring to a nonexistent role prevent the whole file from loading; valid
+records are not loaded separately. If two objects are accidentally joined together, neither is
+imported and the entire file is preserved in the backup.
 If a regular data file cannot be read or validated, RecruiterBuddy first renames it to
 `addressbook.json.bak` in the same folder, preserving its contents. Existing backups are never
 overwritten: if that name is taken, a timestamp is appended, for example

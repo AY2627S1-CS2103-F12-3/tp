@@ -15,7 +15,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.CollectionUtil;
 import seedu.address.commons.util.ToStringBuilder;
@@ -59,7 +61,8 @@ public class EditCommand extends Command {
             "No role named “%1$s” exists. Add the role first, then edit the candidate.";
     public static final String MESSAGE_ROLE_CLOSED =
             "The role “%1$s” is closed, so candidates cannot be moved to it.";
-    public static final String MESSAGE_DUPLICATE_PERSON = "This candidate already exists in RecruiterBuddy.";
+
+    private static final Logger logger = LogsCenter.getLogger(EditCommand.class);
 
     private final Index index;
     private final EditPersonDescriptor editPersonDescriptor;
@@ -92,8 +95,12 @@ public class EditCommand extends Command {
         RoleTitle updatedRole = resolveRole(model, personToEdit);
         Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor, updatedRole);
 
-        if (!personToEdit.isSamePerson(editedPerson) && model.hasPerson(editedPerson)) {
-            throw new CommandException(MESSAGE_DUPLICATE_PERSON);
+        // The candidate being edited is excluded, so keeping their own email or phone is not a duplicate.
+        Optional<Person> existingPerson = model.findSamePersonExcluding(editedPerson, personToEdit);
+        if (existingPerson.isPresent()) {
+            String message = Messages.getErrorMessageForDuplicatePerson(editedPerson, existingPerson.get());
+            logger.info("Rejected edit of candidate " + personToEdit.getName() + ": " + message);
+            throw new CommandException(message);
         }
 
         if (isRoleChanged(personToEdit, updatedRole)) {

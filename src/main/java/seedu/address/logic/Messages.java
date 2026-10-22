@@ -1,5 +1,7 @@
 package seedu.address.logic;
 
+import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
+
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -22,6 +24,9 @@ public class Messages {
     public static final String MESSAGE_PERSON_LIST_NOT_DISPLAYED =
             "No candidate list is displayed. Run list before using a candidate index command.";
     public static final String MESSAGE_PERSONS_LISTED_OVERVIEW = "%1$d candidate(s) listed!";
+    public static final String MESSAGE_DUPLICATE_EMAIL = "This email is already used by the candidate %1$s.";
+    public static final String MESSAGE_DUPLICATE_PHONE =
+            "This phone number is already used by the candidate %1$s.";
     public static final String MESSAGE_DUPLICATE_FIELDS =
                 "Multiple values specified for the following single-valued field(s): ";
 
@@ -35,6 +40,20 @@ public class Messages {
                 Stream.of(duplicatePrefixes).map(Prefix::toString).collect(Collectors.toSet());
 
         return MESSAGE_DUPLICATE_FIELDS + String.join(" ", duplicateFields);
+    }
+
+    /**
+     * Returns an error message naming {@code existingPerson} and the field that {@code person}
+     * shares with them.
+     */
+    public static String getErrorMessageForDuplicatePerson(Person person, Person existingPerson) {
+        requireAllNonNull(person, existingPerson);
+        assert person.isSamePerson(existingPerson) : "Message requested for candidates who do not clash";
+
+        String message = person.hasSameEmail(existingPerson)
+                ? MESSAGE_DUPLICATE_EMAIL
+                : MESSAGE_DUPLICATE_PHONE;
+        return String.format(message, existingPerson.getName());
     }
 
     /**
