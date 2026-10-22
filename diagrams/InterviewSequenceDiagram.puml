@@ -1,0 +1,157 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
+participant ":InterviewCommandParser" as InterviewCommandParser LOGIC_COLOR
+participant "<<class>>\nParserUtil" as ParserUtil LOGIC_COLOR
+participant "ic:InterviewCommand" as InterviewCommand LOGIC_COLOR
+participant "r:CommandResult" as CommandResult LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "<<class>>\nInterview" as InterviewClass MODEL_COLOR
+participant "i:Interview" as Interview MODEL_COLOR
+participant "m:Model" as Model MODEL_COLOR
+participant "personToEdit:Person" as PersonToEdit MODEL_COLOR
+participant "editedPerson:Person" as EditedPerson MODEL_COLOR
+end box
+
+box Storage STORAGE_COLOR_T1
+participant ":StorageManager" as Storage STORAGE_COLOR
+end box
+
+[-> LogicManager : execute("interview 1 d/2026-10-20 14:00")
+activate LogicManager
+
+LogicManager -> AddressBookParser : parseCommand("interview 1 d/2026-10-20 14:00")
+activate AddressBookParser
+
+create InterviewCommandParser
+AddressBookParser -> InterviewCommandParser
+activate InterviewCommandParser
+InterviewCommandParser --> AddressBookParser
+deactivate InterviewCommandParser
+
+AddressBookParser -> InterviewCommandParser : parse(" 1 d/2026-10-20 14:00")
+activate InterviewCommandParser
+
+note right of InterviewCommandParser
+Tokenizes args on d/;
+the preamble is the index.
+end note
+
+InterviewCommandParser -> ParserUtil : parseIndex("1")
+activate ParserUtil
+ParserUtil --> InterviewCommandParser : index
+deactivate ParserUtil
+
+alt d/ present
+    InterviewCommandParser -> ParserUtil : parseInterview("2026-10-20 14:00")
+    activate ParserUtil
+
+    ParserUtil -> InterviewClass : isValidFormat("2026-10-20 14:00")
+    activate InterviewClass
+    InterviewClass --> ParserUtil : true
+    deactivate InterviewClass
+
+    ParserUtil -> InterviewClass : isValidDateTime("2026-10-20 14:00")
+    activate InterviewClass
+    InterviewClass --> ParserUtil : true
+    deactivate InterviewClass
+
+    note right of ParserUtil
+    If either check fails, a ParseException
+    with its own message is thrown.
+    An empty d/ fails the format check,
+    so it never clears an interview.
+    end note
+
+    create Interview
+    ParserUtil -> Interview : Interview("2026-10-20 14:00")
+    activate Interview
+    Interview --> ParserUtil
+    deactivate Interview
+
+    ParserUtil --> InterviewCommandParser : i
+    deactivate ParserUtil
+else d/ absent
+    note over InterviewCommandParser
+    i = Interview.NONE
+    (clears the interview)
+    end note
+end
+
+create InterviewCommand
+InterviewCommandParser -> InterviewCommand : InterviewCommand(index, i)
+activate InterviewCommand
+InterviewCommand --> InterviewCommandParser
+deactivate InterviewCommand
+
+InterviewCommandParser --> AddressBookParser : ic
+deactivate InterviewCommandParser
+'Hidden arrow to position the destroy marker below the end of the activation bar.
+InterviewCommandParser -[hidden]-> AddressBookParser
+destroy InterviewCommandParser
+
+AddressBookParser --> LogicManager : ic
+deactivate AddressBookParser
+
+LogicManager -> InterviewCommand : execute(m)
+activate InterviewCommand
+
+InterviewCommand -> Model : getFilteredPersonList()
+activate Model
+Model --> InterviewCommand : lastShownList
+deactivate Model
+
+note right of InterviewCommand
+Rejected if the role list is shown
+or index is out of range; otherwise
+takes personToEdit at index.
+end note
+
+InterviewCommand -> PersonToEdit : withInterview(i)
+activate PersonToEdit
+create EditedPerson
+PersonToEdit -> EditedPerson
+activate EditedPerson
+EditedPerson --> PersonToEdit
+deactivate EditedPerson
+PersonToEdit --> InterviewCommand : editedPerson
+deactivate PersonToEdit
+
+note right of InterviewCommand
+editedPerson has i as its only interview,
+so any earlier interview is replaced.
+end note
+
+InterviewCommand -> Model : setPerson(personToEdit, editedPerson)
+activate Model
+Model --> InterviewCommand
+deactivate Model
+
+create CommandResult
+InterviewCommand -> CommandResult
+activate CommandResult
+CommandResult --> InterviewCommand
+deactivate CommandResult
+
+InterviewCommand --> LogicManager : r
+deactivate InterviewCommand
+
+LogicManager -> Model : getAddressBook()
+activate Model
+Model --> LogicManager : ab
+deactivate Model
+
+LogicManager -> Storage : saveAddressBook(ab)
+activate Storage
+Storage --> LogicManager
+deactivate Storage
+
+[<--LogicManager : r
+deactivate LogicManager
+@enduml
