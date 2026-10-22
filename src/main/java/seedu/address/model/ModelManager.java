@@ -3,6 +3,8 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -26,6 +28,8 @@ public class ModelManager implements Model {
     private final FilteredList<Person> filteredPersons;
     private final FilteredList<Role> filteredRoles;
     private boolean roleListDisplayed;
+    private final Deque<AddressBook> undoStack = new ArrayDeque<>();
+    private final Deque<AddressBook> redoStack = new ArrayDeque<>();
 
     /**
      * Initializes a ModelManager with the given addressBook and userPrefs.
@@ -68,6 +72,43 @@ public class ModelManager implements Model {
     @Override
     public void setAddressBook(ReadOnlyAddressBook addressBook) {
         this.addressBook.resetData(addressBook);
+    }
+
+    @Override
+    public void recordAddressBookState() {
+        undoStack.push(new AddressBook(addressBook));
+    }
+
+    @Override
+    public void commitAddressBookState() {
+        redoStack.clear();
+    }
+
+    @Override
+    public boolean undoAddressBook() {
+        if (undoStack.isEmpty()) {
+            return false;
+        }
+        redoStack.push(new AddressBook(addressBook));
+        setAddressBook(undoStack.pop());
+        return true;
+    }
+
+    @Override
+    public boolean redoAddressBook() {
+        if (redoStack.isEmpty()) {
+            return false;
+        }
+        undoStack.push(new AddressBook(addressBook));
+        setAddressBook(redoStack.pop());
+        return true;
+    }
+
+    @Override
+    public void discardAddressBookState() {
+        if (!undoStack.isEmpty()) {
+            undoStack.pop();
+        }
     }
 
     @Override

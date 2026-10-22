@@ -21,15 +21,12 @@ public interface Model {
     /**
      * Returns true if the last successful logic result selected the role list.
      */
-    default boolean isRoleListDisplayed() {
-        return false;
-    }
+    boolean isRoleListDisplayed();
 
     /**
      * Records the view selected by a successfully completed logic result.
      */
-    default void setRoleListDisplayed(boolean displayed) {
-    }
+    void setRoleListDisplayed(boolean displayed);
 
     /**
      * Returns the user prefs.
@@ -50,6 +47,23 @@ public interface Model {
      * Replaces address book data with the data in {@code addressBook}.
      */
     void setAddressBook(ReadOnlyAddressBook addressBook);
+
+    /** Records a snapshot before a mutating command is executed. */
+    void recordAddressBookState();
+
+    /** Clears redo history after a mutating command has executed successfully. */
+    default void commitAddressBookState() {
+        // Models that support history may override this method.
+    }
+
+    /** Restores the previous recorded address book state. */
+    boolean undoAddressBook();
+
+    /** Restores the next address book state after an undo. */
+    boolean redoAddressBook();
+
+    /** Removes the most recently recorded snapshot when command execution fails. */
+    void discardAddressBookState();
 
     /** Returns the AddressBook */
     ReadOnlyAddressBook getAddressBook();

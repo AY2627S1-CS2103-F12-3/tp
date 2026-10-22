@@ -42,6 +42,8 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
 
    * `list` : Lists all candidates.
    * `list role` : Lists all unique roles, with each role shown in its own box.
+   * `undo` : Undoes the most recent data-changing command in this session.
+   * `redo` : Redoes the most recently undone data-changing command.
    * `role add r/Software Engineer x/2 years` : Adds an open role.
 
    * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 r/Data Analyst` : Adds a candidate named `John Doe` who is applying for the sample `Data Analyst` role.
@@ -274,6 +276,29 @@ Shows every unique role in RecruiterBuddy. Each role is displayed in its own box
 
 Format: `list role`
 
+### Undoing a change: `undo`
+
+Undoes the most recent successful command that changed the address book. Undo can be used repeatedly to return to the address-book state at the beginning of the current session.
+
+Format: `undo`
+
+Examples:
+
+* `add ...` followed by `undo` removes the newly added person.
+* `edit 1 p/91234567` followed by `undo` restores the person's previous phone number.
+* `delete 1` followed by `undo` restores the deleted person.
+
+The `list`, `find`, `help`, and `exit` commands do not affect undo history. Changes are saved automatically, so an undo also updates the saved address-book data.
+
+### Redoing a change: `redo`
+
+Redoes the most recently undone change.
+
+Format: `redo`
+
+Redo is available only after an `undo`. Executing a new address-book change after an undo clears the redo history. Like all address-book changes, a redo is saved automatically.
+
+### Editing a person: `edit`
 Each role card also shows `Pending`, `Hired`, `Rejected`, and `Withdrawn` candidate totals, including
 zeros. For example: `Pending: 3`, `Hired: 1`, `Rejected: 2`, `Withdrawn: 0`.
 
@@ -561,6 +586,8 @@ Action     | Format, Examples
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List**   | `list`
 **List roles** | `list role`
+**Undo**   | `undo`
+**Redo**   | `redo`
 **Interview** | `interview INDEX [d/YYYY-MM-DD HH:MM]`<br> e.g., `interview 1 d/2026-10-20 14:00`, `interview 2`
 **Note**   | `note INDEX [NOTE]`<br> e.g., `note 1 Prefers hybrid work`
 **Role add** | `role add r/ROLE_TITLE x/EXPERIENCE_LEVEL`<br> e.g., `role add r/Software Engineer x/2 years`

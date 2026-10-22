@@ -12,7 +12,6 @@ import seedu.address.model.person.NameContainsKeywordsPredicate;
  * Keyword matching is case insensitive.
  */
 public class FindCommand extends Command {
-
     public static final String COMMAND_WORD = "find";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds all candidates whose names contain any of "
@@ -22,8 +21,14 @@ public class FindCommand extends Command {
 
     private final NameContainsKeywordsPredicate predicate;
 
+    /** Creates a find command with the given predicate. */
     public FindCommand(NameContainsKeywordsPredicate predicate) {
         this.predicate = predicate;
+    }
+
+    @Override
+    public boolean isUndoable() {
+        return false;
     }
 
     @Override
