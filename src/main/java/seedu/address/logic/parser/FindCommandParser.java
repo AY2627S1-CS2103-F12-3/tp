@@ -4,8 +4,8 @@ import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.FindCommand;
@@ -35,7 +35,7 @@ public class FindCommandParser implements Parser<FindCommand> {
         }
 
         ArgumentMultimap map = ArgumentTokenizer.tokenize(args, CliSyntax.PREFIX_ROLE_TITLE,
-        new Prefix("st/"));
+                new Prefix("st/"));
 
         List<String> names = Arrays.stream(map.getPreamble().split("\\s+"))
                 .filter(s -> !s.isBlank())

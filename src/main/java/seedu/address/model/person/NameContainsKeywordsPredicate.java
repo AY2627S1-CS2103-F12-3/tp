@@ -1,7 +1,5 @@
 package seedu.address.model.person;
 
-import static java.util.Objects.requireNonNull;
-
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
