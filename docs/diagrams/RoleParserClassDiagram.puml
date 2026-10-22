@@ -1,0 +1,42 @@
+@startuml
+!include style.puml
+skinparam arrowThickness 1.1
+skinparam arrowColor LOGIC_COLOR_T4
+skinparam classBackgroundColor LOGIC_COLOR
+skinparam ArrowFontStyle plain
+
+class AddressBookParser
+class RoleCommandParser
+interface Parser <<interface>>
+
+together {
+    class AddRoleCommandParser
+    class EditRoleCommandParser
+    class CloseRoleCommandParser
+    class DeleteRoleCommandParser
+}
+
+together {
+    class AddRoleCommand
+    class EditRoleCommand
+    class CloseRoleCommand
+    class DeleteRoleCommand
+}
+
+AddressBookParser .down.> RoleCommandParser : <<create>>\nrole
+RoleCommandParser .right.|> Parser
+AddRoleCommandParser .up.|> Parser
+EditRoleCommandParser .up.|> Parser
+CloseRoleCommandParser .up.|> Parser
+DeleteRoleCommandParser .up.|> Parser
+
+RoleCommandParser .down.> AddRoleCommandParser : <<create>>\nadd
+RoleCommandParser .down.> EditRoleCommandParser : <<create>>\nedit
+RoleCommandParser .down.> CloseRoleCommandParser : <<create>>\nclose
+RoleCommandParser .down.> DeleteRoleCommandParser : <<create>>\ndelete
+
+AddRoleCommandParser .down.> AddRoleCommand : <<create>>
+EditRoleCommandParser .down.> EditRoleCommand : <<create>>
+CloseRoleCommandParser .down.> CloseRoleCommand : <<create>>
+DeleteRoleCommandParser .down.> DeleteRoleCommand : <<create>>
+@enduml

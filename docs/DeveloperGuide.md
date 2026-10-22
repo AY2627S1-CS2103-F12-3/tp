@@ -119,6 +119,19 @@ How the parsing works:
 * When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
 
+The focused class diagram below shows parsing for the `role` command group. `AddressBookParser`
+creates a `RoleCommandParser`, which selects the parser for `add`, `edit`, `close`, or `delete`.
+That parser validates the subcommand arguments and creates its corresponding command.
+
+<puml src="diagrams/RoleParserClassDiagram.puml" width="900"
+  alt="Role command parsing: dispatch to add, edit, close and delete parsers and creation of their commands" />
+
+All five role parsers implement `Parser<T>`, shown by dashed arrows with hollow triangle heads.
+`RoleCommandParser` returns `Command`, while each subcommand parser returns its concrete command
+type. Dependencies labelled `<<create>>` show object creation. Type parameters, command inheritance, and
+utility dependencies are omitted here to keep the dispatch relationships readable; the generic
+parser diagram above shows the shared utilities.
+
 ### Model component
 **API** : [`Model.java`](https://github.com/AY2627S1-CS2103-F12-3/tp/blob/master/src/main/java/seedu/address/model/Model.java)
 
