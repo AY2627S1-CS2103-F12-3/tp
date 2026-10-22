@@ -297,8 +297,17 @@ loading still runs before recruitment data is loaded. Preference files use the s
 JSON check; invalid preferences retain the existing default-settings fallback rather than using
 recruitment-data backup recovery.
 
-<puml src="diagrams/RecruitmentDataStartupActivityDiagram.puml" width="550"
-  alt="Startup branches for valid, missing and unreadable recruitment data" />
+The activity diagram below follows the failed-loading path after preferences and storage have been
+initialized. `FILE` denotes the original data filename (normally `addressbook.json`), and `TIMESTAMP`
+is captured once for the recovery attempt. A move that reports an existing destination selects
+the timestamped name, then `-1`, `-2`, and so on.
+The loop retries the move itself rather than relying on an earlier existence check. Source-check
+or move failures stop startup with the original at its source path; replacement failures stop
+startup with the original in the remembered backup. Only successful preservation and replacement
+lead to empty lists, a recovery warning, and an open command window.
+
+<puml src="diagrams/RecruitmentDataStartupActivityDiagram.puml" width="900"
+  alt="Startup recovery with non-overwriting backup selection, collision retries, empty startup and fatal failure branches" />
 
 Recovery preserves the source before exposing any command that can reach the normal save path.
 If recovery cannot complete safely, startup remains blocked rather than risking the original or its
