@@ -77,11 +77,11 @@ public class EditRoleCommand extends Command {
         Role editedRole = new Role(title == null ? role.getTitle() : title,
                 experienceLevel == null ? role.getExperienceLevel() : experienceLevel, role.getStatus());
         if (!role.isSameRole(editedRole) && model.hasRole(editedRole)) {
-            logger.info("Rejected role edit because the destination title already exists.");
+            logger.fine("Rejected role edit: title already exists.");
             throw new CommandException(String.format(MESSAGE_DUPLICATE_ROLE, editedRole.getTitle()));
         }
         model.setRole(role, editedRole);
-        logger.info("Updated role details: " + role.getTitle() + " -> " + editedRole.getTitle());
+        logger.info("Updated role details in memory at displayed index " + targetIndex.getOneBased() + ".");
         return new CommandResult(String.format(MESSAGE_SUCCESS, editedRole.getTitle()), false, false, true);
     }
 

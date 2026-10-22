@@ -103,12 +103,16 @@ public class EditCommand extends Command {
             throw new CommandException(message);
         }
 
-        if (isRoleChanged(personToEdit, updatedRole)) {
+        boolean isRoleTransfer = isRoleChanged(personToEdit, updatedRole);
+        if (isRoleTransfer) {
             CandidateRoleChecks.verifyHiringAllowed(model, personToEdit, updatedRole, editedPerson.getStatus());
         }
 
         model.setPerson(personToEdit, editedPerson);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        if (isRoleTransfer) {
+            logger.info("Updated candidate role in memory at displayed index " + index.getOneBased() + ".");
+        }
         return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)));
     }
 
@@ -124,7 +128,9 @@ public class EditCommand extends Command {
         RoleTitle requestedRole = editPersonDescriptor.getRole().get();
         Role destination = model.findRole(requestedRole)
                 .orElseThrow(() -> new CommandException(String.format(MESSAGE_ROLE_NOT_FOUND, requestedRole)));
+        assert destination.getTitle().isSameTitle(requestedRole) : "Role lookup must match the request";
         if (isRoleChanged(personToEdit, destination.getTitle()) && destination.isClosed()) {
+            logger.fine("Rejected candidate role transfer: destination role is closed.");
             throw new CommandException(String.format(MESSAGE_ROLE_CLOSED, destination.getTitle()));
         }
         return destination.getTitle();
