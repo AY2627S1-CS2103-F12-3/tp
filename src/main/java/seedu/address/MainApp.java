@@ -81,6 +81,7 @@ public class MainApp extends Application {
     MainApp(Path userPrefsFilePath, Path addressBookFilePath, RecruitmentDataRecovery dataRecovery,
             Consumer<StartupDataNotice> startupNoticeConsumer) {
         requireAllNonNull(userPrefsFilePath, addressBookFilePath, dataRecovery, startupNoticeConsumer);
+
         this.userPrefsFilePath = userPrefsFilePath;
         this.addressBookFilePath = addressBookFilePath;
         this.dataRecovery = dataRecovery;
@@ -92,11 +93,12 @@ public class MainApp extends Application {
         logger.info("=============================[ Initializing AddressBook ]===========================");
         super.init();
 
-        JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(userPrefsFilePath);
-        UserPrefs userPrefs = initPrefs(userPrefsStorage);
-        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(addressBookFilePath);
+        Path jarDir = getDir();
+        JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(jarDir.resolve(userPrefsFilePath));
+        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(jarDir.resolve(addressBookFilePath));
         storage = new StorageManager(addressBookStorage, userPrefsStorage);
 
+        UserPrefs userPrefs = initPrefs(userPrefsStorage);
         try {
             model = initModelManager(storage, userPrefs);
         } catch (DataLoadingException e) {
@@ -114,16 +116,17 @@ public class MainApp extends Application {
     /**
      * Starts with empty records only after preserving the original and saving a replacement.
      */
-    private boolean recoverRecruitmentData(ReadOnlyUserPrefs userPrefs) {
+    private boolean recoverRecruitmentData(ReadOnlyUserPrefs userPrefs) throws Exception {
         Path dataBackupPath = null;
+        Path addressBookFullFilePath = getDir().resolve(addressBookFilePath);
         try {
-            dataBackupPath = dataRecovery.backUp(addressBookFilePath);
-            dataRecovery.createEmptyDataFile(addressBookFilePath);
+            dataBackupPath = dataRecovery.backUp(addressBookFullFilePath);
+            dataRecovery.createEmptyDataFile(addressBookFullFilePath);
             model = new ModelManager(new AddressBook(), userPrefs);
-            startupNotice = StartupDataNotice.recovered(addressBookFilePath, dataBackupPath);
+            startupNotice = StartupDataNotice.recovered(addressBookFullFilePath, dataBackupPath);
             return true;
         } catch (IOException | SecurityException e) {
-            startupNotice = StartupDataNotice.failed(addressBookFilePath, dataBackupPath, e.toString());
+            startupNotice = StartupDataNotice.failed(addressBookFullFilePath, dataBackupPath, e.toString());
             logger.severe("Safe recruitment-data recovery failed: " + e);
             return false;
         }
@@ -203,5 +206,13 @@ public class MainApp extends Application {
         } catch (IOException e) {
             logger.severe("Failed to save preferences " + StringUtil.getDetails(e));
         }
+    }
+
+    /**
+     * Returns Path to the directory where the JAR is located.
+     */
+    private Path getDir() throws Exception {
+        Path jarPath = Paths.get(MainApp.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+        return jarPath.getParent();
     }
 }
