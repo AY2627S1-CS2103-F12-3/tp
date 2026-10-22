@@ -121,6 +121,14 @@
       "headingKeywords": {}
     },
     {
+      "src": "assertions.md",
+      "title": "Assertions and logging",
+      "headings": {
+        "assertions-and-logging": "Assertions and logging"
+      },
+      "headingKeywords": {}
+    },
+    {
       "src": "index.md",
       "title": "",
       "headings": {
