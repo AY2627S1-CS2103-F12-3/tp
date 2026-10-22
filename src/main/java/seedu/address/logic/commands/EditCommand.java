@@ -64,8 +64,6 @@ public class EditCommand extends Command {
 
     private static final Logger logger = LogsCenter.getLogger(EditCommand.class);
 
-    private static final Logger logger = LogsCenter.getLogger(EditCommand.class);
-
     private final Index index;
     private final EditPersonDescriptor editPersonDescriptor;
 
