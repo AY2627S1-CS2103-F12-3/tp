@@ -4,7 +4,11 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EXPERIENCE_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ROLE_TITLE;
 
+import java.util.logging.Logger;
+
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.RoleCommandParser;
 import seedu.address.model.Model;
@@ -27,7 +31,9 @@ public class AddRoleCommand extends Command {
             + PREFIX_EXPERIENCE_LEVEL + "2 years";
 
     public static final String MESSAGE_SUCCESS = "Added open role: %1$s.";
-    public static final String MESSAGE_DUPLICATE_ROLE = "A role named “%1$s” already exists.";
+    public static final String MESSAGE_DUPLICATE_ROLE = Messages.MESSAGE_DUPLICATE_ROLE;
+
+    private static final Logger logger = LogsCenter.getLogger(AddRoleCommand.class);
 
     private final Role toAdd;
 
@@ -44,10 +50,12 @@ public class AddRoleCommand extends Command {
         requireNonNull(model);
 
         if (model.hasRole(toAdd)) {
+            logger.fine("Rejected role addition: title already exists.");
             throw new CommandException(String.format(MESSAGE_DUPLICATE_ROLE, toAdd.getTitle()));
         }
 
         model.addRole(toAdd);
+        logger.info("Added open role in memory.");
         return new CommandResult(String.format(MESSAGE_SUCCESS, toAdd.getTitle()));
     }
 

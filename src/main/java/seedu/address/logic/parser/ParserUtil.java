@@ -12,6 +12,7 @@ import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Interview;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Note;
 import seedu.address.model.person.Phone;
@@ -111,6 +112,25 @@ public class ParserUtil {
     public static Note parseNote(String note) {
         requireNonNull(note);
         return new Note(note.trim());
+    }
+
+    /**
+     * Parses a {@code String interview} into an {@code Interview}.
+     * Leading and trailing whitespaces will be trimmed.
+     *
+     * @throws ParseException if the given {@code interview} has the wrong format,
+     *         or has the right format but is not a real date and time.
+     */
+    public static Interview parseInterview(String interview) throws ParseException {
+        requireNonNull(interview);
+        String trimmedInterview = interview.trim();
+        if (!Interview.isValidFormat(trimmedInterview)) {
+            throw new ParseException(Interview.MESSAGE_INVALID_FORMAT);
+        }
+        if (!Interview.isValidDateTime(trimmedInterview)) {
+            throw new ParseException(Interview.MESSAGE_INVALID_DATE_TIME);
+        }
+        return new Interview(trimmedInterview);
     }
 
     /**

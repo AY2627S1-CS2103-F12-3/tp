@@ -5,6 +5,7 @@ import java.util.Set;
 
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Interview;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
@@ -32,6 +33,7 @@ public class PersonBuilder {
     private Address address;
     private RoleTitle role;
     private Note note;
+    private Interview interview;
     private Status status;
     private Set<Tag> tags;
 
@@ -45,6 +47,7 @@ public class PersonBuilder {
         address = new Address(DEFAULT_ADDRESS);
         role = new RoleTitle(DEFAULT_ROLE);
         note = new Note(DEFAULT_NOTE);
+        interview = Interview.NONE;
         status = Person.DEFAULT_STATUS;
         tags = new HashSet<>();
     }
@@ -59,6 +62,7 @@ public class PersonBuilder {
         address = personToCopy.getAddress();
         role = personToCopy.getRole();
         note = personToCopy.getNote();
+        interview = personToCopy.getInterview();
         status = personToCopy.getStatus();
         tags = new HashSet<>(personToCopy.getTags());
     }
@@ -68,6 +72,18 @@ public class PersonBuilder {
      */
     public PersonBuilder withName(String name) {
         this.name = new Name(name);
+        return this;
+    }
+
+    /**
+     * Sets the {@code Name} of the {@code Person}, with an email and phone derived from {@code name}.
+     * Candidates built with different names are then not duplicates of each other, as duplicates are
+     * detected by email or phone.
+     */
+    public PersonBuilder withNameAndDistinctContacts(String name) {
+        this.name = new Name(name);
+        this.email = new Email(name.replaceAll("[^A-Za-z0-9]", "").toLowerCase() + "@example.com");
+        this.phone = new Phone(String.format("9%07d", Math.floorMod(name.hashCode(), 10_000_000)));
         return this;
     }
 
@@ -112,6 +128,22 @@ public class PersonBuilder {
     }
 
     /**
+     * Sets the {@code Interview} of the {@code Person} that we are building.
+     */
+    public PersonBuilder withInterview(String interview) {
+        this.interview = new Interview(interview);
+        return this;
+    }
+
+    /**
+     * Sets the {@code Interview} of the {@code Person} that we are building, e.g. to {@link Interview#NONE}.
+     */
+    public PersonBuilder withInterview(Interview interview) {
+        this.interview = interview;
+        return this;
+    }
+
+    /**
      * Sets the {@code RoleTitle} of the {@code Person} that we are building.
      */
     public PersonBuilder withRole(String role) {
@@ -128,7 +160,7 @@ public class PersonBuilder {
     }
 
     public Person build() {
-        return new Person(name, phone, email, address, role, note, status, tags);
+        return new Person(name, phone, email, address, role, note, interview, status, tags);
     }
 
 }

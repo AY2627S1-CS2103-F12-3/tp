@@ -84,8 +84,10 @@ public class DeleteRoleCommandTest {
 
     @Test
     public void execute_multipleCandidatesWithDifferentTitleCase_reportsTotal() {
-        model.addPerson(new PersonBuilder().withName("First Candidate").withRole("software engineer").build());
-        model.addPerson(new PersonBuilder().withName("Second Candidate").withStatus(Status.HIRED).build());
+        model.addPerson(new PersonBuilder().withNameAndDistinctContacts("First Candidate")
+                .withRole("software engineer").build());
+        model.addPerson(new PersonBuilder().withNameAndDistinctContacts("Second Candidate")
+                .withStatus(Status.HIRED).build());
         assertCommandFailure(command, model, String.format(DeleteRoleCommand.MESSAGE_ASSOCIATED_CANDIDATES,
                 SOFTWARE_ENGINEER.getTitle(), 2));
     }

@@ -15,7 +15,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.CollectionUtil;
 import seedu.address.commons.util.ToStringBuilder;
@@ -59,7 +61,8 @@ public class EditCommand extends Command {
             "No role named “%1$s” exists. Add the role first, then edit the candidate.";
     public static final String MESSAGE_ROLE_CLOSED =
             "The role “%1$s” is closed, so candidates cannot be moved to it.";
-    public static final String MESSAGE_DUPLICATE_PERSON = "This candidate already exists in RecruiterBuddy.";
+
+    private static final Logger logger = LogsCenter.getLogger(EditCommand.class);
 
     private final Index index;
     private final EditPersonDescriptor editPersonDescriptor;
@@ -92,16 +95,24 @@ public class EditCommand extends Command {
         RoleTitle updatedRole = resolveRole(model, personToEdit);
         Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor, updatedRole);
 
-        if (!personToEdit.isSamePerson(editedPerson) && model.hasPerson(editedPerson)) {
-            throw new CommandException(MESSAGE_DUPLICATE_PERSON);
+        // The candidate being edited is excluded, so keeping their own email or phone is not a duplicate.
+        Optional<Person> existingPerson = model.findSamePersonExcluding(editedPerson, personToEdit);
+        if (existingPerson.isPresent()) {
+            String message = Messages.getErrorMessageForDuplicatePerson(editedPerson, existingPerson.get());
+            logger.info("Rejected edit of candidate " + personToEdit.getName() + ": " + message);
+            throw new CommandException(message);
         }
 
-        if (isRoleChanged(personToEdit, updatedRole)) {
+        boolean isRoleTransfer = isRoleChanged(personToEdit, updatedRole);
+        if (isRoleTransfer) {
             CandidateRoleChecks.verifyHiringAllowed(model, personToEdit, updatedRole, editedPerson.getStatus());
         }
 
         model.setPerson(personToEdit, editedPerson);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        if (isRoleTransfer) {
+            logger.info("Updated candidate role in memory at displayed index " + index.getOneBased() + ".");
+        }
         return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)));
     }
 
@@ -117,7 +128,9 @@ public class EditCommand extends Command {
         RoleTitle requestedRole = editPersonDescriptor.getRole().get();
         Role destination = model.findRole(requestedRole)
                 .orElseThrow(() -> new CommandException(String.format(MESSAGE_ROLE_NOT_FOUND, requestedRole)));
+        assert destination.getTitle().isSameTitle(requestedRole) : "Role lookup must match the request";
         if (isRoleChanged(personToEdit, destination.getTitle()) && destination.isClosed()) {
+            logger.fine("Rejected candidate role transfer: destination role is closed.");
             throw new CommandException(String.format(MESSAGE_ROLE_CLOSED, destination.getTitle()));
         }
         return destination.getTitle();
@@ -146,7 +159,7 @@ public class EditCommand extends Command {
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
 
         return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedRole, note,
-                personToEdit.getStatus(), updatedTags);
+                personToEdit.getInterview(), personToEdit.getStatus(), updatedTags);
     }
 
     @Override

@@ -12,10 +12,10 @@ public class StatusTest {
 
     @Test
     public void isPending_recruitmentStage_returnsTrue() {
-        assertTrue(Status.PENDING_RESUME_SCREENING.isPending());
-        assertTrue(Status.PENDING_RECRUITER_INTERVIEW.isPending());
-        assertTrue(Status.PENDING_OFFER_EXTENSION.isPending());
-        assertTrue(Status.PENDING_OFFER_DECISION.isPending());
+        assertTrue(Status.RESUME.isPending());
+        assertTrue(Status.INTERVIEW.isPending());
+        assertTrue(Status.OFFER.isPending());
+        assertTrue(Status.DECISION.isPending());
     }
 
     @Test
@@ -38,9 +38,9 @@ public class StatusTest {
 
     @Test
     public void toStringMethod() {
-        assertEquals("Pending Resume Screening", Status.PENDING_RESUME_SCREENING.toString());
-        assertEquals("Pending Recruiter Interview", Status.PENDING_RECRUITER_INTERVIEW.toString());
-        assertEquals("Pending Offer Extension", Status.PENDING_OFFER_EXTENSION.toString());
+        assertEquals("Resume", Status.RESUME.toString());
+        assertEquals("Interview", Status.INTERVIEW.toString());
+        assertEquals("Offer", Status.OFFER.toString());
         assertEquals("Hired", Status.HIRED.toString());
         assertEquals("Rejected", Status.REJECTED.toString());
     }
