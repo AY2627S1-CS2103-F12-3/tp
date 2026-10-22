@@ -122,7 +122,7 @@ public class RoleWorkflowDiagnosticsTest {
     public void execute_closeRoleWithMultipleHires_logsRejectionAndPreservesState() {
         model.setRoleListDisplayed(true);
         model.setPerson(CANDIDATE, new PersonBuilder(CANDIDATE).withStatus(Status.HIRED).build());
-        model.addPerson(new PersonBuilder(CANDIDATE).withName("Other Applicant")
+        model.addPerson(new PersonBuilder(CANDIDATE).withNameAndDistinctContacts("Other Applicant")
                 .withStatus(Status.HIRED).build());
         AddressBook savedState = new AddressBook(model.getAddressBook());
         try (LogCapture logs = new LogCapture()) {
