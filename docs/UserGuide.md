@@ -389,7 +389,7 @@ Examples:
 
 Updates the recruitment status of the candidate at the specified index.
 
-Format: `status INDEX... STATUS`
+Format: `status INDEX... st/STATUS`
 
 * Updates the status of the candidates at the specified indices. Each index refers to the index number shown in the displayed candidate list. The index **must be a positive integer** 1, 2, 3, ... and cannot exceed the length of the _displayed_ candidate list.
 * Each candidate's original status is replaced with the one specified in `STATUS`.
@@ -567,5 +567,5 @@ Action     | Format, Examples
 **Role edit** | `role edit INDEX [r/ROLE_TITLE] [x/EXPERIENCE_LEVEL]`<br> e.g., `list role` followed by `role edit 1 r/Platform Engineer x/5 years`
 **Role close** | `role close INDEX`<br> e.g., `list role` followed by `role close 1`
 **Role delete** | `role delete INDEX`<br> e.g., `list role` followed by `role delete 1`
-**Status** | `status INDEX... STATUS`<br> e.g., `status 1 2 3 HIRED`
+**Status** | `status INDEX... st/STATUS`<br> e.g., `status 1 2 3 HIRED`
 **Help**   | `help`
