@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,7 @@ import seedu.address.model.util.SampleDataUtil;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.RecruitmentDataRecovery;
+import seedu.address.testutil.LogCapture;
 import seedu.address.ui.StartupDataNotice;
 
 public class MainAppTest {
@@ -105,7 +107,17 @@ public class MainAppTest {
     @Test
     public void init_malformedData_backsUpAndStartsEmpty() throws Exception {
         Files.writeString(dataPath, "{");
-        assertRecoveredStartupPreservesFile();
+        try (LogCapture logs = new LogCapture()) {
+            assertRecoveredStartupPreservesFile();
+
+            assertLoadWarning(logs);
+            logs.assertContains(RecruitmentDataRecovery.class, Level.INFO,
+                    "Preserved unreadable recruitment data at " + dataPath.resolveSibling("addressbook.json.bak"));
+            logs.assertContains(RecruitmentDataRecovery.class, Level.INFO,
+                    "Created empty recruitment data at " + dataPath);
+            assertEquals(2, logs.getRecords(RecruitmentDataRecovery.class).size());
+            assertTrue(logs.getRecords(MainApp.class).stream().noneMatch(record -> record.getLevel() == Level.SEVERE));
+        }
     }
 
     @Test
@@ -177,7 +189,12 @@ public class MainAppTest {
         };
         StartupNoticeApp app = new StartupNoticeApp(prefsPath, dataPath, failingRecovery);
 
-        assertBlockedStartup(app);
+        try (LogCapture logs = new LogCapture()) {
+            assertBlockedStartup(app);
+
+            assertRecoveryFailure(logs, "java.io.IOException: Backup denied");
+            logs.assertNoRecords(RecruitmentDataRecovery.class);
+        }
 
         assertEquals("{", Files.readString(dataPath));
         assertFalse(Files.exists(dataPath.resolveSibling("addressbook.json.bak")));
@@ -194,7 +211,14 @@ public class MainAppTest {
         };
         StartupNoticeApp app = new StartupNoticeApp(prefsPath, dataPath, failingRecovery);
 
-        assertBlockedStartup(app);
+        try (LogCapture logs = new LogCapture()) {
+            assertBlockedStartup(app);
+
+            assertRecoveryFailure(logs, "java.io.IOException: Replacement denied");
+            logs.assertContains(RecruitmentDataRecovery.class, Level.INFO,
+                    "Preserved unreadable recruitment data at " + dataPath.resolveSibling("addressbook.json.bak"));
+            assertEquals(1, logs.getRecords(RecruitmentDataRecovery.class).size());
+        }
 
         assertEquals("{", Files.readString(dataPath.resolveSibling("addressbook.json.bak")));
         assertFalse(Files.exists(dataPath));
@@ -230,7 +254,12 @@ public class MainAppTest {
             }
         };
 
-        assertBlockedStartup(new StartupNoticeApp(prefsPath, dataPath, failingRecovery));
+        try (LogCapture logs = new LogCapture()) {
+            assertBlockedStartup(new StartupNoticeApp(prefsPath, dataPath, failingRecovery));
+
+            assertRecoveryFailure(logs, "java.lang.SecurityException: Access denied");
+            logs.assertNoRecords(RecruitmentDataRecovery.class);
+        }
 
         assertEquals("{", Files.readString(dataPath));
     }
@@ -389,6 +418,17 @@ public class MainAppTest {
 
         assertTrue(Files.isDirectory(prefsPath));
         assertFalse(Files.exists(dataPath));
+    }
+
+    private void assertLoadWarning(LogCapture logs) {
+        String prefix = "Recruitment data at " + dataPath + " could not be loaded: ";
+        assertTrue(logs.getRecords(MainApp.class).stream().anyMatch(record ->
+                record.getLevel() == Level.WARNING && record.getMessage().startsWith(prefix)));
+    }
+
+    private void assertRecoveryFailure(LogCapture logs, String reason) {
+        assertLoadWarning(logs);
+        logs.assertContains(MainApp.class, Level.SEVERE, "Safe recruitment-data recovery failed: " + reason);
     }
 
     /**

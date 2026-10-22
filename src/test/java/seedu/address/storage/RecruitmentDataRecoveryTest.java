@@ -13,11 +13,13 @@ import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.logging.Level;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.model.AddressBook;
+import seedu.address.testutil.LogCapture;
 
 public class RecruitmentDataRecoveryTest {
     private static final Clock FIXED_CLOCK = Clock.fixed(Instant.parse("2026-10-18T08:00:00.123Z"), ZoneOffset.UTC);
@@ -60,17 +62,24 @@ public class RecruitmentDataRecoveryTest {
         Files.writeString(timestampBackup, "Timestamp backup");
         Files.writeString(source, "Second original");
 
-        Path secondBackup = recovery.backUp(source);
-        Files.writeString(source, "Third original");
-        Path thirdBackup = recovery.backUp(source);
+        try (LogCapture logs = new LogCapture()) {
+            Path secondBackup = recovery.backUp(source);
+            Files.writeString(source, "Third original");
+            Path thirdBackup = recovery.backUp(source);
 
-        assertEquals(testFolder.resolve("addressbook.json.bak." + TIMESTAMP + "-1"), secondBackup);
-        assertEquals(testFolder.resolve("addressbook.json.bak." + TIMESTAMP + "-2"), thirdBackup);
-        assertEquals("First backup", Files.readString(firstBackup));
-        assertEquals("Timestamp backup", Files.readString(timestampBackup));
-        assertEquals("Second original", Files.readString(secondBackup));
-        assertEquals("Third original", Files.readString(thirdBackup));
-        assertFalse(Files.exists(source));
+            assertEquals(testFolder.resolve("addressbook.json.bak." + TIMESTAMP + "-1"), secondBackup);
+            assertEquals(testFolder.resolve("addressbook.json.bak." + TIMESTAMP + "-2"), thirdBackup);
+            assertEquals("First backup", Files.readString(firstBackup));
+            assertEquals("Timestamp backup", Files.readString(timestampBackup));
+            assertEquals("Second original", Files.readString(secondBackup));
+            assertEquals("Third original", Files.readString(thirdBackup));
+            assertFalse(Files.exists(source));
+            logs.assertContains(RecruitmentDataRecovery.class, Level.INFO,
+                    "Preserved unreadable recruitment data at " + secondBackup);
+            logs.assertContains(RecruitmentDataRecovery.class, Level.INFO,
+                    "Preserved unreadable recruitment data at " + thirdBackup);
+            assertEquals(2, logs.getRecords(RecruitmentDataRecovery.class).size());
+        }
     }
 
     @Test
@@ -92,7 +101,10 @@ public class RecruitmentDataRecoveryTest {
         Path source = Files.createDirectory(testFolder.resolve("addressbook.json"));
         Path marker = Files.writeString(source.resolve("keep.txt"), "Keep this file");
 
-        assertThrows(IOException.class, () -> recovery.backUp(source));
+        try (LogCapture logs = new LogCapture()) {
+            assertThrows(IOException.class, () -> recovery.backUp(source));
+            logs.assertNoRecords(RecruitmentDataRecovery.class);
+        }
 
         assertEquals("Keep this file", Files.readString(marker));
         assertFalse(Files.exists(testFolder.resolve("addressbook.json.bak")));
@@ -118,18 +130,25 @@ public class RecruitmentDataRecoveryTest {
     public void createEmptyDataFile_absentSource_savesValidEmptyRecruitmentData() throws Exception {
         Path source = testFolder.resolve("addressbook.json");
 
-        recovery.createEmptyDataFile(source);
+        try (LogCapture logs = new LogCapture()) {
+            recovery.createEmptyDataFile(source);
 
-        assertEquals(new AddressBook(), new JsonAddressBookStorage(source).readAddressBook().orElseThrow());
-        assertTrue(Files.readString(source).contains("\"persons\""));
-        assertTrue(Files.readString(source).contains("\"roles\""));
+            assertEquals(new AddressBook(), new JsonAddressBookStorage(source).readAddressBook().orElseThrow());
+            assertTrue(Files.readString(source).contains("\"persons\""));
+            assertTrue(Files.readString(source).contains("\"roles\""));
+            logs.assertContains(RecruitmentDataRecovery.class, Level.INFO,
+                    "Created empty recruitment data at " + source);
+        }
     }
 
     @Test
     public void createEmptyDataFile_existingSource_doesNotOverwriteUnexpectedFile() throws Exception {
         Path source = Files.writeString(testFolder.resolve("addressbook.json"), "New data from another writer");
 
-        assertThrows(FileAlreadyExistsException.class, () -> recovery.createEmptyDataFile(source));
+        try (LogCapture logs = new LogCapture()) {
+            assertThrows(FileAlreadyExistsException.class, () -> recovery.createEmptyDataFile(source));
+            logs.assertNoRecords(RecruitmentDataRecovery.class);
+        }
 
         assertEquals("New data from another writer", Files.readString(source));
     }
