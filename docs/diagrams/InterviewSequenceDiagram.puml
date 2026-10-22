@@ -6,8 +6,6 @@ box Logic LOGIC_COLOR_T1
 participant ":LogicManager" as LogicManager LOGIC_COLOR
 participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
 participant ":InterviewCommandParser" as InterviewCommandParser LOGIC_COLOR
-participant "<<class>>\nArgumentTokenizer" as ArgumentTokenizer LOGIC_COLOR
-participant "argMultimap:ArgumentMultimap" as ArgumentMultimap LOGIC_COLOR
 participant "<<class>>\nParserUtil" as ParserUtil LOGIC_COLOR
 participant "ic:InterviewCommand" as InterviewCommand LOGIC_COLOR
 participant "r:CommandResult" as CommandResult LOGIC_COLOR
@@ -40,30 +38,15 @@ deactivate InterviewCommandParser
 AddressBookParser -> InterviewCommandParser : parse(" 1 d/2026-10-20 14:00")
 activate InterviewCommandParser
 
-InterviewCommandParser -> ArgumentTokenizer : tokenize(args, PREFIX_INTERVIEW)
-activate ArgumentTokenizer
-create ArgumentMultimap
-ArgumentTokenizer -> ArgumentMultimap
-activate ArgumentMultimap
-ArgumentMultimap --> ArgumentTokenizer
-deactivate ArgumentMultimap
-ArgumentTokenizer --> InterviewCommandParser : argMultimap
-deactivate ArgumentTokenizer
-
-InterviewCommandParser -> ArgumentMultimap : getPreamble()
-activate ArgumentMultimap
-ArgumentMultimap --> InterviewCommandParser : "1"
-deactivate ArgumentMultimap
+note right of InterviewCommandParser
+Tokenizes args on d/;
+the preamble is the index.
+end note
 
 InterviewCommandParser -> ParserUtil : parseIndex("1")
 activate ParserUtil
 ParserUtil --> InterviewCommandParser : index
 deactivate ParserUtil
-
-InterviewCommandParser -> ArgumentMultimap : getValue(PREFIX_INTERVIEW)
-activate ArgumentMultimap
-ArgumentMultimap --> InterviewCommandParser : value
-deactivate ArgumentMultimap
 
 alt d/ present
     InterviewCommandParser -> ParserUtil : parseInterview("2026-10-20 14:00")
@@ -119,19 +102,15 @@ deactivate AddressBookParser
 LogicManager -> InterviewCommand : execute(m)
 activate InterviewCommand
 
-InterviewCommand -> Model : isRoleListDisplayed()
-activate Model
-Model --> InterviewCommand : false
-deactivate Model
-
 InterviewCommand -> Model : getFilteredPersonList()
 activate Model
 Model --> InterviewCommand : lastShownList
 deactivate Model
 
 note right of InterviewCommand
-Checks that index is within lastShownList,
-then takes personToEdit from that position.
+Rejected if the role list is shown
+or index is out of range; otherwise
+takes personToEdit at index.
 end note
 
 InterviewCommand -> PersonToEdit : withInterview(i)
