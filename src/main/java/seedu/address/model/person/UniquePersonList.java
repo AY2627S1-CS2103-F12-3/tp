@@ -5,6 +5,7 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -32,8 +33,28 @@ public class UniquePersonList implements Iterable<Person> {
      * Returns true if the list contains an equivalent person as the given argument.
      */
     public boolean contains(Person toCheck) {
+        return findSamePerson(toCheck).isPresent();
+    }
+
+    /**
+     * Returns a person in the list with the same identity as {@code toCheck}, if any.
+     */
+    public Optional<Person> findSamePerson(Person toCheck) {
         requireNonNull(toCheck);
-        return internalList.stream().anyMatch(toCheck::isSamePerson);
+        return internalList.stream().filter(toCheck::isSamePerson).findFirst();
+    }
+
+    /**
+     * Returns a person in the list, other than {@code excludedPerson}, with the same identity as
+     * {@code toCheck}, if any.
+     * This allows a person to be replaced by an edited version that keeps some of its identity fields.
+     */
+    public Optional<Person> findSamePersonExcluding(Person toCheck, Person excludedPerson) {
+        requireAllNonNull(toCheck, excludedPerson);
+        return internalList.stream()
+                .filter(person -> !person.equals(excludedPerson))
+                .filter(toCheck::isSamePerson)
+                .findFirst();
     }
 
     /**
@@ -61,7 +82,7 @@ public class UniquePersonList implements Iterable<Person> {
             throw new PersonNotFoundException();
         }
 
-        if (!target.isSamePerson(editedPerson) && contains(editedPerson)) {
+        if (findSamePersonExcluding(editedPerson, target).isPresent()) {
             throw new DuplicatePersonException();
         }
 

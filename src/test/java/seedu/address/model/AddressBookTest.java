@@ -12,6 +12,7 @@ import static seedu.address.testutil.TypicalRoles.SOFTWARE_ENGINEER;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -20,6 +21,7 @@ import javafx.collections.ObservableList;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.exceptions.DuplicatePersonException;
 import seedu.address.model.role.Role;
+import seedu.address.model.role.RoleTitle;
 import seedu.address.model.role.exceptions.DuplicateRoleException;
 import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.RoleBuilder;
@@ -111,6 +113,17 @@ public class AddressBookTest {
     public void hasRole_roleInAddressBook_returnsTrue() {
         addressBook.addRole(SOFTWARE_ENGINEER);
         assertTrue(addressBook.hasRole(SOFTWARE_ENGINEER));
+    }
+
+    @Test
+    public void findRole_titleInDifferentCase_returnsRole() {
+        addressBook.addRole(SOFTWARE_ENGINEER);
+        assertEquals(Optional.of(SOFTWARE_ENGINEER), addressBook.findRole(new RoleTitle("software engineer")));
+    }
+
+    @Test
+    public void findRole_titleNotInAddressBook_returnsEmpty() {
+        assertEquals(Optional.empty(), addressBook.findRole(SOFTWARE_ENGINEER.getTitle()));
     }
 
     @Test

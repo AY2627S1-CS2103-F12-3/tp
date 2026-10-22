@@ -7,6 +7,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import seedu.address.model.person.Interview;
 import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Status;
@@ -18,6 +19,8 @@ public class PersonCard extends UiPart<Region> {
 
     private static final String FXML = "PersonListCard.fxml";
     private static final String STATUS_STYLE_CLASS = "cell_status_label";
+    private static final String ROLE_FORMAT = "Applying for: %1$s";
+    private static final String INTERVIEW_FORMAT = "Interview: %1$s";
 
     /**
      * Note: Certain keywords such as "location" and "resources" are reserved keywords in JavaFX.
@@ -36,11 +39,15 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label id;
     @FXML
+    private Label role;
+    @FXML
     private Label phone;
     @FXML
     private Label address;
     @FXML
     private Label email;
+    @FXML
+    private Label interview;
     @FXML
     private Label note;
     @FXML
@@ -54,9 +61,12 @@ public class PersonCard extends UiPart<Region> {
         this.person = person;
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
+        // The prefix stops the role title being mistaken for the candidate's current job.
+        role.setText(String.format(ROLE_FORMAT, person.getRole().value));
         phone.setText(person.getPhone().value);
         address.setText(person.getAddress().value);
         email.setText(person.getEmail().value);
+        showInterview(person.getInterview());
         showNote(person.getNote());
         showStatus(person.getStatus());
         person.getTags().stream()
@@ -71,6 +81,18 @@ public class PersonCard extends UiPart<Region> {
         Label statusLabel = new Label(status.toString());
         statusLabel.getStyleClass().add(STATUS_STYLE_CLASS);
         tags.getChildren().add(statusLabel);
+    }
+
+    /**
+     * Shows {@code personInterview} on the card, or hides the interview label if no interview is scheduled.
+     */
+    private void showInterview(Interview personInterview) {
+        interview.setText(String.format(INTERVIEW_FORMAT, personInterview));
+
+        // An unmanaged label takes up no space, so cards without interviews have no blank line.
+        boolean hasInterview = !personInterview.isEmpty();
+        interview.setVisible(hasInterview);
+        interview.setManaged(hasInterview);
     }
 
     /**

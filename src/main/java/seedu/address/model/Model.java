@@ -1,11 +1,13 @@
 package seedu.address.model;
 
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.Person;
 import seedu.address.model.role.Role;
+import seedu.address.model.role.RoleTitle;
 
 /**
  * The API of the Model component.
@@ -16,12 +18,15 @@ public interface Model {
     /** {@code Predicate} that always evaluates to true */
     Predicate<Role> PREDICATE_SHOW_ALL_ROLES = unused -> true;
 
-    default boolean isRoleListDisplayed() {
-        return false;
-    }
+    /**
+     * Returns true if the last successful logic result selected the role list.
+     */
+    boolean isRoleListDisplayed();
 
-    default void setRoleListDisplayed(boolean displayed) {
-    }
+    /**
+     * Records the view selected by a successfully completed logic result.
+     */
+    void setRoleListDisplayed(boolean displayed);
 
     /**
      * Returns the user prefs.
@@ -43,6 +48,23 @@ public interface Model {
      */
     void setAddressBook(ReadOnlyAddressBook addressBook);
 
+    /** Records a snapshot before a mutating command is executed. */
+    void recordAddressBookState();
+
+    /** Clears redo history after a mutating command has executed successfully. */
+    default void commitAddressBookState() {
+        // Models that support history may override this method.
+    }
+
+    /** Restores the previous recorded address book state. */
+    boolean undoAddressBook();
+
+    /** Restores the next address book state after an undo. */
+    boolean redoAddressBook();
+
+    /** Removes the most recently recorded snapshot when command execution fails. */
+    void discardAddressBookState();
+
     /** Returns the AddressBook */
     ReadOnlyAddressBook getAddressBook();
 
@@ -50,6 +72,17 @@ public interface Model {
      * Returns true if a person with the same identity as {@code person} exists in the address book.
      */
     boolean hasPerson(Person person);
+
+    /**
+     * Returns a person in the address book with the same identity as {@code person}, if any.
+     */
+    Optional<Person> findSamePerson(Person person);
+
+    /**
+     * Returns a person in the address book, other than {@code excludedPerson}, with the same identity as
+     * {@code person}, if any.
+     */
+    Optional<Person> findSamePersonExcluding(Person person, Person excludedPerson);
 
     /**
      * Deletes the given person.
@@ -85,12 +118,23 @@ public interface Model {
     boolean hasRole(Role role);
 
     /**
+     * Returns the role whose title matches {@code title}, ignoring case, if there is one.
+     */
+    Optional<Role> findRole(RoleTitle title);
+
+    /**
      * Adds {@code role} to the address book.
      */
     void addRole(Role role);
 
     /**
-     * Replaces {@code target} with {@code editedRole}.
+     * Deletes {@code role} from the address book.
+     * The role must exist and have no associated candidates.
+     */
+    void deleteRole(Role role);
+
+    /**
+     * Replaces {@code target} with {@code editedRole}, updating every associated candidate's role title.
      */
     void setRole(Role target, Role editedRole);
 

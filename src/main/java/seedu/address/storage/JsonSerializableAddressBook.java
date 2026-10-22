@@ -1,5 +1,7 @@
 package seedu.address.storage;
 
+import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,8 +22,10 @@ import seedu.address.model.role.Role;
 @JsonRootName(value = "addressbook")
 class JsonSerializableAddressBook {
 
-    public static final String MESSAGE_DUPLICATE_PERSON = "Persons list contains duplicate person(s).";
+    public static final String MESSAGE_DUPLICATE_PERSON =
+            "Candidates list contains candidates with the same email or phone number.";
     public static final String MESSAGE_DUPLICATE_ROLE = "Roles list contains duplicate role(s).";
+    public static final String MESSAGE_UNKNOWN_ROLE = "Persons list contains a person whose role does not exist.";
 
     private final List<JsonAdaptedPerson> persons = new ArrayList<>();
     private final List<JsonAdaptedRole> roles = new ArrayList<>();
@@ -33,9 +37,11 @@ class JsonSerializableAddressBook {
     public JsonSerializableAddressBook(@JsonProperty("persons") List<JsonAdaptedPerson> persons,
             @JsonProperty("roles") List<JsonAdaptedRole> roles) {
         if (persons != null) {
+            requireAllNonNull(persons);
             this.persons.addAll(persons);
         }
         if (roles != null) {
+            requireAllNonNull(roles);
             this.roles.addAll(roles);
         }
     }
@@ -57,19 +63,25 @@ class JsonSerializableAddressBook {
      */
     public AddressBook toModelType() throws IllegalValueException {
         AddressBook addressBook = new AddressBook();
-        for (JsonAdaptedPerson jsonAdaptedPerson : persons) {
-            Person person = jsonAdaptedPerson.toModelType();
-            if (addressBook.hasPerson(person)) {
-                throw new IllegalValueException(MESSAGE_DUPLICATE_PERSON);
-            }
-            addressBook.addPerson(person);
-        }
+
+        // Roles are loaded first so that each person's role can be checked against them.
         for (JsonAdaptedRole jsonAdaptedRole : roles) {
             Role role = jsonAdaptedRole.toModelType();
             if (addressBook.hasRole(role)) {
                 throw new IllegalValueException(MESSAGE_DUPLICATE_ROLE);
             }
             addressBook.addRole(role);
+        }
+        for (JsonAdaptedPerson jsonAdaptedPerson : persons) {
+            Person person = jsonAdaptedPerson.toModelType();
+            if (addressBook.hasPerson(person)) {
+                throw new IllegalValueException(MESSAGE_DUPLICATE_PERSON);
+            }
+
+            // A closed role is valid here, as closing a role keeps its candidates.
+            Role role = addressBook.findRole(person.getRole())
+                    .orElseThrow(() -> new IllegalValueException(MESSAGE_UNKNOWN_ROLE));
+            addressBook.addPerson(person.withRole(role.getTitle()));
         }
         return addressBook;
     }

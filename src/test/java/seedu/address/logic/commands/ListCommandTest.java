@@ -1,5 +1,6 @@
 package seedu.address.logic.commands;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
@@ -39,10 +40,11 @@ public class ListCommandTest {
     }
 
     @Test
-    public void execute_listRoles_hidesCandidateIndexListAndRequestsRoleView() {
+    public void execute_listRoles_preservesCandidateFilterAndRequestsRoleView() {
+        showPersonAtIndex(model, INDEX_FIRST_PERSON);
         CommandResult result = new ListCommand(true).execute(model);
 
-        assertTrue(model.getFilteredPersonList().isEmpty());
+        assertEquals(1, model.getFilteredPersonList().size());
         assertTrue(result.isShowRoleList());
     }
 

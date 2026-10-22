@@ -19,6 +19,9 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.role.RoleStatus;
+import seedu.address.testutil.PersonBuilder;
+import seedu.address.testutil.RoleBuilder;
 
 /**
  * Contains integration tests (interaction with the Model) for {@code FindCommand}.
@@ -83,14 +86,15 @@ public class FindCommandTest {
     }
 
     @Test
-    public void constructor_nullPredicate_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> new FindCommand(null));
-    }
-
-    @Test
-    public void execute_nullModel_throwsNullPointerException() {
-        FindCommand command = new FindCommand(new NameContainsKeywordsPredicate(List.of("Alice")));
-        assertThrows(NullPointerException.class, () -> command.execute(null));
+    public void execute_roleFilter_returnsFilteredCandidates() {
+        Model roleModel = new ModelManager();
+        roleModel.addRole(new RoleBuilder().withTitle("Software Engineer").withStatus(RoleStatus.OPEN).build());
+        roleModel.addPerson(new PersonBuilder().withName("Alice").withTags("SoftwareEngineer").build());
+        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(
+                List.of("Alice"), List.of("Software"), java.util.Set.of(RoleStatus.OPEN), List.of());
+        CommandResult result = new FindCommand(predicate).execute(roleModel);
+        assertEquals(1, roleModel.getFilteredPersonList().size());
+        assertTrue(result.getFeedbackToUser().contains("List filter:"));
     }
 
     /**

@@ -41,6 +41,13 @@ public class RoleTitle {
                 && test.codePoints().allMatch(RoleTitle::isAllowedCharacter);
     }
 
+    /**
+     * Returns true if {@code otherTitle} names the same role as this title, ignoring case.
+     */
+    public boolean isSameTitle(RoleTitle otherTitle) {
+        return otherTitle != null && value.equalsIgnoreCase(otherTitle.value);
+    }
+
     private static boolean isAllowedCharacter(int codePoint) {
         return Character.isLetterOrDigit(codePoint)
                 || codePoint == ' '

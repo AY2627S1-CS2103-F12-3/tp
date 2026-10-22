@@ -47,7 +47,20 @@ public class LogicManager implements Logic {
 
         CommandResult commandResult;
         Command command = addressBookParser.parseCommand(commandText);
-        commandResult = command.execute(model);
+        if (command.isUndoable()) {
+            model.recordAddressBookState();
+        }
+        try {
+            commandResult = command.execute(model);
+            if (command.isUndoable()) {
+                model.commitAddressBookState();
+            }
+        } catch (CommandException | RuntimeException e) {
+            if (command.isUndoable()) {
+                model.discardAddressBookState();
+            }
+            throw e;
+        }
 
         try {
             storage.saveAddressBook(model.getAddressBook());
@@ -57,12 +70,19 @@ public class LogicManager implements Logic {
             throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
         }
 
+        // Use the same view decision as MainWindow, and leave it unchanged if execution or saving fails.
+        model.setRoleListDisplayed(commandResult.isShowRoleList());
         return commandResult;
     }
 
     @Override
     public ObservableList<Person> getFilteredPersonList() {
         return model.getFilteredPersonList();
+    }
+
+    @Override
+    public ObservableList<Person> getPersonList() {
+        return model.getAddressBook().getPersonList();
     }
 
     @Override

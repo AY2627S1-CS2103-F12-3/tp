@@ -4,7 +4,9 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
 import java.util.List;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
@@ -28,8 +30,10 @@ public class NoteCommand extends Command {
             + "Parameters: INDEX (must be a positive integer) [NOTE]\n"
             + "Example: " + COMMAND_WORD + " 1 Interview 2026-10-20 14:00";
 
-    public static final String MESSAGE_UPDATE_NOTE_SUCCESS = "Updated note of candidate: %1$s";
-    public static final String MESSAGE_CLEAR_NOTE_SUCCESS = "Cleared note of candidate: %1$s";
+    public static final String MESSAGE_UPDATE_NOTE_SUCCESS = "Updated note of %1$s: %2$s";
+    public static final String MESSAGE_CLEAR_NOTE_SUCCESS = "Cleared note of %1$s.";
+
+    private static final Logger logger = LogsCenter.getLogger(NoteCommand.class);
 
     private final Index index;
     private final Note note;
@@ -62,19 +66,26 @@ public class NoteCommand extends Command {
 
         Person personToEdit = lastShownList.get(index.getZeroBased());
         Person editedPerson = new Person(personToEdit.getName(), personToEdit.getPhone(), personToEdit.getEmail(),
-                personToEdit.getAddress(), note, personToEdit.getStatus(), personToEdit.getTags());
+                personToEdit.getAddress(), personToEdit.getRole(), note, personToEdit.getInterview(),
+                personToEdit.getStatus(), personToEdit.getTags());
+        assert editedPerson.getNote().equals(note) : "Edited person should hold the new note";
 
         model.setPerson(personToEdit, editedPerson);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        logger.info("Note of candidate at index " + index.getOneBased() + " ("
+                + editedPerson.getName() + ") " + (note.isEmpty() ? "cleared" : "updated"));
         return new CommandResult(generateSuccessMessage(editedPerson));
     }
 
     /**
-     * Returns the success message for {@code editedPerson}, stating whether the note was updated or cleared.
+     * Returns the success message for {@code editedPerson}, naming the candidate and showing the new note,
+     * or stating that the note was cleared.
      */
     private String generateSuccessMessage(Person editedPerson) {
-        String message = note.isEmpty() ? MESSAGE_CLEAR_NOTE_SUCCESS : MESSAGE_UPDATE_NOTE_SUCCESS;
-        return String.format(message, Messages.format(editedPerson));
+        if (note.isEmpty()) {
+            return String.format(MESSAGE_CLEAR_NOTE_SUCCESS, editedPerson.getName());
+        }
+        return String.format(MESSAGE_UPDATE_NOTE_SUCCESS, editedPerson.getName(), note);
     }
 
     @Override

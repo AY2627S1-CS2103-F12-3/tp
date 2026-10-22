@@ -1,5 +1,7 @@
 package seedu.address.commons.core.index;
 
+import java.util.Objects;
+
 import seedu.address.commons.util.ToStringBuilder;
 
 /**
@@ -59,6 +61,11 @@ public class Index {
         }
 
         return zeroBasedIndex == otherIndex.zeroBasedIndex;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(zeroBasedIndex);
     }
 
     @Override

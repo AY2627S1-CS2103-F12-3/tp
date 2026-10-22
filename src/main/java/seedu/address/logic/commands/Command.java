@@ -8,6 +8,11 @@ import seedu.address.model.Model;
  */
 public abstract class Command {
 
+    /** Whether this command changes address-book data and should be undoable. */
+    public boolean isUndoable() {
+        return true;
+    }
+
     /**
      * Executes the command and returns the result message.
      *

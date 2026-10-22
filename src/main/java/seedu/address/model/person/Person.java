@@ -1,5 +1,6 @@
 package seedu.address.model.person;
 
+import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Collections;
@@ -8,6 +9,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.model.role.RoleTitle;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -17,7 +19,7 @@ import seedu.address.model.tag.Tag;
 public class Person {
 
     /** Status of a newly added candidate, and of a saved candidate that has no status. */
-    public static final Status DEFAULT_STATUS = Status.PENDING_RESUME_SCREENING;
+    public static final Status DEFAULT_STATUS = Status.RESUME;
 
     // Identity fields
     private final Name name;
@@ -26,21 +28,25 @@ public class Person {
 
     // Data fields
     private final Address address;
+    private final RoleTitle role;
     private final Note note;
+    private final Interview interview;
     private final Status status;
     private final Set<Tag> tags = new HashSet<>();
 
     /**
      * Every field must be present and not null.
      */
-    public Person(Name name, Phone phone, Email email, Address address, Note note, Status status,
-            Set<Tag> tags) {
-        requireAllNonNull(name, phone, email, address, note, status, tags);
+    public Person(Name name, Phone phone, Email email, Address address, RoleTitle role, Note note,
+            Interview interview, Status status, Set<Tag> tags) {
+        requireAllNonNull(name, phone, email, address, role, note, interview, status, tags);
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
+        this.role = role;
         this.note = note;
+        this.interview = interview;
         this.status = status;
         this.tags.addAll(tags);
     }
@@ -61,8 +67,36 @@ public class Person {
         return address;
     }
 
+    /**
+     * Returns the title of the role opening this candidate is applying for.
+     */
+    public RoleTitle getRole() {
+        return role;
+    }
+
+    /**
+     * Returns a copy of this candidate with {@code newRole} as its role.
+     */
+    public Person withRole(RoleTitle newRole) {
+        return new Person(name, phone, email, address, newRole, note, interview, status, tags);
+    }
+
     public Note getNote() {
         return note;
+    }
+
+    /**
+     * Returns this candidate's interview, which is {@link Interview#NONE} if no interview is scheduled.
+     */
+    public Interview getInterview() {
+        return interview;
+    }
+
+    /**
+     * Returns a copy of this candidate with {@code newInterview} as its interview.
+     */
+    public Person withInterview(Interview newInterview) {
+        return new Person(name, phone, email, address, role, note, newInterview, status, tags);
     }
 
     public Status getStatus() {
@@ -78,7 +112,8 @@ public class Person {
     }
 
     /**
-     * Returns true if both persons have the same name.
+     * Returns true if both persons have the same email (ignoring case) or the same phone number.
+     * Names are not compared, as different candidates can share a name.
      * This defines a weaker notion of equality between two persons.
      */
     public boolean isSamePerson(Person otherPerson) {
@@ -87,7 +122,24 @@ public class Person {
         }
 
         return otherPerson != null
-                && otherPerson.getName().equals(getName());
+                && (hasSameEmail(otherPerson) || hasSamePhone(otherPerson));
+    }
+
+    /**
+     * Returns true if both persons have the same email, ignoring case.
+     */
+    public boolean hasSameEmail(Person otherPerson) {
+        requireNonNull(otherPerson);
+        return email.isSameEmail(otherPerson.email);
+    }
+
+    /**
+     * Returns true if both persons have the same phone number.
+     * Numbers are compared as saved, so {@code +6591234567} and {@code 91234567} are different numbers.
+     */
+    public boolean hasSamePhone(Person otherPerson) {
+        requireNonNull(otherPerson);
+        return phone.equals(otherPerson.phone);
     }
 
     /**
@@ -109,7 +161,9 @@ public class Person {
                 && phone.equals(otherPerson.phone)
                 && email.equals(otherPerson.email)
                 && address.equals(otherPerson.address)
+                && role.equals(otherPerson.role)
                 && note.equals(otherPerson.note)
+                && interview.equals(otherPerson.interview)
                 && status == otherPerson.status
                 && tags.equals(otherPerson.tags);
     }
@@ -117,7 +171,7 @@ public class Person {
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, address, note, status, tags);
+        return Objects.hash(name, phone, email, address, role, note, interview, status, tags);
     }
 
     @Override
@@ -127,7 +181,9 @@ public class Person {
                 .add("phone", phone)
                 .add("email", email)
                 .add("address", address)
+                .add("role", role)
                 .add("note", note)
+                .add("interview", interview)
                 .add("status", status)
                 .add("tags", tags)
                 .toString();
