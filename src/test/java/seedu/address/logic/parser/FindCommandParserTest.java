@@ -55,4 +55,10 @@ public class FindCommandParserTest {
         assertEquals(expected.toString(), parser.parse(" st/closed").toString());
     }
 
+    @Test
+    public void parse_invalidStatus_throwsParseException() {
+        assertParseFailure(parser, "Alice st/INVALID", "Invalid role status. Use one of: [OPEN, CLOSED].");
+        assertParseFailure(parser, "Alice st/   ", "Invalid role status. Use one of: [OPEN, CLOSED].");
+    }
+
 }

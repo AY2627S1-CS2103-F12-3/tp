@@ -99,7 +99,7 @@ public class NameContainsKeywordsPredicateTest {
     @Test
     public void test_roleFilters_eachOptionalFilterPath() {
         Role role = new RoleBuilder().withTitle("Engineer").withStatus(RoleStatus.OPEN).build();
-        Person person = new PersonBuilder().withName("Alice").withTags("Engineer").build();
+        Person person = new PersonBuilder().withName("Alice").withRole("Engineer").withTags("Engineer").build();
         assertTrue(new NameContainsKeywordsPredicate(List.of("Alice"), List.of(), Set.of(), List.of(role))
                 .test(person));
         assertTrue(new NameContainsKeywordsPredicate(List.of("Alice"), List.of("Engineer"), Set.of(), List.of(role))
@@ -126,5 +126,22 @@ public class NameContainsKeywordsPredicateTest {
                 List.of("Alice"), List.of("Software"), Set.of(RoleStatus.OPEN), List.of(closedRole));
         assertFalse(predicate.test(person));
         assertFalse(new NameContainsKeywordsPredicate(List.of("Alice")).hasRoleFilters());
+    }
+
+    @Test
+    public void test_roleFilters_withoutName_matchesAssignedRole() {
+        Role openRole = new RoleBuilder().withTitle("Software Engineer").withStatus(RoleStatus.OPEN).build();
+        Person person = new PersonBuilder().withName("Alice").withRole("Software Engineer").build();
+        assertTrue(new NameContainsKeywordsPredicate(List.of(), List.of("Software", "Engineer"),
+                Set.of(RoleStatus.OPEN), List.of(openRole)).test(person));
+    }
+
+    @Test
+    public void test_roleFilters_ignoresMatchingTagForDifferentAssignedRole() {
+        Role openRole = new RoleBuilder().withTitle("Software Engineer").withStatus(RoleStatus.OPEN).build();
+        Person person = new PersonBuilder().withName("Alice").withRole("Designer")
+                .withTags("SoftwareEngineer").build();
+        assertFalse(new NameContainsKeywordsPredicate(List.of(), List.of("Software", "Engineer"),
+                Set.of(RoleStatus.OPEN), List.of(openRole)).test(person));
     }
 }

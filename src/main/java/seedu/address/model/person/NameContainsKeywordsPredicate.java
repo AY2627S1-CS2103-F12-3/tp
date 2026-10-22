@@ -46,17 +46,15 @@ public class NameContainsKeywordsPredicate implements Predicate<Person> {
                 .anyMatch(keyword -> StringUtil.containsWordIgnoreCase(person.getName().fullName, keyword));
         boolean roleMatches = roleKeywords.isEmpty() && roleStatuses.isEmpty()
                 || roles.stream().anyMatch(role -> roleMatches(person, role));
-        return nameMatches && roleMatches;
+        return (!keywords.isEmpty() && nameMatches || keywords.isEmpty() && hasRoleFilters()) && roleMatches;
     }
 
     private boolean roleMatches(Person person, Role role) {
         boolean titleMatches = roleKeywords.isEmpty() || roleKeywords.stream()
                 .allMatch(keyword -> StringUtil.containsWordIgnoreCase(role.getTitle().value, keyword));
         boolean statusMatches = roleStatuses.isEmpty() || roleStatuses.contains(role.getStatus());
-        boolean tagged = person.getTags().stream().anyMatch(tag -> tag.tagName.equalsIgnoreCase(role.getTitle().value)
-                || tag.tagName.replaceAll("[^A-Za-z0-9]", "")
-                .equalsIgnoreCase(role.getTitle().value.replaceAll("[^A-Za-z0-9]", "")));
-        return titleMatches && statusMatches && tagged;
+        boolean assignedRoleMatches = person.getRole().isSameTitle(role.getTitle());
+        return titleMatches && statusMatches && assignedRoleMatches;
     }
 
     @Override
