@@ -2,6 +2,7 @@ package seedu.address.model.person;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -15,6 +16,18 @@ import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.RoleBuilder;
 
 public class NameContainsKeywordsPredicateTest {
+
+    @Test
+    public void constructorAndTest_rejectNullInputs() {
+        assertThrows(NullPointerException.class, () -> new NameContainsKeywordsPredicate(null));
+        assertThrows(NullPointerException.class, () -> new NameContainsKeywordsPredicate(
+                List.of(), null, Set.of(), List.of()));
+        assertThrows(NullPointerException.class, () -> new NameContainsKeywordsPredicate(
+                List.of(), List.of(), null, List.of()));
+        assertThrows(NullPointerException.class, () -> new NameContainsKeywordsPredicate(
+                List.of(), List.of(), Set.of(), null));
+        assertThrows(NullPointerException.class, () -> new NameContainsKeywordsPredicate(List.of()).test(null));
+    }
 
     @Test
     public void equals() {
