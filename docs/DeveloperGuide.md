@@ -119,6 +119,19 @@ How the parsing works:
 * When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
 
+The focused class diagram below shows parsing for the `role` command group. `AddressBookParser`
+creates a `RoleCommandParser`, which selects the parser for `add`, `edit`, `close`, or `delete`.
+That parser validates the subcommand arguments and creates its corresponding command.
+
+<puml src="diagrams/RoleParserClassDiagram.puml" width="900"
+  alt="Role command parsing: dispatch to add, edit, close and delete parsers and creation of their commands" />
+
+All five role parsers implement `Parser<T>`, shown by dashed arrows with hollow triangle heads.
+`RoleCommandParser` returns `Command`, while each subcommand parser returns its concrete command
+type. Dependencies labelled `<<create>>` show object creation. Type parameters, command inheritance, and
+utility dependencies are omitted here to keep the dispatch relationships readable; the generic
+parser diagram above shows the shared utilities.
+
 ### Model component
 **API** : [`Model.java`](https://github.com/AY2627S1-CS2103-F12-3/tp/blob/master/src/main/java/seedu/address/model/Model.java)
 
@@ -227,7 +240,14 @@ Parsing or duplicate rejection leaves the stored records unchanged.
 
 The result shows `Edited role: TITLE.` with the updated title and keeps the role view. `EditRoleCommand` logs accepted corrections and rejected duplicate titles; `LogicManager` saves both collections through the existing path. Parser or command-validation failures leave records, filters and the saved file unchanged. The existing save-error behavior described below remains unchanged: this is not a transactional filesystem save. Once renamed, a role's old title is available again; no title alias or storage-schema migration is introduced.
 
-<puml src="diagrams/EditRoleSequenceDiagram.puml" width="800" alt="Sequence for validating a role edit, updating associated candidates and saving both collections" />
+The sequence below starts after parser validation. Nested alternatives reject an invalid view,
+an invalid index, or a duplicate title before either list changes. Only the valid branch calls
+`setRole`, which replaces the role before propagating its new title across the full candidate
+list. Candidate copying is shown as a single action to omit unrelated field-construction details.
+Saving occurs in `LogicManager` after the command returns successfully, as described below.
+
+<puml src="diagrams/EditRoleSequenceDiagram.puml" width="900"
+  alt="Role-edit validation, duplicate-title rejection, role replacement and title propagation to all associated candidates" />
 
 #### Saving and restoring associations
 
@@ -289,8 +309,17 @@ loading still runs before recruitment data is loaded. Preference files use the s
 JSON check; invalid preferences retain the existing default-settings fallback rather than using
 recruitment-data backup recovery.
 
-<puml src="diagrams/RecruitmentDataStartupActivityDiagram.puml" width="550"
-  alt="Startup branches for valid, missing and unreadable recruitment data" />
+The activity diagram below follows the failed-loading path after preferences and storage have been
+initialized. `FILE` denotes the original data filename (normally `addressbook.json`), and `TIMESTAMP`
+is captured once for the recovery attempt. A move that reports an existing destination selects
+the timestamped name, then `-1`, `-2`, and so on.
+The loop retries the move itself rather than relying on an earlier existence check. Source-check
+or move failures stop startup with the original at its source path; replacement failures stop
+startup with the original in the remembered backup. Only successful preservation and replacement
+lead to empty lists, a recovery warning, and an open command window.
+
+<puml src="diagrams/RecruitmentDataStartupActivityDiagram.puml" width="900"
+  alt="Startup recovery with non-overwriting backup selection, collision retries, empty startup and fatal failure branches" />
 
 Recovery preserves the source before exposing any command that can reach the normal save path.
 If recovery cannot complete safely, startup remains blocked rather than risking the original or its
