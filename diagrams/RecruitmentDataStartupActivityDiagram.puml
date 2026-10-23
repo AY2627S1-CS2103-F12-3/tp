@@ -1,44 +1,52 @@
 @startuml
 skin rose
+skinparam ActivityFontSize 14
+skinparam ArrowFontSize 12
 start
-:Initialize preferences and storage;
-:Read recruitment data;
-if (Read and validation succeed?) then (yes)
-    if (Data file is missing?) then (yes)
-        :Use sample recruitment data;
-    else (no)
-        :Use all validated records;
-    endif
-else (no)
-    :Attempt non-overwriting backup
-    of the regular data file;
-    if (Backup succeeds?) then (yes)
-        :Attempt to create valid
-        empty replacement data;
-        if (Replacement succeeds?) then (yes)
-            :Use empty recruitment data;
-        else (no)
-            :Show error naming the backup
-            and replacement failure;
-            :Shut down after dismissal
-            without opening commands;
-            stop
-        endif
-    else (no)
-        :Show error identifying the
-        original path and backup failure;
+:Recruitment-data loading fails;
+:Check source is a regular file
+without following symbolic links;
+if () then ([source check succeeds])
+    :Select sibling FILE.bak;
+    :Capture timestamp once;
+    repeat
+        :Attempt to move original to selected path
+        without replacing an existing destination;
+    backward :Select next sibling backup name:
+    FILE.bak.TIMESTAMP on first collision,
+    then FILE.bak.TIMESTAMP-1, -2, ...;
+    repeat while () is ([name collision]) not ([else])
+else ([check failed])
+    :Record source-check failure;
+endif
+
+if () then ([backup created])
+    :Remember backup path;
+    :Original bytes are preserved
+    at the backup path;
+    :Attempt to create valid empty data
+    at original path using CREATE_NEW;
+    if () then ([replacement created])
+        :Initialize empty model,
+        logic and UI manager;
+        :Show recovery warning with backup and data paths
+        and manual restoration instructions;
+        :Open command window with
+        empty candidate and role lists;
+        stop
+    else ([creation failed])
+        :Show fatal error with backup path
+        and replacement failure reason;
         :Shut down after dismissal
         without opening commands;
         stop
     endif
-    :Record successful recovery;
+else ([source-check or move failure])
+    :Original remains at its source path;
+    :Show fatal error with original path
+    and backup failure reason;
+    :Shut down after dismissal
+    without opening commands;
+    stop
 endif
-:Initialize model and logic;
-if (Data was recovered?) then (yes)
-    :Show warning with backup path
-    and restoration instructions;
-else (no)
-endif
-:Open command window;
-stop
 @enduml
