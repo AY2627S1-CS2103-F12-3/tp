@@ -1,0 +1,97 @@
+@startuml
+skin rose
+|StatusCommandParser|
+start
+:Tokenize command into preamble /\narguments following prefix "st/";
+if (Duplicate "st/" prefix?) then (no)
+else (yes)
+    :Throw ParseException\n(Duplicate prefixes);
+    kill
+endif
+
+if (Missing "st/" prefix?) then (no)
+else (yes)
+    :Throw ParseException\n(Prefix missing);
+    kill
+endif
+
+:Initialize set for parsed indices;
+:Split preamble into list of indices,\nusing whitespace as delimiter;
+
+repeat
+    :Trim whitespace from next index in list;
+    if (Index is nonzero unsigned integer?) then (yes)
+    else (no)
+        :Throw ParseException\n(Invalid index);
+        kill
+    endif
+    :Parse index;
+    if (Index already exists in index set?) then (no)
+        :Add index to set;
+    else (yes)
+        :Discard index;
+    endif
+repeat while (More indices in index list?) is (yes)
+
+:Trim status and convert to uppercase;
+
+if (Status is one of the recognized values?) then (yes)
+else (no)
+    :Throw ParseException\n(Invalid status);
+    kill
+endif
+
+:Parse status;
+:Return StatusCommand object\nwith index set and status;
+
+|StatusCommand|
+
+:Get current filtered candidates list;
+
+if (Roles list currently displayed?) then (no)
+else (yes)
+    :Throw CommandException\n(Candidates list not displayed);
+    kill
+endif
+
+:Initialize set of candidates to be edited;
+
+repeat
+    if (Next index in index set exceeds\nlength of filtered candidates list?) then (no)
+    else (yes)
+        :Throw CommandException\n(Invalid index);
+        kill
+    endif
+    :Get candidate from filtered list\ncorresponding to index;
+    :Add person to candidates set;
+repeat while (More indices in index set?) is (yes)
+
+if (Status is pending and candidate in\ncandidate set assigned to closed role?) then (no)
+else (yes)
+    :Throw CommandException\n(Pending status in closed role);
+    kill
+endif
+
+if (Status is HIRED?) then (yes)
+    if (Role already has\nother hired candidate?) then (no)
+    else (yes)
+        :Throw CommandException\n(Role already has hired candidate);
+        kill
+    endif
+    if (Two selected candidates share a role?) then (no)
+    else (yes)
+        :Throw CommandException\n(Candidates hired for same role);
+        kill
+    endif
+else (no)
+endif
+
+repeat
+    :Create copy of next candidate in set with updated status;
+    :Replace old copy of candidate with the new one;
+repeat while (More candidates in set?) is (yes)
+
+:Update filtered candidates list;
+:Return success message;
+stop
+@enduml
