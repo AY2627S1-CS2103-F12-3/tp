@@ -33,8 +33,7 @@ public class StatusCommandParser implements Parser<StatusCommand> {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, StatusCommand.MESSAGE_USAGE));
         }
 
-        Set<Index> indices;
-        indices = new HashSet<>();
+        Set<Index> indices = new HashSet<>();
 
         String[] stringIndices = argMultimap.getPreamble().split("\\s+");
         for (String s : stringIndices) {
