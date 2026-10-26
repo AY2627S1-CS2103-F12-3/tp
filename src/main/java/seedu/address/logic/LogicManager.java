@@ -70,8 +70,6 @@ public class LogicManager implements Logic {
             throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
         }
 
-        // Use the same view decision as MainWindow, and leave it unchanged if execution or saving fails.
-        model.setRoleListDisplayed(commandResult.isShowRoleList());
         return commandResult;
     }
 

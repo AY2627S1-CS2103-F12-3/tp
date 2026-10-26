@@ -4,7 +4,6 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 import static seedu.address.logic.Messages.MESSAGE_DUPLICATE_ROLE;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_ROLE_DISPLAYED_INDEX;
-import static seedu.address.logic.Messages.MESSAGE_ROLE_LIST_NOT_DISPLAYED;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EXPERIENCE_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ROLE_TITLE;
 
@@ -66,9 +65,6 @@ public class EditRoleCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        if (!model.isRoleListDisplayed()) {
-            throw new CommandException(MESSAGE_ROLE_LIST_NOT_DISPLAYED);
-        }
         List<Role> displayedRoles = model.getFilteredRoleList();
         if (targetIndex.getZeroBased() >= displayedRoles.size()) {
             throw new CommandException(MESSAGE_INVALID_ROLE_DISPLAYED_INDEX);
@@ -82,7 +78,7 @@ public class EditRoleCommand extends Command {
         }
         model.setRole(role, editedRole);
         logger.info("Updated role details in memory at displayed index " + targetIndex.getOneBased() + ".");
-        return new CommandResult(String.format(MESSAGE_SUCCESS, editedRole.getTitle()), false, false, true);
+        return new CommandResult(String.format(MESSAGE_SUCCESS, editedRole.getTitle()), false, false);
     }
 
     @Override
