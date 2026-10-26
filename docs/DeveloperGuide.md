@@ -232,7 +232,7 @@ During running of `StatusCommand`, `CommandException` will be thrown on any of t
 * A pending status (`RESUME`, `INTERVIEW`, `OFFER` or `DECISION`) is being assigned to a candidate whose role is closed. (This is to ensure that closed role only ever contains candidates with a final status).
 * Assigning a `HIRED` status gives a role more than one hired candidate, whether the conflict comes from an existing candidate or another candidate within the batch.
 
-Because these checks precede mutation, failures leave all candidates unchanged. 
+Because these checks precede mutation, failures leave all candidates unchanged.
 
 The activity diagram below summarizes this process.
 
@@ -1234,7 +1234,7 @@ Use case ends.
 3.  GUI elements should be fully visible and work well on screen resolutions 1920x1080 and higher, and screen scales 100% - 125%.
 4.  GUI elements should be usable on screen resolutions 1280x720 and higher, and screen scales 150%.
 8.  After application data has been successfully saved, closing RecruiterBuddy normally and reopening it with the same unchanged data files should restore the saved data, including all saved additions, modifications, and deletions.
-9.  A new user should be able to learn all basic commands (adding, updating and deleting candidates and roles) within 30 minutes 
+9.  A new user should be able to learn all basic commands (adding, updating and deleting candidates and roles) within 30 minutes
 10.  The application should carry out a user action and give visual confirmation within 1 second of input.
 11.  A command rejected because of invalid syntax or invalid input values should leave recruitment records and user-defined configuration unchanged, both in memory and in saved data file.
 12.  Command syntax should be simple and intuitive, such that an experienced user (has spent > 1 hour using the application) can memorize the syntax for all basic commands.

@@ -49,7 +49,7 @@ public class StatusCommandParser implements Parser<StatusCommand> {
 
         assert !indices.isEmpty() : "Successful parsing must produce at least one candidate index";
         assert status != null : "Successful parsing must produce a non-null status";
-        
+
         return new StatusCommand(indices, status);
     }
 }

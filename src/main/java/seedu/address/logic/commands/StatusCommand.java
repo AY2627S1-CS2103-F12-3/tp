@@ -97,7 +97,7 @@ public class StatusCommand extends Command {
 
         verifyPendingStatusAllowed(model, peopleToEdit);
         verifyHiringAllowed(model, peopleToEdit);
-        
+
         assert peopleToEdit.size() == indices.size() : "Each distinct index must resolve to a distinct candidate";
 
         for (Person p : peopleToEdit) {
