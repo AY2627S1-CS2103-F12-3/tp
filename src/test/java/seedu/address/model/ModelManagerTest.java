@@ -47,6 +47,21 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void undoRedo_noOpCommit_preservesRedoHistory() {
+        modelManager.addPerson(ALICE);
+        modelManager.recordAddressBookState();
+        modelManager.deletePerson(ALICE);
+        modelManager.commitAddressBookState();
+
+        assertTrue(modelManager.undoAddressBook());
+        modelManager.recordAddressBookState();
+        modelManager.commitAddressBookState();
+
+        assertTrue(modelManager.redoAddressBook());
+        assertTrue(modelManager.getAddressBook().getPersonList().isEmpty());
+    }
+
+    @Test
     public void setGuiSettings_nullGuiSettings_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> modelManager.setGuiSettings(null));
     }
