@@ -35,6 +35,34 @@ public class RoleTitleTest {
     }
 
     @Test
+    public void constructor_commonJobTitlePunctuation_acceptsTitle() {
+        for (String title : new String[] {"C++ Developer", "C# Developer", "Engineer (Backend)",
+            "Manager, Sales", "R&D Engineer (C++/C#), Platform - 2.0"}) {
+            assertTrue(RoleTitle.isValidRoleTitle(title));
+            assertEquals(title, new RoleTitle("  " + title + "  ").value);
+        }
+    }
+
+    @Test
+    public void isValidRoleTitle_eachNewCharacter_acceptsCharacterIndependently() {
+        for (String punctuation : new String[] {"+", "#", "(", ")", ","}) {
+            assertTrue(RoleTitle.isValidRoleTitle("A" + punctuation));
+            assertTrue(RoleTitle.isValidRoleTitle("A" + punctuation.repeat(99)));
+            assertFalse(RoleTitle.isValidRoleTitle("A" + punctuation.repeat(100)));
+            assertFalse(RoleTitle.isValidRoleTitle(punctuation));
+        }
+    }
+
+    @Test
+    public void constructor_invalidTitleWithNewPunctuation_throwsIllegalArgumentException() {
+        for (String title : new String[] {"123 +#(),", "C++_Developer", "C#@Developer", "Engineer\n(Backend)",
+            "Engineer\r(Backend)", "Manager,\tSales", "C#\u0000Developer", "Engineer\u200B(Backend)"}) {
+            assertFalse(RoleTitle.isValidRoleTitle(title));
+            assertThrows(IllegalArgumentException.class, RoleTitle.MESSAGE_CONSTRAINTS, () -> new RoleTitle(title));
+        }
+    }
+
+    @Test
     public void isSameTitle() {
         RoleTitle roleTitle = new RoleTitle("Software Engineer");
 

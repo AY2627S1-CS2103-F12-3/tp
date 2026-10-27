@@ -149,7 +149,8 @@ Both `r/` and `x/` are required, must appear exactly once, and may appear in eit
 Leading and trailing whitespace is removed from each value before validation and storage.
 
 * `ROLE_TITLE`: 1–100 characters after trimming, with at least one letter. It may contain letters,
-  digits, spaces, apostrophes (`'`), ampersands (`&`), hyphens (`-`), slashes (`/`), and full stops (`.`).
+  digits, spaces, apostrophes (`'`), ampersands (`&`), hyphens (`-`), slashes (`/`), full stops (`.`),
+  plus signs (`+`), hashes (`#`), parentheses (`(` and `)`), and commas (`,`).
 * `EXPERIENCE_LEVEL`: 1–50 printable characters after trimming, with no embedded newlines, tabs,
   or other control characters. Examples include `Entry level`, `2 years`, and `Senior`.
 * Role titles must be unique across both `OPEN` and `CLOSED` roles, ignoring case and surrounding
@@ -160,6 +161,10 @@ Examples:
 
 * `role add r/Software Engineer x/2 years`
 * `role add x/Entry level r/Product Analyst`
+* `role add r/C++ Developer x/2 years`
+* `role add r/C# Developer x/2 years`
+* `role add r/Engineer (Backend) x/2 years`
+* `role add r/Manager, Sales x/5 years`
 
 On success, RecruiterBuddy shows `Added open role: ROLE_TITLE.` and saves the role with status `OPEN`.
 Run `list role` to display it; `role add` itself returns to the candidate list.

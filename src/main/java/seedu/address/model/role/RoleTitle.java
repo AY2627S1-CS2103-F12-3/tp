@@ -55,7 +55,12 @@ public class RoleTitle {
                 || codePoint == '&'
                 || codePoint == '-'
                 || codePoint == '/'
-                || codePoint == '.';
+                || codePoint == '.'
+                || codePoint == '+'
+                || codePoint == '#'
+                || codePoint == '('
+                || codePoint == ')'
+                || codePoint == ',';
     }
 
     @Override

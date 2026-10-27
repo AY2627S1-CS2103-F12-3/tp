@@ -207,8 +207,12 @@ This section describes some noteworthy details on how certain features are imple
 #### Role identity and validation
 
 `RoleTitle` strips surrounding whitespace, validates 1–100 Unicode code points and the allowed
-characters, and requires at least one letter. `ExperienceLevel` similarly strips its value and
-validates 1–50 printable code points, excluding control, format, surrogate, unassigned, line-separator,
+characters, and requires at least one letter. Allowed punctuation includes apostrophes, ampersands,
+hyphens, slashes, full stops, plus signs, hashes, parentheses and commas, so titles such as
+`C++ Developer`, `C# Developer`, `Engineer (Backend)` and `Manager, Sales` are accepted.
+The same value object validates role creation, renaming, candidate associations and saved titles;
+punctuation is retained and remains significant when comparing titles. `ExperienceLevel` similarly
+strips its value and validates 1–50 printable code points, excluding control, format, surrogate, unassigned, line-separator,
 and paragraph-separator characters. Their constraint messages use the same length constants as their
 validation, avoiding independently hard-coded limits.
 
@@ -1290,6 +1294,18 @@ Always switch back with `list` or `list role` before using indices for that list
    command field, and scrolling still usable. Check the course-required screen sizes and scaling.
 
 #### Role creation and validation
+
+1. In a separate disposable copy, run `role add r/C++ Developer x/2 years`,
+   `role add r/C# Developer x/2 years`, `role add r/Engineer (Backend) x/2 years`, and
+   `role add r/Manager, Sales x/5 years`, then `list role`.<br>
+   Expected: All four roles are added as `OPEN`, with their punctuation unchanged.
+   Try `role add r/  c++ developer  x/Senior`; it is rejected as a duplicate, while the
+   `C# Developer` role remains distinct. Add a candidate using `r/c++ developer`; the candidate
+   uses the stored spelling `C++ Developer`. Run `list role` and rename that role using
+   `role edit INDEX r/Engineer (C++), Backend`, replacing `INDEX` with its displayed role index.
+   Expected: Both the role and its candidate use the new title. Restart and check that all
+   titles and associations remain unchanged. The ordinary length and letter requirements still
+   apply: `role add r/+#(), x/Senior` and `role add r/C++@Developer x/Senior` are rejected.
 
 1. Run `role add x/Entry level r/QA Designer`.<br>
    Expected: `Added open role: QA Designer.` Run `list role` to see it at index 3 with experience
