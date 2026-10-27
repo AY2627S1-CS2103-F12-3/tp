@@ -456,8 +456,10 @@ The edited immutable `Person` keeps its status and note, and keeps every other f
 edited. The existing candidate-identity duplicate check is unchanged. For a real role transfer,
 `CandidateRoleChecks#verifyHiringAllowed` rejects a `HIRED` candidate if another stored candidate
 for the destination is hired. It uses all records, not the filtered list, and excludes the original
-candidate by identity rather than the edited name. `StatusCommand` shares this check to prevent the
-two workflows from implementing different single-vacancy rules.
+candidate by identity rather than the edited name. `StatusCommand` validates batch status changes
+separately: before changing any candidate, it checks both existing hires across all stored candidates
+and conflicting hires within the selected batch. Both workflows enforce one hired candidate per role;
+they share error messages, not the validation method.
 
 After validation succeeds, `Model#setPerson` updates the observable candidate collection and the
 candidate filter resets to show all records. The existing `Edited candidate: ...` result formats the
@@ -1309,10 +1311,10 @@ Always switch back with `list` or `list role` before using indices for that list
    `QA Analyst` shows zero in every category. Run `find Alice`, then `list role`; the engineer
    totals remain unchanged because Ben is still included despite the candidate filter.
 
-1. Run `status 1 HIRED`, `status 2 REJECTED`, then `list role`.<br>
+1. Run `status 1 st/HIRED`, `status 2 st/REJECTED`, then `list role`.<br>
    Expected: The engineer totals are `Pending: 0`, `Hired: 1`, `Rejected: 1`, `Withdrawn: 0`.
    Run `role close 1`; the role becomes `CLOSED` without changing its counts. Run `list`,
-   `status 2 WITHDRAWN`, then `list role`; rejected becomes zero and withdrawn becomes one.
+   `status 2 st/WITHDRAWN`, then `list role`; rejected becomes zero and withdrawn becomes one.
    Restart and run `list role`; the same totals are reconstructed.
 
 1. Run `delete 2`, then `list role`.<br>
@@ -1388,22 +1390,22 @@ Always switch back with `list` or `list role` before using indices for that list
    Expected: `Cannot close role: QA Engineer. 2 candidate(s) still pending.` Both candidates count
    even though Ben was hidden by the candidate filter. The role stays `OPEN`, with no record changes.
 
-1. Run `status 1 HIRED`, then `find Ben` and `status 1 HIRED`.<br>
+1. Run `status 1 st/HIRED`, then `find Ben` and `status 1 st/HIRED`.<br>
    Expected: `QA Engineer already has a hired candidate.` Alice remains hired and Ben remains pending.
-   Run `find Alice` and `status 1 HIRED` again; reapplying the same status succeeds.
-   Run `list`, `status 2 REJECTED`, `list role`, and `role close 1`.<br>
+   Run `find Alice` and `status 1 st/HIRED` again; reapplying the same status succeeds.
+   Run `list`, `status 2 st/REJECTED`, `list role`, and `role close 1`.<br>
    Expected: `Closed role: QA Engineer.` The role is `CLOSED`; Alice and Ben are retained with their
    respective final statuses. Restart and verify the same roles and candidates are restored.
 
-1. Run `status 1 REJECTED`, `status 2 WITHDRAWN`, `list role`, and `role close 1`.<br>
+1. Run `status 1 st/REJECTED`, `status 2 st/WITHDRAWN`, `list role`, and `role close 1`.<br>
    Expected: Closure succeeds even with no hire. Separately, `list role` followed by `role close 2`
    closes the empty analyst role. No candidate is automatically hired, rejected, or removed.
 
-1. Run `status 1 HIRED`, then `status 1 INTERVIEW`.<br>
+1. Run `status 1 st/HIRED`, then `status 1 st/INTERVIEW`.<br>
    Expected: Returning to pending succeeds while the role is open. Repeat with each of the four
    pending statuses (`RESUME`, `INTERVIEW`, `OFFER`, `DECISION`) after assigning a final outcome. `list role` followed by `role close 1`
-   fails while a pending candidate remains. Run `list`, `status 1 HIRED`, `status 2 REJECTED`,
-   `list role`, and `role close 1`, then run `list` and `status 1 INTERVIEW`.<br>
+   fails while a pending candidate remains. Run `list`, `status 1 st/HIRED`, `status 2 st/REJECTED`,
+   `list role`, and `role close 1`, then run `list` and `status 1 st/INTERVIEW`.<br>
    Expected: `Cannot set a pending status for Alice Test because role QA Engineer is closed.`
    Each of the other pending statuses is rejected too. Final-to-final corrections still succeed,
    provided they do not create a second hire; the role remains closed.
@@ -1413,8 +1415,8 @@ Always switch back with `list` or `list role` before using indices for that list
    Expected: `The role “QA Analyst” is closed, so no new candidates can be added to it.`
    Cara is not added. Run `role close 2` again; it reports `QA Analyst is already closed.`
 
-1. Run `status 1 HIRED`, then
-   `add n/Cara Test p/91234563 e/cara@example.com a/3 Test Road r/QA Analyst`, and `status 3 HIRED`.<br>
+1. Run `status 1 st/HIRED`, then
+   `add n/Cara Test p/91234563 e/cara@example.com a/3 Test Road r/QA Analyst`, and `status 3 st/HIRED`.<br>
    Expected: Both Alice and Cara may be hired because they apply to different roles. `list role`
    still shows both roles as `OPEN`; hiring does not close either role automatically.
 
@@ -1428,7 +1430,7 @@ Always switch back with `list` or `list role` before using indices for that list
 
 1. Run `find Alice`, `list role`, then `role delete 1`.<br>
    Expected: `Cannot delete role: QA Engineer. It has 2 associated candidate(s).`
-   No candidate or role changes. Run `list`, `status 1 HIRED`, `status 2 REJECTED`, `list role`,
+   No candidate or role changes. Run `list`, `status 1 st/HIRED`, `status 2 st/REJECTED`, `list role`,
    `role close 1`, then `role delete 1`; deletion remains blocked even with a closed role and final
    candidate outcomes. It never deletes candidates to make the role eligible.
 
@@ -1453,7 +1455,7 @@ Always switch back with `list` or `list role` before using indices for that list
    1. Prerequisites: Start with the sample data, which includes the roles `Software Engineer`, `Data Analyst` and `Product Manager`.
 
    1. Test case: `add n/Jane Tan p/91234567 e/jane@example.com a/Clementi Ave 2 r/Data Analyst`<br>
-      Expected: Jane Tan is added to the end of the candidate list. The new card shows `Applying for: Data Analyst` and the status `Pending Resume Screening`.
+      Expected: Jane Tan is added to the end of the candidate list. The new card shows `Applying for: Data Analyst` and the status `Resume`.
 
    1. Test case: `add n/Ben Lim p/92345678 e/ben@example.com a/Jurong West r/product manager`<br>
       Expected: Ben Lim is added. The new card shows the role with the role's own spelling, `Applying for: Product Manager`.
@@ -1488,7 +1490,7 @@ Always switch back with `list` or `list role` before using indices for that list
    1. Prerequisites: Use the disposable role-management fixture above with Alice and Ben for QA
       Engineer and an empty, open QA Analyst role. Restore the fixture between independent checks.
 
-   1. Run `status 1 HIRED`, `status 2 REJECTED`, then `list role` and `role close 1`. Run `list`, then
+   1. Run `status 1 st/HIRED`, `status 2 st/REJECTED`, then `list role` and `role close 1`. Run `list`, then
       `edit 1 r/QA Analyst`.<br>
       Expected: Alice transfers from the closed engineer role to the open analyst role and stays hired.
       The engineer role stays closed. Ben remains rejected and associated with the engineer role.
@@ -1648,7 +1650,7 @@ Close the application window before editing or moving data files.
    and restore the fixture.
 
 1. Default candidate status: remove only Alice's `status` field from a valid fixture file, then restart.<br>
-   Expected: Alice loads with `Pending Resume Screening`; `list role` then `role close 1` reports two
+   Expected: Alice loads with `Resume`; `list role` then `role close 1` reports two
    pending candidates. Removing a role's `status` or a candidate's `role` field instead prevents loading.
 
 1. Legacy inconsistency guard: in a fixture backup, set both candidate statuses to `HIRED` and restart.<br>
