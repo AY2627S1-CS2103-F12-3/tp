@@ -562,6 +562,35 @@ The following activity diagram summarizes what happens when a user executes a ne
 
 _{more aspects and alternatives to be added}_
 
+### Candidate email validation
+
+`Email` checks the part before the `@` (the local part) and the part after it (the domain) separately. The local part follows the unquoted (dot-atom) form of [RFC 5322](https://www.rfc-editor.org/rfc/rfc5322#section-3.2.3), which is also the form the [HTML standard](https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address) accepts for email inputs. It may contain letters, digits and the symbols ``! # $ % & ' * + - / = ? ^ _ ` { | } ~``, with dots only between other characters, so a dot is never first, last, or next to another dot.
+
+`Email#hasDotlessDomain` returns true for a domain such as `gmailcom`. Such a domain is valid, so `Email` accepts it, but `AddCommand` and `EditCommand` add a warning to their success message through `Messages#appendEmailWarning`. `EditCommand` warns only when the email changes, ignoring case, so editing another field of a candidate does not repeat the warning. Loading the data file never warns.
+
+#### Design considerations
+
+**Aspect: Which local parts are accepted**
+
+* **Alternative 1 (current choice):** The unquoted form of RFC 5322.
+  * Pros: Every address that an email provider issues is accepted, and the rule comes from a published standard.
+  * Cons: Accepts symbols that rarely appear in real addresses, so a typo such as `john#doe@example.com` is not caught.
+* **Alternative 2:** Only letters, digits and `. _ - + '`, the symbols that major email providers issue.
+  * Pros: Catches more typos.
+  * Cons: Rejects some valid addresses.
+* **Alternative 3:** All of RFC 5322, including quoted local parts such as `"john doe"@example.com`.
+  * Pros: Accepts every valid address.
+  * Cons: A quoted local part can contain spaces and text such as ` a/`, which `ArgumentTokenizer` would read as the start of another field. Major email providers also do not issue such addresses.
+
+**Aspect: How a domain without a dot is handled**
+
+* **Alternative 1 (current choice):** Accept it and warn.
+  * Pros: Catches a likely typo, such as `gmailcom` for `gmail.com`, without rejecting a valid address.
+  * Cons: The user can ignore the warning and keep an address that is a typo.
+* **Alternative 2:** Reject it.
+  * Pros: A typo can never be saved.
+  * Cons: Rejects valid addresses.
+
 ### Candidate notes
 
 Each `Person` has a `Note`, a free-text field for details such as a candidate's skills or availability. Interview dates and times have their own field, described in [Candidate interviews](#candidate-interviews). An empty note means the candidate has no note, and the candidate card hides it.

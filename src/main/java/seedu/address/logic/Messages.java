@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import seedu.address.logic.parser.Prefix;
+import seedu.address.model.person.Email;
 import seedu.address.model.person.Person;
 
 /**
@@ -29,6 +30,8 @@ public class Messages {
             "This phone number is already used by the candidate %1$s.";
     public static final String MESSAGE_DUPLICATE_FIELDS =
                 "Multiple values specified for the following single-valued field(s): ";
+    public static final String MESSAGE_DOTLESS_EMAIL_DOMAIN = "Warning: the email domain “%1$s” has no dot "
+            + "(e.g. example.com). Check that it is not a typo.";
 
     /**
      * Returns an error message indicating the duplicate prefixes.
@@ -54,6 +57,19 @@ public class Messages {
                 ? MESSAGE_DUPLICATE_EMAIL
                 : MESSAGE_DUPLICATE_PHONE;
         return String.format(message, existingPerson.getName());
+    }
+
+    /**
+     * Returns {@code successMessage} followed by a warning on a new line if {@code email} has a domain
+     * without a dot, which is likely a typo, or returns {@code successMessage} unchanged otherwise.
+     * The email is still saved, because a domain without a dot is valid.
+     */
+    public static String appendEmailWarning(String successMessage, Email email) {
+        requireAllNonNull(successMessage, email);
+        if (!email.hasDotlessDomain()) {
+            return successMessage;
+        }
+        return successMessage + "\n" + String.format(MESSAGE_DOTLESS_EMAIL_DOMAIN, email.getDomain());
     }
 
     /**

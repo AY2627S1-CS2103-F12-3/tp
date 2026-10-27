@@ -49,6 +49,19 @@ public class AddCommandTest {
     }
 
     @Test
+    public void execute_emailWithDotlessDomain_addsPersonWithWarning() throws Exception {
+        ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded(SOFTWARE_ENGINEER);
+        Person personWithDotlessDomain = new PersonBuilder().withEmail("amy@gmailcom").build();
+
+        CommandResult commandResult = new AddCommand(personWithDotlessDomain).execute(modelStub);
+
+        String expectedMessage = String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(personWithDotlessDomain))
+                + "\n" + String.format(Messages.MESSAGE_DOTLESS_EMAIL_DOMAIN, "gmailcom");
+        assertEquals(expectedMessage, commandResult.getFeedbackToUser());
+        assertEquals(List.of(personWithDotlessDomain), modelStub.personsAdded);
+    }
+
+    @Test
     public void execute_roleInDifferentCase_addsPersonWithRoleTitle() throws Exception {
         ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded(SOFTWARE_ENGINEER);
         Person personWithLowerCaseRole = new PersonBuilder().withRole("software engineer").build();

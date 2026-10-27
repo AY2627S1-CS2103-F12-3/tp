@@ -6,25 +6,25 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 /**
  * Represents a Person's email in the address book.
  * Guarantees: immutable; is valid as declared in {@link #isValidEmail(String)}
+ *
+ * <p>The part before the {@code @} follows the unquoted (dot-atom) form of RFC 5322, which is also the form
+ * that the HTML standard accepts for email inputs. Quoted forms such as {@code "john doe"@example.com} are
+ * not supported, because their spaces and slashes could be mistaken for command prefixes.
  */
 public class Email {
 
-    private static final String SPECIAL_CHARACTERS = "+_.-";
-    public static final String MESSAGE_CONSTRAINTS = "Emails should be of the format local-part@domain "
-            + "and adhere to the following constraints:\n"
-            + "1. The local-part should only contain alphanumeric characters and these special characters, excluding "
-            + "the parentheses, (" + SPECIAL_CHARACTERS + "). The local-part may not start or end with any special "
-            + "characters.\n"
-            + "2. The local-part is followed by an '@' and then a domain name. The domain name is made up of domain "
-            + "labels separated by periods.\n"
-            + "The domain name must:\n"
-            + "    - end with a domain label at least 2 characters long\n"
-            + "    - have each domain label start and end with alphanumeric characters\n"
-            + "    - have each domain label consist of alphanumeric characters, separated only by hyphens, if any.";
-    // alphanumeric and special characters
+    public static final String MESSAGE_CONSTRAINTS = "Emails should look like name@example.com.\n"
+            + "Before the @, use letters, digits and standard email symbols such as . _ - + ' "
+            + "(no spaces or quotation marks). A dot cannot come first, last, or twice in a row.\n"
+            + "After the @, use letters, digits, hyphens and dots. Each part between dots must start and end "
+            + "with a letter or digit, and the last part must be at least 2 characters long.";
+
+    /** Letters, digits and the symbols that RFC 5322 allows in an unquoted local part. */
+    private static final String LOCAL_PART_CHARACTERS = "[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+";
+    /** Dot-separated runs of allowed characters, so a dot is never first, last, or next to another dot. */
+    private static final String LOCAL_PART_REGEX = "^" + LOCAL_PART_CHARACTERS
+            + "(\\." + LOCAL_PART_CHARACTERS + ")*";
     private static final String ALPHANUMERIC_NO_UNDERSCORE = "[^\\W_]+"; // alphanumeric characters except underscore
-    private static final String LOCAL_PART_REGEX = "^" + ALPHANUMERIC_NO_UNDERSCORE + "([" + SPECIAL_CHARACTERS + "]"
-            + ALPHANUMERIC_NO_UNDERSCORE + ")*";
     private static final String DOMAIN_PART_REGEX = ALPHANUMERIC_NO_UNDERSCORE
             + "(-" + ALPHANUMERIC_NO_UNDERSCORE + ")*";
     private static final String DOMAIN_LAST_PART_REGEX = "(" + DOMAIN_PART_REGEX + "){2,}$"; // At least two chars
@@ -49,6 +49,21 @@ public class Email {
      */
     public static boolean isValidEmail(String test) {
         return test.matches(VALIDATION_REGEX);
+    }
+
+    /**
+     * Returns the part of this email after the {@code @}, such as {@code example.com}.
+     */
+    public String getDomain() {
+        return value.substring(value.indexOf('@') + 1);
+    }
+
+    /**
+     * Returns true if the domain of this email has no dot, such as in {@code john@gmailcom}.
+     * Such a domain is valid but is most likely a typo, so it is worth warning the user about.
+     */
+    public boolean hasDotlessDomain() {
+        return !getDomain().contains(".");
     }
 
     @Override

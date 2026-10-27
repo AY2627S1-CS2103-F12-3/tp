@@ -1,5 +1,6 @@
 package seedu.address.model.person;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -42,9 +43,12 @@ public class EmailTest {
         assertFalse(Email.isValidEmail("peterjack@example.com ")); // trailing space
         assertFalse(Email.isValidEmail("peterjack@@example.com")); // double '@' symbol
         assertFalse(Email.isValidEmail("peter@jack@example.com")); // '@' symbol in local part
-        assertFalse(Email.isValidEmail("-peterjack@example.com")); // local part starts with a hyphen
-        assertFalse(Email.isValidEmail("peterjack-@example.com")); // local part ends with a hyphen
+        assertFalse(Email.isValidEmail(".peterjack@example.com")); // local part starts with a period
+        assertFalse(Email.isValidEmail("peterjack.@example.com")); // local part ends with a period
         assertFalse(Email.isValidEmail("peter..jack@example.com")); // local part has two consecutive periods
+        assertFalse(Email.isValidEmail("\"peter jack\"@example.com")); // quoted local part
+        assertFalse(Email.isValidEmail("peter,jack@example.com")); // comma is not allowed without quotes
+        assertFalse(Email.isValidEmail("pétér@example.com")); // non-English letters
         assertFalse(Email.isValidEmail("peterjack@example@com")); // '@' symbol in domain name
         assertFalse(Email.isValidEmail("peterjack@.example.com")); // domain name starts with a period
         assertFalse(Email.isValidEmail("peterjack@example.com.")); // domain name ends with a period
@@ -64,6 +68,25 @@ public class EmailTest {
         assertTrue(Email.isValidEmail("peter_jack@very-very-very-long-example.com")); // long domain name
         assertTrue(Email.isValidEmail("if.you.dream.it_you.can.do.it@example.com")); // long local part
         assertTrue(Email.isValidEmail("e1234567@u.nus.edu")); // more than one period in domain
+        assertTrue(Email.isValidEmail("o'brien@example.com")); // apostrophe in local part
+        assertTrue(Email.isValidEmail("peter._jack@example.com")); // adjacent special characters
+        assertTrue(Email.isValidEmail("peter.-jack@example.com")); // period followed by a hyphen
+        assertTrue(Email.isValidEmail("-peterjack-@example.com")); // starts and ends with a hyphen
+        assertTrue(Email.isValidEmail("a!#$%&*/=?^`{|}~b@example.com")); // other symbols allowed by RFC 5322
+    }
+
+    @Test
+    public void hasDotlessDomain() {
+        assertTrue(new Email("john@gmailcom").hasDotlessDomain());
+        assertTrue(new Email("john.doe@gmailcom").hasDotlessDomain()); // periods before '@' are ignored
+        assertTrue(new Email("a@bc").hasDotlessDomain());
+        assertFalse(new Email("john@gmail.com").hasDotlessDomain());
+        assertFalse(new Email("e1234567@u.nus.edu").hasDotlessDomain());
+    }
+
+    @Test
+    public void getDomain() {
+        assertEquals("example.com", new Email("john.doe@example.com").getDomain());
     }
 
     @Test

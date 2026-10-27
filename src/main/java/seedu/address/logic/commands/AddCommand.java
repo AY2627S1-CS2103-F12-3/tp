@@ -77,7 +77,8 @@ public class AddCommand extends Command {
         // Saves the role's own spelling of the title, so each role is shown and stored in one way.
         Person personToAdd = toAdd.withRole(role.getTitle());
         model.addPerson(personToAdd);
-        return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(personToAdd)));
+        String successMessage = String.format(MESSAGE_SUCCESS, Messages.format(personToAdd));
+        return new CommandResult(Messages.appendEmailWarning(successMessage, personToAdd.getEmail()));
     }
 
     /**

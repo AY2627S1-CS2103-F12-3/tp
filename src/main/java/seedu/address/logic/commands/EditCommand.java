@@ -110,7 +110,13 @@ public class EditCommand extends Command {
         if (isRoleTransfer) {
             logger.info("Updated candidate role in memory at displayed index " + index.getOneBased() + ".");
         }
-        return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)));
+        String successMessage = String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        // Only a newly entered email is checked, so other edits do not keep warning about a saved email.
+        boolean isEmailChanged = !editedPerson.getEmail().isSameEmail(personToEdit.getEmail());
+        if (isEmailChanged) {
+            successMessage = Messages.appendEmailWarning(successMessage, editedPerson.getEmail());
+        }
+        return new CommandResult(successMessage);
     }
 
     /**
