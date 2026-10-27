@@ -1,11 +1,7 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
-import static seedu.address.logic.Messages.MESSAGE_PERSON_LIST_NOT_DISPLAYED;
-import static seedu.address.logic.Messages.MESSAGE_ROLE_LIST_NOT_DISPLAYED;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
@@ -302,96 +298,6 @@ public class LogicManagerTest {
     }
 
     @Test
-    public void execute_addCandidateAfterRoleList_rejectsRoleIndicesAndAllowsCandidateIndices() throws Exception {
-        model.addRole(SOFTWARE_ENGINEER);
-        model.addRole(PRODUCT_ANALYST);
-        assertViewAfterCommand("list role", true);
-        assertViewAfterCommand("add n/Test Candidate p/91234567 e/test@example.com"
-                + " a/Clementi r/Product Analyst", false);
-        assertEquals(1, model.getFilteredPersonList().size());
-
-        ReadOnlyAddressBook saved = addressBookStorage.readAddressBook().orElseThrow();
-        for (String command : new String[]{"role close 1", "role delete 1"}) {
-            assertThrows(CommandException.class, MESSAGE_ROLE_LIST_NOT_DISPLAYED, () -> logic.execute(command));
-            assertEquals(saved, model.getAddressBook());
-            assertEquals(saved, addressBookStorage.readAddressBook().orElseThrow());
-            assertFalse(model.isRoleListDisplayed());
-        }
-        logic.execute("status 1 st/REJECTED");
-        assertEquals(Status.REJECTED, model.getFilteredPersonList().getFirst().getStatus());
-        logic.execute("delete 1");
-        assertTrue(model.getAddressBook().getPersonList().isEmpty());
-    }
-
-    @Test
-    public void execute_candidateIndexCommandAfterRoleList_rejectsEvenWithCandidatesInModel() throws Exception {
-        model.addRole(SOFTWARE_ENGINEER);
-        model.addPerson(new PersonBuilder().build());
-        assertViewAfterCommand("list role", true);
-        assertEquals(1, model.getFilteredPersonList().size());
-
-        ReadOnlyAddressBook saved = addressBookStorage.readAddressBook().orElseThrow();
-        for (String command : new String[]{"delete 1", "edit 1 n/Changed Name",
-            "note 1 Updated", "status 1 st/HIRED"}) {
-            assertThrows(CommandException.class, MESSAGE_PERSON_LIST_NOT_DISPLAYED, () -> logic.execute(command));
-            assertEquals(saved, model.getAddressBook());
-            assertTrue(model.isRoleListDisplayed());
-        }
-    }
-
-    @Test
-    public void execute_nonRoleResultsAfterRoleList_keepViewAndGuardInSync() throws Exception {
-        model.addRole(SOFTWARE_ENGINEER);
-        model.addPerson(new PersonBuilder().build());
-        for (String command : new String[]{"list", "find Amy", "help", "role add r/New Role x/Senior", "clear"}) {
-            assertViewAfterCommand("list role", true);
-            assertViewAfterCommand(command, false);
-            assertThrows(CommandException.class, MESSAGE_ROLE_LIST_NOT_DISPLAYED, () ->
-                    logic.execute("role delete 1"));
-        }
-    }
-
-    @Test
-    public void execute_successfulRoleCommands_keepRoleView() throws Exception {
-        model.addRole(SOFTWARE_ENGINEER);
-        assertViewAfterCommand("list role", true);
-        assertViewAfterCommand("role close 1", true);
-        assertViewAfterCommand("role delete 1", true);
-        assertTrue(model.getAddressBook().getRoleList().isEmpty());
-    }
-
-    @Test
-    public void execute_failedCommands_preserveRoleView() throws Exception {
-        model.addRole(SOFTWARE_ENGINEER);
-        assertViewAfterCommand("list role", true);
-        assertThrows(ParseException.class, () -> logic.execute("role close invalid"));
-        assertTrue(model.isRoleListDisplayed());
-        assertThrows(CommandException.class, () -> logic.execute("role close 2"));
-        assertTrue(model.isRoleListDisplayed());
-        assertViewAfterCommand("role close 1", true);
-    }
-
-    @Test
-    public void execute_saveFailure_preservesPreviousView() throws Exception {
-        model.addRole(SOFTWARE_ENGINEER);
-        assertViewAfterCommand("list role", true);
-        JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(temporaryFolder.resolve("failure.json")) {
-            @Override
-            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
-                throw DUMMY_IO_EXCEPTION;
-            }
-        };
-        logic = new LogicManager(model, new StorageManager(failingStorage,
-                new JsonUserPrefsStorage(temporaryFolder.resolve("failure-prefs.json"))));
-        assertThrows(CommandException.class, () -> logic.execute("list"));
-        assertTrue(model.isRoleListDisplayed());
-
-        model.setRoleListDisplayed(false);
-        assertThrows(CommandException.class, () -> logic.execute("list role"));
-        assertFalse(model.isRoleListDisplayed());
-    }
-
-    @Test
     public void execute_pendingStatusAfterClosure_keepsRecordsAndSavedDataUnchanged() throws Exception {
         model.addRole(SOFTWARE_ENGINEER);
         model.addPerson(new PersonBuilder().withStatus(Status.REJECTED).withTags("referral").build());
@@ -408,7 +314,6 @@ public class LogicManagerTest {
             assertEquals(saved, model.getAddressBook());
             assertEquals(saved, addressBookStorage.readAddressBook().orElseThrow());
             assertEquals(List.of(candidate), model.getFilteredPersonList());
-            assertFalse(model.isRoleListDisplayed());
         }
     }
 
@@ -446,12 +351,6 @@ public class LogicManagerTest {
     @Test
     public void getFilteredRoleList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> logic.getFilteredRoleList().remove(0));
-    }
-
-    private void assertViewAfterCommand(String command, boolean showRoles) throws Exception {
-        CommandResult result = logic.execute(command);
-        assertEquals(showRoles, result.isShowRoleList());
-        assertEquals(showRoles, model.isRoleListDisplayed());
     }
 
     /**

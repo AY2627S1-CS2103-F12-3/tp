@@ -1,0 +1,34 @@
+@startuml
+skin rose
+
+|StatusCommandParser|
+start
+
+:Tokenize command arguments;
+:Parse and validate prefix,\nindices, and status;
+
+if ()
+    :Throw ParseException;
+    stop
+else ([Parsing succeeds])
+    :Create StatusCommand\nwith unique indices and status;
+endif
+
+|StatusCommand|
+
+:Get currently displayed candidates;
+:Resolve selected candidates;
+:Validate display, indices,\nand whole-batch role constraints;
+
+if ()
+    :Throw CommandException;
+    stop
+else ([Validation succeeds])
+    :Create replacement candidates\nwith updated status;
+    :Replace selected candidates;
+    :Show full candidate list;
+    :Return success message;
+    stop
+endif
+
+@enduml

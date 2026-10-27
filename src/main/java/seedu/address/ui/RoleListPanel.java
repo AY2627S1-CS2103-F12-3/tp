@@ -6,6 +6,7 @@ import javafx.beans.binding.Bindings;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.Region;
@@ -20,6 +21,9 @@ public class RoleListPanel extends UiPart<Region> {
     @FXML
     private ListView<Role> roleListView;
 
+    @FXML
+    private Label roleListTitle;
+
     private final ObservableList<Person> candidates;
 
     /**
@@ -33,6 +37,7 @@ public class RoleListPanel extends UiPart<Region> {
         this.candidates = requireNonNull(candidates);
         roleListView.setItems(roleList);
         roleListView.setCellFactory(listView -> new RoleListViewCell());
+        roleListTitle.setText("Roles");
         // One panel-lifetime listener avoids retaining listeners for recycled list cells.
         candidates.addListener((ListChangeListener<Person>) change -> roleListView.refresh());
     }

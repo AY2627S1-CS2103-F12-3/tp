@@ -1,7 +1,6 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalRoles.CLOSED_DESIGNER;
@@ -73,7 +72,6 @@ public class RoleUndoIntegrationTest {
         logic.execute("role close 1");
         assertSavedState(closed);
         assertEquals(UndoCommand.MESSAGE_SUCCESS, logic.execute("undo").getFeedbackToUser());
-        assertFalse(model.isRoleListDisplayed());
         logic.execute("list role");
         assertSavedState(before);
         assertEquals(RedoCommand.MESSAGE_SUCCESS, logic.execute("redo").getFeedbackToUser());

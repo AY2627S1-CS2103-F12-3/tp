@@ -48,6 +48,9 @@ public class MainWindow extends UiPart<Stage> {
     private StackPane personListPanelPlaceholder;
 
     @FXML
+    private StackPane roleListPanelPlaceholder;
+
+    @FXML
     private StackPane resultDisplayPlaceholder;
 
     @FXML
@@ -117,7 +120,9 @@ public class MainWindow extends UiPart<Stage> {
     void fillInnerParts() {
         personListPanel = new PersonListPanel(logic.getFilteredPersonList());
         personListPanelPlaceholder.getChildren().add(personListPanel.getRoot());
+
         roleListPanel = new RoleListPanel(logic.getFilteredRoleList(), logic.getPersonList());
+        roleListPanelPlaceholder.getChildren().add(roleListPanel.getRoot());
 
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
@@ -181,8 +186,8 @@ public class MainWindow extends UiPart<Stage> {
     private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
         try {
             CommandResult commandResult = logic.execute(commandText);
-            personListPanelPlaceholder.getChildren().setAll(
-                    commandResult.isShowRoleList() ? roleListPanel.getRoot() : personListPanel.getRoot());
+            personListPanelPlaceholder.getChildren().setAll(personListPanel.getRoot());
+            roleListPanelPlaceholder.getChildren().setAll(roleListPanel.getRoot());
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
 

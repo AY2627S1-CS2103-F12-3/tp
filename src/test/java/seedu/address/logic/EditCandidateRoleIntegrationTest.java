@@ -2,7 +2,6 @@ package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -76,8 +75,6 @@ public class EditCandidateRoleIntegrationTest {
 
         assertEquals(String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(expected)),
                 result.getFeedbackToUser());
-        assertFalse(result.isShowRoleList());
-        assertFalse(model.isRoleListDisplayed());
         assertSame(displayed, logic.getFilteredPersonList());
         assertTrue(wasListUpdated.get());
         assertEquals(List.of(expected), displayed);

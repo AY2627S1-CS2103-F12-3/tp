@@ -180,15 +180,6 @@ public class InterviewCommandTest {
     }
 
     @Test
-    public void execute_roleListDisplayed_failure() {
-        model.setRoleListDisplayed(true);
-        InterviewCommand interviewCommand =
-                new InterviewCommand(INDEX_FIRST_PERSON, new Interview(VALID_INTERVIEW_AMY));
-
-        assertCommandFailure(interviewCommand, model, Messages.MESSAGE_PERSON_LIST_NOT_DISPLAYED);
-    }
-
-    @Test
     public void equals() {
         InterviewCommand interviewCommand =
                 new InterviewCommand(INDEX_FIRST_PERSON, new Interview(VALID_INTERVIEW_AMY));

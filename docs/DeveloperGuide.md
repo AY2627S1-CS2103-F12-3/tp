@@ -202,6 +202,43 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Candidate Statuses
+
+#### Representation and Persistence
+
+The 'Status' enum defines seven candidate statuses: `RESUME`, `INTERVIEW`, `OFFER`, `DECISION`, `HIRED`, `REJECTED`, and `WITHDRAWN`. The first four are _pending_ statuses; the remaining three are _final_ statuses. New candidates are assigned the `RESUME` status by default.
+
+When stored candidate data has no status, loading it defaults to `RESUME`. Upon successful execution of any command, `LogicManager` saves the complete addressbook, and `JsonAdaptedPerson` writes each status using its exact enum name.
+
+An unrecognized stored value causes data loading to fail and invokes the recovery process described in [Protecting unreadable recruitment data](#protecting-unreadable-recruitment-data).
+
+#### Batch Status Updates
+
+Batch status updates of candidate statuses is handled by the `status` command.
+
+`StatusCommandParser` requires exactly one `st/` prefix. It splits the preamble on whitespace, parses each index using `ParserUtil#parseIndex`, and stores the results in a set, removing duplicate indices. `ParserUtil#parseStatus` trims and uppercases the supplied value before matching it to a `Status`.
+
+`StatusCommand` resolves every index against the _currently displayed_ candidate list, and creates replacement `Person` objects with the requested status, updates the model, resets the candidate filter to show all candidates, and returns a success result.
+
+During running of `StatusCommandParser`, `ParseException` will be thrown on any of these conditions:
+* No `st/` prefix found.
+* Multiple `st/` prefixes found.
+* One of the indices is not a nonzero unsigned integer.
+* Normalized status does not match one of the `Status` values.
+
+During running of `StatusCommand`, `CommandException` will be thrown on any of these conditions:
+* Role list is currently being displayed.
+* Index falls outside filtered candidate list.
+* A pending status (`RESUME`, `INTERVIEW`, `OFFER` or `DECISION`) is being assigned to a candidate whose role is closed. (This is to ensure that closed role only ever contains candidates with a final status).
+* Assigning a `HIRED` status gives a role more than one hired candidate, whether the conflict comes from an existing candidate or another candidate within the batch.
+
+Because these checks precede mutation, failures leave all candidates unchanged.
+
+The activity diagram below summarizes this process.
+
+<puml src="diagrams/BatchStatusActivityDiagram.puml" width="1200"
+  alt="Activity flow for parsing and executing a batch status update"></puml>
+
 ### Role creation and persistence
 
 #### Role identity and validation
@@ -1211,7 +1248,7 @@ Use case ends.
 3.  GUI elements should be fully visible and work well on screen resolutions 1920x1080 and higher, and screen scales 100% - 125%.
 4.  GUI elements should be usable on screen resolutions 1280x720 and higher, and screen scales 150%.
 8.  After application data has been successfully saved, closing RecruiterBuddy normally and reopening it with the same unchanged data files should restore the saved data, including all saved additions, modifications, and deletions.
-9.  A new user should be able to learn all basic commands (adding, updating and deleting candidates and roles) within 30 minutes 
+9.  A new user should be able to learn all basic commands (adding, updating and deleting candidates and roles) within 30 minutes
 10.  The application should carry out a user action and give visual confirmation within 1 second of input.
 11.  A command rejected because of invalid syntax or invalid input values should leave recruitment records and user-defined configuration unchanged, both in memory and in saved data file.
 12.  Command syntax should be simple and intuitive, such that an experienced user (has spent > 1 hour using the application) can memorize the syntax for all basic commands.

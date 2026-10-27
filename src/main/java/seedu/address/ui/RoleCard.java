@@ -8,7 +8,7 @@ import seedu.address.model.role.RoleCandidateCounts;
 
 /** A UI component that displays information about a role. */
 public class RoleCard extends UiPart<Region> {
-    private static final String FXML = "RoleCard.fxml";
+    private static final String FXML = "RoleListCard.fxml";
 
     @FXML
     private Label id;

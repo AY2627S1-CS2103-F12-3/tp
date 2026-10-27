@@ -81,10 +81,6 @@ public class StatusCommand extends Command {
         requireNonNull(model);
         List<Person> lastShownList = model.getFilteredPersonList();
 
-        if (model.isRoleListDisplayed()) {
-            throw new CommandException(Messages.MESSAGE_PERSON_LIST_NOT_DISPLAYED);
-        }
-
         Set<Person> peopleToEdit = new HashSet<>();
         for (Index idx : indices) {
             if (idx.getZeroBased() >= lastShownList.size()) {
@@ -97,6 +93,7 @@ public class StatusCommand extends Command {
 
         verifyPendingStatusAllowed(model, peopleToEdit);
         verifyHiringAllowed(model, peopleToEdit);
+
         assert peopleToEdit.size() == indices.size() : "Each distinct index must resolve to a distinct candidate";
 
         for (Person p : peopleToEdit) {

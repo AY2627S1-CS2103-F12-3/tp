@@ -204,7 +204,7 @@ public class ParserUtil {
         requireNonNull(status);
         String normalizedStatus = status.trim().toUpperCase();
         try {
-            return Status.valueOf(normalizedStatus.toUpperCase());
+            return Status.valueOf(normalizedStatus);
         } catch (IllegalArgumentException e) {
             throw new ParseException(Status.getConstraintsMessage());
         }
