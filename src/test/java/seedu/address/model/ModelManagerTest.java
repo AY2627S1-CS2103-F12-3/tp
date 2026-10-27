@@ -62,6 +62,12 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void commitAddressBookState_withoutSnapshot_doesNotCreateHistory() {
+        modelManager.commitAddressBookState();
+        assertFalse(modelManager.undoAddressBook());
+    }
+
+    @Test
     public void setGuiSettings_nullGuiSettings_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> modelManager.setGuiSettings(null));
     }

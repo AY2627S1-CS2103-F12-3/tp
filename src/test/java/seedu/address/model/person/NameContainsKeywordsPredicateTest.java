@@ -139,6 +139,10 @@ public class NameContainsKeywordsPredicateTest {
                 List.of("Alice"), List.of("Software"), Set.of(RoleStatus.OPEN), List.of(closedRole));
         assertFalse(predicate.test(person));
         assertFalse(new NameContainsKeywordsPredicate(List.of("Alice")).hasRoleFilters());
+
+        // A role/status match does not override a non-matching name filter.
+        assertFalse(new NameContainsKeywordsPredicate(List.of("Bob"), List.of("Software"),
+                Set.of(RoleStatus.OPEN), List.of(closedRole)).test(person));
     }
 
     @Test
