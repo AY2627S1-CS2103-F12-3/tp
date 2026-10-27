@@ -26,7 +26,6 @@ public class StatusCommandParser implements Parser<StatusCommand> {
         requireNonNull(args);
 
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_STATUS);
-
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_STATUS);
 
         if (argMultimap.getValue(PREFIX_STATUS).isEmpty()) {
@@ -34,7 +33,6 @@ public class StatusCommandParser implements Parser<StatusCommand> {
         }
 
         Set<Index> indices = new HashSet<>();
-
         String[] stringIndices = argMultimap.getPreamble().split("\\s+");
         for (String s : stringIndices) {
             try {
