@@ -175,7 +175,13 @@ If validation fails, no role is created:
 * Missing experience prefix: `Missing required field: x/.`
 * Repeated prefix: `Multiple values specified for the following single-valued field(s): PREFIX`.
   For example, repeating `x/` reports that prefix even if both values are identical.
-* Empty or invalid title: `Role title must be 1–100 characters and contain a letter.`
+* Empty or invalid title:
+
+  ```text
+  Role title must be 1–100 characters and contain a letter.
+  Use only letters, digits, spaces, or these symbols: ' & - / . + # ( ) ,
+  ```
+
 * Empty or invalid experience level:
   `Required experience level must be 1–50 characters and must not contain a new line.`
 * Duplicate title: `A role named “ROLE_TITLE” already exists.`
@@ -212,7 +218,8 @@ Validation failures leave all records, filters, and the saved data unchanged:
 * Candidate list displayed: `The role list is not displayed. Use list role first.`
 * No fields supplied: `At least one field to edit must be provided.`
 * Repeated prefix: `Multiple values specified for the following single-valued field(s): PREFIX`. If both prefixes repeat, the message names both.
-* Empty or invalid title: `Role title must be 1–100 characters and contain a letter.`
+* Empty or invalid title: the same two-line role-title constraint message shown under
+  [`role add`](#adding-a-role-role-add), including the allowed characters.
 * Empty or invalid experience: `Required experience level must be 1–50 characters and must not contain a new line.`
 * Another role has the requested title: `A role named “ROLE_TITLE” already exists.` This also applies if the other role is closed.
 * Extra text before the first prefix: `Invalid command format!`, followed by usage and an example.

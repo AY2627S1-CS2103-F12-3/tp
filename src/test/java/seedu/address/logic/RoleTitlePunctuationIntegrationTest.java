@@ -122,17 +122,18 @@ public class RoleTitlePunctuationIntegrationTest {
     @Test
     public void execute_invalidPunctuatedTitle_preservesSavedData() throws Exception {
         logic.execute("role add r/C++ Developer x/2 years");
+        logic.execute("add n/Alice Tan p/91234567 e/alice@example.com a/Clementi r/C++ Developer");
         logic.execute("list role");
         AddressBook before = new AddressBook(model.getAddressBook());
         byte[] original = Files.readAllBytes(storage.getAddressBookFilePath());
 
-        for (String title : List.of("+#(),", "C++@Developer", "Engineer_(Backend)", "A".repeat(100) + "+")) {
-            assertThrows(ParseException.class, RoleTitle.MESSAGE_CONSTRAINTS, () ->
-                    logic.execute("role add r/" + title + " x/Senior"));
-            assertThrows(ParseException.class, RoleTitle.MESSAGE_CONSTRAINTS, () ->
-                    logic.execute("role edit 1 r/" + title));
-            assertEquals(before, model.getAddressBook());
-            assertArrayEquals(original, Files.readAllBytes(storage.getAddressBookFilePath()));
+        for (String title : List.of("+#(),", "Engineer@Platform", "Engineer_(Backend)", "A".repeat(100) + "+")) {
+            for (String command : List.of("role add r/" + title + " x/Senior", "role edit 1 r/" + title,
+                    "add n/Bob Tan p/91234568 e/bob@example.com a/Clementi r/" + title, "edit 1 r/" + title)) {
+                assertThrows(ParseException.class, RoleTitle.MESSAGE_CONSTRAINTS, () -> logic.execute(command));
+                assertEquals(before, model.getAddressBook());
+                assertArrayEquals(original, Files.readAllBytes(storage.getAddressBookFilePath()));
+            }
         }
     }
 }

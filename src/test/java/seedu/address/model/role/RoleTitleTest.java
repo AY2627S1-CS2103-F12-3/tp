@@ -10,6 +10,13 @@ import org.junit.jupiter.api.Test;
 public class RoleTitleTest {
 
     @Test
+    public void messageConstraints_describesLengthLetterAndAllowedCharacters() {
+        assertEquals("Role title must be 1–100 characters and contain a letter.\n"
+                + "Use only letters, digits, spaces, or these symbols: ' & - / . + # ( ) ,",
+                RoleTitle.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
     public void constructor_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new RoleTitle(null));
     }

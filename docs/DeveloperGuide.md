@@ -216,6 +216,10 @@ strips its value and validates 1–50 printable code points, excluding control, 
 and paragraph-separator characters. Their constraint messages use the same length constants as their
 validation, avoiding independently hard-coded limits.
 
+`RoleTitle#MESSAGE_CONSTRAINTS` also lists the allowed characters on a second line, so a title
+with an unsupported symbol is not explained only by its length and letter requirements.
+Construction, command parsing and JSON role/candidate validation reuse this same message.
+
 `Role#isSameRole` compares only titles through `RoleTitle#isSameTitle`, ignoring case. `UniqueRoleList`
 uses that identity to reject duplicates, irrespective of experience level or open/closed status.
 Full `Role#equals` also compares experience level and status; it is not the duplicate rule. Internal
@@ -1294,6 +1298,13 @@ Always switch back with `list` or `list role` before using indices for that list
    command field, and scrolling still usable. Check the course-required screen sizes and scaling.
 
 #### Role creation and validation
+
+1. Run `role add r/Engineer@Platform x/2 years`.<br>
+   Expected: No role is created. The first error line states the length and letter requirements;
+   the second reads `Use only letters, digits, spaces, or these symbols: ' & - / . + # ( ) ,`.
+   The allowed-symbol list excludes `@`, explaining why this title fails despite its valid length
+   and letters. Correcting the command to `role add r/Engineer-Platform x/2 years` succeeds.
+   Check that both error lines are readable in the result display.
 
 1. In a separate disposable copy, run `role add r/C++ Developer x/2 years`,
    `role add r/C# Developer x/2 years`, `role add r/Engineer (Backend) x/2 years`, and
