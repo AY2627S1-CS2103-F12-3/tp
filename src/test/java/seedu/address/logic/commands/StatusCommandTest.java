@@ -433,15 +433,6 @@ public class StatusCommandTest {
     }
 
     @Test
-    public void execute_batchWhileRoleListDisplayed_rejectsEntireBatch() {
-        model.setRoleListDisplayed(true);
-
-        assertCommandFailure(new StatusCommand(Set.of(INDEX_FIRST_PERSON, INDEX_SECOND_PERSON), Status.REJECTED),
-                model, Messages.MESSAGE_PERSON_LIST_NOT_DISPLAYED);
-        assertTrue(model.isRoleListDisplayed());
-    }
-
-    @Test
     public void equals_batchOrderAndIndexInstances_doNotAffectEquality() {
         Set<Index> firstOrder = new LinkedHashSet<>(List.of(Index.fromOneBased(1), Index.fromOneBased(2)));
         Set<Index> reverseOrder = new LinkedHashSet<>(List.of(Index.fromOneBased(2), Index.fromOneBased(1)));

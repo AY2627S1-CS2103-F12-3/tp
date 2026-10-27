@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_DUPLICATE_ROLE;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_ROLE_DISPLAYED_INDEX;
-import static seedu.address.logic.Messages.MESSAGE_ROLE_LIST_NOT_DISPLAYED;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalRoles.CLOSED_DESIGNER;
@@ -42,7 +41,6 @@ public class EditRoleCommandTest {
     public void setUp() {
         model.addRole(SOFTWARE_ENGINEER);
         model.addRole(PRODUCT_ANALYST);
-        model.setRoleListDisplayed(true);
     }
 
     @Test
@@ -68,7 +66,6 @@ public class EditRoleCommandTest {
             Model roleModel = new ModelManager();
             roleModel.addRole(original);
             roleModel.addRole(PRODUCT_ANALYST);
-            roleModel.setRoleListDisplayed(true);
             for (Status status : Status.values()) {
                 Person candidate = new PersonBuilder().withNameAndDistinctContacts("Candidate " + status.ordinal())
                         .withPhone("9123456" + status.ordinal())
@@ -87,8 +84,7 @@ public class EditRoleCommandTest {
             assertEquals(candidates, roleModel.getAddressBook().getPersonList());
             assertSame(observableRoles, roleModel.getFilteredRoleList());
             assertEquals(new CommandResult(String.format(EditRoleCommand.MESSAGE_SUCCESS, original.getTitle()),
-                    false, false, true), result);
-            assertTrue(roleModel.isRoleListDisplayed());
+                    false, false), result);
         }
     }
 
@@ -99,7 +95,6 @@ public class EditRoleCommandTest {
         CommandResult result = new EditRoleCommand(FIRST_INDEX, SOFTWARE_ENGINEER.getExperienceLevel()).execute(model);
 
         assertEquals(before, model.getAddressBook());
-        assertTrue(result.isShowRoleList());
     }
 
     @Test
@@ -109,7 +104,6 @@ public class EditRoleCommandTest {
             Model roleModel = new ModelManager();
             roleModel.addRole(original);
             roleModel.addRole(PRODUCT_ANALYST);
-            roleModel.setRoleListDisplayed(true);
             for (Status status : Status.values()) {
                 if (!original.isClosed() || !status.isPending()) {
                     roleModel.addPerson(new PersonBuilder().withNameAndDistinctContacts("Candidate " + status.ordinal())
@@ -133,7 +127,7 @@ public class EditRoleCommandTest {
             assertSame(observableCandidates, roleModel.getAddressBook().getPersonList());
             assertEquals(List.of(expectedRole, PRODUCT_ANALYST), roleModel.getFilteredRoleList());
             assertTrue(roleModel.getFilteredPersonList().isEmpty());
-            assertEquals(new CommandResult("Edited role: Updated Role.", false, false, true), result);
+            assertEquals(new CommandResult("Edited role: Updated Role.", false, false), result);
         }
     }
 
@@ -180,12 +174,6 @@ public class EditRoleCommandTest {
         assertEquals(List.of(SOFTWARE_ENGINEER, expected), model.getAddressBook().getRoleList());
         assertEquals(List.of(expected), model.getFilteredRoleList());
         assertTrue(model.getFilteredPersonList().isEmpty());
-    }
-
-    @Test
-    public void execute_candidateListDisplayed_rejectsEdit() {
-        model.setRoleListDisplayed(false);
-        assertCommandFailure(command, model, MESSAGE_ROLE_LIST_NOT_DISPLAYED);
     }
 
     @Test

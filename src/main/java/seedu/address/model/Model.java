@@ -19,16 +19,6 @@ public interface Model {
     Predicate<Role> PREDICATE_SHOW_ALL_ROLES = unused -> true;
 
     /**
-     * Returns true if the last successful logic result selected the role list.
-     */
-    boolean isRoleListDisplayed();
-
-    /**
-     * Records the view selected by a successfully completed logic result.
-     */
-    void setRoleListDisplayed(boolean displayed);
-
-    /**
      * Returns the user prefs.
      */
     ReadOnlyUserPrefs getUserPrefs();

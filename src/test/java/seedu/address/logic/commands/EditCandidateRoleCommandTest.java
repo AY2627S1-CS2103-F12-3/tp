@@ -161,10 +161,6 @@ public class EditCandidateRoleCommandTest {
     @Test
     public void execute_roleViewOrInvalidIndex_rejectsTransfer() {
         Model model = createModel(new PersonBuilder().build());
-        model.setRoleListDisplayed(true);
-        assertCommandFailure(new EditCommand(INDEX_FIRST_PERSON, roleDescriptor("Product Analyst")), model,
-                Messages.MESSAGE_PERSON_LIST_NOT_DISPLAYED);
-        model.setRoleListDisplayed(false);
         assertCommandFailure(new EditCommand(Index.fromOneBased(2), roleDescriptor("Product Analyst")), model,
                 Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }

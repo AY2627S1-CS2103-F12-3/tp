@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_ROLE_DISPLAYED_INDEX;
-import static seedu.address.logic.Messages.MESSAGE_ROLE_LIST_NOT_DISPLAYED;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalRoles.PRODUCT_ANALYST;
@@ -32,7 +31,6 @@ public class CloseRoleCommandTest {
     @BeforeEach
     public void setUp() {
         model.addRole(SOFTWARE_ENGINEER);
-        model.setRoleListDisplayed(true);
     }
 
     @Test
@@ -116,12 +114,6 @@ public class CloseRoleCommandTest {
     }
 
     @Test
-    public void execute_candidateListDisplayed_rejectsClosure() {
-        model.setRoleListDisplayed(false);
-        assertCommandFailure(command, model, MESSAGE_ROLE_LIST_NOT_DISPLAYED);
-    }
-
-    @Test
     public void execute_indexOutsideDisplayedList_rejectsClosure() {
         assertCommandFailure(new CloseRoleCommand(Index.fromOneBased(2)), model,
                 MESSAGE_INVALID_ROLE_DISPLAYED_INDEX);
@@ -170,7 +162,5 @@ public class CloseRoleCommandTest {
         assertEquals(expectedRole, model.getFilteredRoleList().getFirst());
         assertEquals(String.format(CloseRoleCommand.MESSAGE_SUCCESS, SOFTWARE_ENGINEER.getTitle()),
                 result.getFeedbackToUser());
-        assertTrue(result.isShowRoleList());
-        assertTrue(model.isRoleListDisplayed());
     }
 }

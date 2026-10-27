@@ -69,7 +69,6 @@ public class RoleWorkflowDiagnosticsTest {
 
     @Test
     public void execute_editRole_logsSuccessAndDuplicateWithHiddenCandidatePreserved() throws Exception {
-        model.setRoleListDisplayed(true);
         model.updateFilteredPersonList(person -> false);
         RoleTitle newTitle = new RoleTitle("Platform Engineer");
         try (LogCapture logs = new LogCapture()) {
@@ -92,7 +91,6 @@ public class RoleWorkflowDiagnosticsTest {
 
     @Test
     public void execute_closeRole_logsOutcomesAndRetainsCandidates() throws Exception {
-        model.setRoleListDisplayed(true);
         try (LogCapture logs = new LogCapture()) {
             AddressBook savedState = new AddressBook(model.getAddressBook());
             CloseRoleCommand command = new CloseRoleCommand(INDEX_FIRST_PERSON);
@@ -120,7 +118,6 @@ public class RoleWorkflowDiagnosticsTest {
 
     @Test
     public void execute_closeRoleWithMultipleHires_logsRejectionAndPreservesState() {
-        model.setRoleListDisplayed(true);
         model.setPerson(CANDIDATE, new PersonBuilder(CANDIDATE).withStatus(Status.HIRED).build());
         model.addPerson(new PersonBuilder(CANDIDATE).withNameAndDistinctContacts("Other Applicant")
                 .withStatus(Status.HIRED).build());
@@ -138,7 +135,6 @@ public class RoleWorkflowDiagnosticsTest {
 
     @Test
     public void execute_deleteRole_logsCandidateGuardAndSuccessfulRemoval() throws Exception {
-        model.setRoleListDisplayed(true);
         try (LogCapture logs = new LogCapture()) {
             AddressBook savedState = new AddressBook(model.getAddressBook());
             DeleteRoleCommand command = new DeleteRoleCommand(INDEX_FIRST_PERSON);

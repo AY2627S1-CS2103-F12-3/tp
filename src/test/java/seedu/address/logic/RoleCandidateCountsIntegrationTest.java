@@ -1,7 +1,6 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -68,7 +67,6 @@ public class RoleCandidateCountsIntegrationTest {
         assertCounts(SOFTWARE_ENGINEER, 1, 0, 1, 0);
         assertCounts(PRODUCT_ANALYST, 0, 0, 0, 0);
         assertCounts(CLOSED_DESIGNER, 0, 0, 0, 1);
-        assertFalse(model.isRoleListDisplayed());
         assertSame(candidates, logic.getPersonList());
         assertThrows(UnsupportedOperationException.class, () -> candidates.removeFirst());
     }

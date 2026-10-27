@@ -127,16 +127,6 @@ public class AddCommandTest {
      */
     private class ModelStub implements Model {
         @Override
-        public boolean isRoleListDisplayed() {
-            throw new AssertionError("This method should not be called.");
-        }
-
-        @Override
-        public void setRoleListDisplayed(boolean displayed) {
-            throw new AssertionError("This method should not be called.");
-        }
-
-        @Override
         public void recordAddressBookState() {
             throw new AssertionError("This method should not be called.");
         }

@@ -2,7 +2,11 @@
 
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.Label?>
 
 <VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
-  <ListView fx:id="personListView" VBox.vgrow="ALWAYS" />
+  <children>
+    <Label fx:id="personListTitle" style="-fx-font-size:20; -fx-text-fill: #FFFFFF;" VBox.vgrow="NEVER" />
+    <ListView fx:id="personListView" VBox.vgrow="ALWAYS" />
+  </children>
 </VBox>

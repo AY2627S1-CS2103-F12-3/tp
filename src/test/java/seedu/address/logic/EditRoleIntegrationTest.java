@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_DUPLICATE_ROLE;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_ROLE_DISPLAYED_INDEX;
-import static seedu.address.logic.Messages.MESSAGE_ROLE_LIST_NOT_DISPLAYED;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EXPERIENCE_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ROLE_TITLE;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -82,8 +81,6 @@ public class EditRoleIntegrationTest {
         logic.execute("role edit 3 x/Entry level");
 
         assertEquals("Edited role: Software Engineer.", result.getFeedbackToUser());
-        assertTrue(result.isShowRoleList());
-        assertTrue(model.isRoleListDisplayed());
         assertTrue(wasListUpdated[0]);
         assertSame(observableRoles, logic.getFilteredRoleList());
         assertEquals(List.of(editedOpen, PRODUCT_ANALYST, editedClosed), observableRoles);
@@ -98,7 +95,6 @@ public class EditRoleIntegrationTest {
         logic.execute("role edit 1 x/2 years");
 
         assertArrayEquals(original, Files.readAllBytes(addressBookStorage.getAddressBookFilePath()));
-        assertTrue(model.isRoleListDisplayed());
     }
 
     @Test
@@ -120,20 +116,6 @@ public class EditRoleIntegrationTest {
         assertRejected("role edit 1 r/A r/B", ParseException.class,
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_ROLE_TITLE));
         assertRejected("role edit 99 x/Senior", CommandException.class, MESSAGE_INVALID_ROLE_DISPLAYED_INDEX);
-
-        assertEquals(before, model.getAddressBook());
-        assertArrayEquals(original, Files.readAllBytes(addressBookStorage.getAddressBookFilePath()));
-        assertEquals(List.of(before.getPersonList().getFirst()), model.getFilteredPersonList());
-        assertTrue(model.isRoleListDisplayed());
-    }
-
-    @Test
-    public void execute_candidateCommandAfterListingRoles_blocksRoleEdit() throws Exception {
-        logic.execute("find Alice");
-        byte[] original = Files.readAllBytes(addressBookStorage.getAddressBookFilePath());
-        AddressBook before = new AddressBook(model.getAddressBook());
-
-        assertRejected("role edit 1 x/Senior", CommandException.class, MESSAGE_ROLE_LIST_NOT_DISPLAYED);
 
         assertEquals(before, model.getAddressBook());
         assertArrayEquals(original, Files.readAllBytes(addressBookStorage.getAddressBookFilePath()));
@@ -164,7 +146,6 @@ public class EditRoleIntegrationTest {
         assertSame(observableRoles, logic.getFilteredRoleList());
         assertSame(observableCandidates, model.getAddressBook().getPersonList());
         assertTrue(wasCandidateListUpdated[0]);
-        assertTrue(model.isRoleListDisplayed());
         assertEquals(model.getAddressBook(), addressBookStorage.readAddressBook().orElseThrow());
         assertTrue(model.findRole(SOFTWARE_ENGINEER.getTitle()).isEmpty());
         logic.execute("role add r/Software Engineer x/Entry level");

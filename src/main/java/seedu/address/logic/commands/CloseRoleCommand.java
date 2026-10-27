@@ -2,7 +2,6 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_ROLE_DISPLAYED_INDEX;
-import static seedu.address.logic.Messages.MESSAGE_ROLE_LIST_NOT_DISPLAYED;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -50,9 +49,6 @@ public class CloseRoleCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        if (!model.isRoleListDisplayed()) {
-            throw new CommandException(MESSAGE_ROLE_LIST_NOT_DISPLAYED);
-        }
         List<Role> displayedRoles = model.getFilteredRoleList();
         if (targetIndex.getZeroBased() >= displayedRoles.size()) {
             throw new CommandException(MESSAGE_INVALID_ROLE_DISPLAYED_INDEX);
@@ -66,7 +62,7 @@ public class CloseRoleCommand extends Command {
         Role closedRole = new Role(role.getTitle(), role.getExperienceLevel(), RoleStatus.CLOSED);
         model.setRole(role, closedRole);
         logger.info("Closed role in memory at displayed index " + targetIndex.getOneBased() + ".");
-        return new CommandResult(String.format(MESSAGE_SUCCESS, role.getTitle()), false, false, true);
+        return new CommandResult(String.format(MESSAGE_SUCCESS, role.getTitle()), false, false);
     }
 
     private static void verifyCandidateOutcomes(Model model, Role role) throws CommandException {
