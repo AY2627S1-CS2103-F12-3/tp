@@ -16,7 +16,7 @@
 * This project builds on [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) by the
   [SE-EDU initiative](https://se-education.org). Its existing architecture and documentation form the
   starting point for RecruiterBuddy.
-* Kavin Parthipan (`kpkavin04`) used OpenAI Codex to assist with requirements analysis, implementation, tests, review, and documentation for candidate role reassignment, the persistent role model, role commands, role-card summaries, role workflow diagnostics, associated candidate-status and displayed-list safeguards, safe startup after recruitment-data loading failures, and the offline command guide. This acknowledgement covers that contribution, not other team members' tool usage.
+* Kavin Parthipan (`kpkavin04`) used OpenAI Codex to assist with requirements analysis, implementation, tests, review, and documentation for candidate role reassignment, the persistent role model, role commands, role-card summaries, role workflow diagnostics, and associated candidate-status safeguards, and safe startup after recruitment-data loading failures, and the offline command guide. This acknowledgement covers that contribution, not other team members' tool usage.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -176,7 +176,6 @@ The `Model` component,
 <puml src="diagrams/BetterModelClassDiagram.puml" width="450" />
 </box>
 
-
 ### Storage component
 
 **API** : [`Storage.java`](https://github.com/AY2627S1-CS2103-F12-3/tp/blob/master/src/main/java/seedu/address/storage/Storage.java)
@@ -251,7 +250,6 @@ During running of `StatusCommandParser`, `ParseException` will be thrown on any 
 * Normalized status does not match one of the `Status` values.
 
 During running of `StatusCommand`, `CommandException` will be thrown on any of these conditions:
-* Role list is currently being displayed.
 * Index falls outside filtered candidate list.
 * A pending status (`RESUME`, `INTERVIEW`, `OFFER` or `DECISION`) is being assigned to a candidate whose role is closed. (This is to ensure that closed role only ever contains candidates with a final status).
 * Assigning a `HIRED` status gives a role more than one hired candidate, whether the conflict comes from an existing candidate or another candidate within the batch.
@@ -296,21 +294,20 @@ or invalid-value errors when several problems occur together.
 
 `AddRoleCommand` checks `Model#hasRole` before calling `Model#addRole`. The model updates the underlying
 observable collection and resets the role filter to show all roles. The command returns
-`Added open role: TITLE.` with the default candidate-list view; `list role` displays the updated roles.
+`Added open role: TITLE.`; the roles list displays the updated roles and the candidates list retains its filter, if any.
 Parsing or duplicate rejection leaves the stored records unchanged.
 
 #### Correcting a role's title or required experience
 
 `RoleCommandParser` delegates `edit` to `EditRoleCommandParser`. The parser reads the displayed-role index with `ParserUtil#parseRoleIndex`, rejects repeated `r/` or `x/` prefixes using the existing duplicate-prefix helper, and requires at least one editable field. Supplied values use `ParserUtil#parseRoleTitle` and `ParserUtil#parseExperienceLevel`; omitted fields are left unchanged. An invalid index is reported first, followed by duplicate prefixes, missing fields, title validation and experience validation.
 
-`EditRoleCommand` requires the role view and resolves the index against `Model#getFilteredRoleList`. It constructs the complete replacement role, preserving its status and omitted fields, then checks the full role collection for a different role with the requested title. Duplicate comparison ignores case and surrounding whitespace, including closed roles; capitalization corrections to the selected role are allowed. The shared duplicate-role message is held in `Messages`. Corrections never reopen recruitment or merge two openings.
+`EditRoleCommand` resolves the index against `Model#getFilteredRoleList`. It constructs the complete replacement role, preserving its status and omitted fields, then checks the full role collection for a different role with the requested title. Duplicate comparison ignores case and surrounding whitespace, including closed roles; capitalization corrections to the selected role are allowed. The shared duplicate-role message is held in `Messages`. Corrections never reopen recruitment or merge two openings.
 
 `Model#setRole` delegates to `AddressBook#setRole`. The model validates the role replacement through `UniqueRoleList` before changing either collection. If the title's exact spelling changes, every candidate whose old title matches case-insensitively is updated to the new title using `Person#withRole`. This includes candidates hidden by the current filter. Their other details and order are unchanged; unrelated candidates retain their existing instances. An experience-only edit does not replace candidate objects. The existing observable lists are retained, so role and candidate cards refresh without new UI components. Filter predicates are retained and reevaluated after list changes.
 
-The result shows `Edited role: TITLE.` with the updated title and keeps the role view. `EditRoleCommand` logs accepted corrections and rejected duplicate titles; `LogicManager` saves both collections through the existing path. Parser or command-validation failures leave records, filters and the saved file unchanged. The existing save-error behavior described below remains unchanged: this is not a transactional filesystem save. Once renamed, a role's old title is available again; no title alias or storage-schema migration is introduced.
+The result shows `Edited role: TITLE.` with the updated title. `EditRoleCommand` logs accepted corrections and rejected duplicate titles; `LogicManager` saves both collections through the existing path. Parser or command-validation failures leave records, filters and the saved file unchanged. The existing save-error behavior described below remains unchanged: this is not a transactional filesystem save. Once renamed, a role's old title is available again; no title alias or storage-schema migration is introduced.
 
-The sequence below starts after parser validation. Nested alternatives reject an invalid view,
-an invalid index, or a duplicate title before either list changes. Only the valid branch calls
+The sequence below starts after parser validation. Nested alternatives reject an invalid index or a duplicate title before either list changes. Only the valid branch calls
 `setRole`, which replaces the role before propagating its new title across the full candidate
 list. Candidate copying is shown as a single action to omit unrelated field-construction details.
 Saving occurs in `LogicManager` after the command returns successfully, as described below.
@@ -406,25 +403,23 @@ Recovery diagnostics follow the same lifecycle: `MainApp` emits a loading `WARNI
 
 `RoleCommandParser` delegates `close` to `CloseRoleCommandParser`. Close and delete share
 `ParserUtil#parseRoleIndex` to reject missing, invalid, or extra index arguments consistently.
-`CloseRoleCommand` first checks `Model#isRoleListDisplayed`, then resolves the index against
-`Model#getFilteredRoleList` and rejects an already closed role.
+`CloseRoleCommand`  resolves the index against `Model#getFilteredRoleList` and rejects an already closed role.
 
 Candidate checks use the complete `ReadOnlyAddressBook#getPersonList`, not the filtered candidate
 list, matching role titles without case sensitivity. `Status#isPending` classifies statuses `RESUME`, `INTERVIEW`, `OFFER` and `DECISION` as pending. Closure rejects pending candidates with their
 count, then rejects more than one hired candidate. No candidates, or no hired candidate, is allowed.
 After validation, `Model#setRole` replaces the immutable role with a `CLOSED` copy. Candidate records
-and statuses remain unchanged. The observable role list refreshes, the command result keeps it
-displayed, and `LogicManager` saves the change. `AddCommand` rejects new candidates for closed roles.
+and statuses remain unchanged. The observable role list refreshes, and `LogicManager` saves the change. `AddCommand` rejects new candidates for closed roles.
 
 #### Deleting an unused role
 
 `RoleCommandParser` delegates `delete` to `DeleteRoleCommandParser`. `DeleteRoleCommand` applies the
-same displayed-list and index guards, then counts associated candidates across all stored records.
+same index guards, then counts associated candidates across all stored records.
 Any associated candidate blocks deletion, irrespective of status or visibility; the error includes
 their count. An empty role may be deleted whether `OPEN` or `CLOSED`.
 
 Deletion goes through `Model#deleteRole`, `AddressBook#removeRole`, and `UniqueRoleList#remove`.
-The observable list refreshes and its indices update; the result keeps the role list displayed.
+The role list refreshes and its indices update.
 `LogicManager` saves the removal. Deletion releases the title for reuse but never deletes, detaches,
 or reassigns candidates. Deletion takes effect immediately, but can be undone in the current session.
 
@@ -449,16 +444,7 @@ Before assigning a pending status (`RESUME`, `INTERVIEW`, `OFFER` or `DECISION`)
 
 #### Keeping displayed indices aligned with the UI
 
-After successful execution and saving, `LogicManager` sets `Model#isRoleListDisplayed` from
-`CommandResult#isShowRoleList`, the same value `MainWindow` uses to select the visible list.
-Commands do not update that flag independently. Parsing, execution, and save failures leave the
-previous flag unchanged, matching the UI's error path. A save failure does not roll back an earlier
-in-memory mutation, as explained in [Saving and restoring associations](#saving-and-restoring-associations).
-
-Listing roles retains the candidate filter. Candidate-index commands use the view flag rather than
-an artificial empty candidate list. If a successful candidate addition switches the UI to candidates,
-role edit, close, and delete reject indices until `list role` is run again. See the
-[role management manual checks](#role-management) for reproducible regression scenarios.
+Both candidate and role lists remain visible at all times. Candidate commands resolve indices against `Model#getFilteredPersonList`, while role commands use `Model#getFilteredRoleList`. Each list has independent numbering; filtering candidates changes candidate indices but not role indices.
 
 ### Candidate-status totals on role cards
 
@@ -472,7 +458,7 @@ it never changes statuses or enforces command-level recruitment rules.
 filtered list used by the candidate panel. `MainWindow` passes it to `RoleListPanel` alongside the
 existing observable role list. A panel-lifetime candidate listener refreshes the role list after
 additions, replacements, removals, and resets. List cells construct fresh summaries when rendering
-their roles, including when scrolling or returning from the candidate view. Listeners are not
+their roles, including when scrolling. Listeners are not
 attached to individual recycled cells. Role replacements still use the existing role-list binding.
 
 `RoleCard` displays four explicit labels in a wrapping `FlowPane`. Cards bind their width to the
@@ -510,7 +496,7 @@ separately: before changing any candidate, it checks both existing hires across 
 and conflicting hires within the selected batch. Both workflows enforce one hired candidate per role;
 they share error messages, not the validation method.
 
-After validation succeeds, `Model#setPerson` updates the observable candidate collection and the
+After validation succeeds, `Model#setPerson` updates the candidate collection and the
 candidate filter resets to show all records. The existing `Edited candidate: ...` result formats the
 updated candidate, including the new name and canonical role. Normal `LogicManager` saving persists
 the association without a JSON schema change. Validation failures leave records and filters
@@ -966,7 +952,7 @@ Use case ends.
 
 **Main success scenario:**
 
-1. Recruiter requests closure of a role selected from the displayed role list.
+1. Recruiter requests closure of a role selected from the role list.
 2. RecruiterBuddy checks that the role is open, all associated candidates have final outcomes,
    and at most one candidate is hired.
 3. RecruiterBuddy closes the role, retaining all candidate records and their statuses.
@@ -976,7 +962,7 @@ Use case ends.
 
 **Extensions:**
 
-* 1a. The role list is not displayed, or the selection is missing, invalid, or accompanied by extra text.
+* 1a. The selection is missing, invalid, or accompanied by extra text.
   * 1a1. RecruiterBuddy reports the error without changing records.
   * Use case ends.
 * 2a. The role is already closed, candidates are pending, or multiple candidates are hired.
@@ -990,7 +976,7 @@ Use case ends.
 
 **Main success scenario:**
 
-1. Recruiter requests deletion of a mistaken role selected from the displayed role list.
+1. Recruiter requests deletion of a mistaken role selected from the role list.
 2. RecruiterBuddy checks that the role has no associated candidates.
 3. RecruiterBuddy removes the role, saves the data, and confirms deletion.
 
@@ -998,7 +984,7 @@ Use case ends.
 
 **Extensions:**
 
-* 1a. The role list is not displayed, or the selection is missing, invalid, or accompanied by extra text.
+* 1a. The selection is missing, invalid, or accompanied by extra text.
   * 1a1. RecruiterBuddy reports the error without changing records.
   * Use case ends.
 * 2a. The role has associated candidates, regardless of their statuses or visibility.
@@ -1012,7 +998,7 @@ Use case ends.
 
 **Main success scenario:**
 
-1. Recruiter requests to delete a candidate selected from the displayed candidate list.
+1. Recruiter requests to delete a candidate selected from the candidate list.
 2. RecruiterBuddy deletes the candidate.
 3. RecruiterBuddy confirms that the candidate has been deleted.
 
@@ -1020,7 +1006,7 @@ Use case ends.
 
 **Extensions:**
 
-* 1a. The selected candidate does not exist in the displayed list.
+* 1a. The selected candidate does not exist in the list.
   * 1a1. RecruiterBuddy reports the error without changing records.
   * Use case ends.
 
@@ -1113,18 +1099,17 @@ Use case ends.
 **Main success scenario:**
 
 1. Recruiter requests to update a candidate’s status.
-2. RecruiterBuddy displays the candidate records.
-3. Recruiter selects a candidate and provides the new status.
-4. RecruiterBuddy updates the candidate’s status.
-5. RecruiterBuddy confirms that the status has been updated.
+2. Recruiter selects a candidate and provides the new status.
+3. RecruiterBuddy updates the candidate’s status.
+4. RecruiterBuddy confirms that the status has been updated.
 
 Use case ends.
 
 **Extensions:**
 
-* 3a. Recruiter selects multiple candidates and chooses a status to apply to all of them.
-  * 3a1. RecruiterBuddy updates the selected candidates’ statuses.
-  * 3a2. RecruiterBuddy confirms that the statuses have been updated.
+* 2a. Recruiter selects multiple candidates and chooses a status to apply to all of them.
+  * 2a1. RecruiterBuddy updates the selected candidates’ statuses.
+  * 2a2. RecruiterBuddy confirms that the statuses have been updated.
   * Use case ends.
 
 #### UC16 — Update Candidate Details
@@ -1135,10 +1120,9 @@ Use case ends.
 **Main success scenario:**
 
 1. Recruiter requests to update a candidate’s details.
-2. RecruiterBuddy displays the candidate records.
-3. Recruiter selects a candidate and provides the updated details.
-4. RecruiterBuddy updates the candidate’s profile.
-5. RecruiterBuddy confirms that the profile has been updated.
+2. Recruiter selects a candidate and provides the updated details.
+3. RecruiterBuddy updates the candidate’s profile.
+4. RecruiterBuddy confirms that the profile has been updated.
 
 Use case ends.
 
@@ -1251,10 +1235,9 @@ Use case ends.
 **Extensions:**
 
 * 1a. User requests to export only selected candidate records.
-  * 1a1. RecruiterBuddy displays the candidate records.
-  * 1a2. User selects the records to export.
-  * 1a3. RecruiterBuddy exports the selected records to a CSV file.
-  * 1a4. RecruiterBuddy informs the user where the file has been saved.
+  * 1a1. User selects the records to export.
+  * 1a2. RecruiterBuddy exports the selected records to a CSV file.
+  * 1a3. RecruiterBuddy informs the user where the file has been saved.
   * Use case ends.
 
 #### UC24 — Import Data
@@ -1280,9 +1263,8 @@ Use case ends.
 **Main success scenario:**
 
 1. User requests to view a candidate’s status history.
-2. RecruiterBuddy displays the candidate records.
-3. User selects a candidate.
-4. RecruiterBuddy displays the candidate’s status changes and the time spent at each stage.
+2. User selects a candidate.
+3. RecruiterBuddy displays the candidate’s status changes and the time spent at each stage.
 
 Use case ends.
 
@@ -1294,8 +1276,6 @@ Use case ends.
 
 **Main success scenario:**
 
-1. Recruiter requests the list of roles.
-1. RecruiterBuddy displays the roles and their indices.
 1. Recruiter identifies a displayed role and provides a corrected title, required experience, or both.
 1. RecruiterBuddy updates the role and every associated candidate's role title, then saves the records.
 1. RecruiterBuddy confirms the update using the role's updated title.
@@ -1304,14 +1284,14 @@ Use case ends.
 
 **Extensions:**
 
-* 3a. The index or field input is invalid, no fields are supplied, or a field is repeated.
-  * 3a1. RecruiterBuddy reports the input error without changing records.
+* 1a. The index or field input is invalid, no fields are supplied, or a field is repeated.
+  * 1a1. RecruiterBuddy reports the input error without changing records.
   * Use case ends.
-* 4a. Another role already has the requested title, ignoring case and surrounding whitespace.
-  * 4a1. RecruiterBuddy rejects the complete edit without changing either role fields or candidates.
+* 2a. Another role already has the requested title, ignoring case and surrounding whitespace.
+  * 2a1. RecruiterBuddy rejects the complete edit without changing either role fields or candidates.
   * Use case ends.
-* 4b. The updated records cannot be saved.
-  * 4b1. RecruiterBuddy reports the save error instead of the normal confirmation; changes may remain in the current session.
+* 2b. The updated records cannot be saved.
+  * 2b1. RecruiterBuddy reports the save error instead of the normal confirmation; changes may remain in the current session.
   * Use case ends.
 
 *{More to be added}*
@@ -1411,27 +1391,24 @@ add n/Alice Test p/91234561 e/alice@example.com a/1 Test Road r/QA Engineer
 add n/Ben Test p/91234562 e/ben@example.com a/2 Test Road r/QA Engineer
 ```
 
-Expected fixture: `list role` shows `QA Engineer` at index 1 and `QA Analyst` at index 2, both `OPEN`.
-`list` shows Alice at index 1 and Ben at index 2, both `Resume`.
-Always switch back with `list` or `list role` before using indices for that list.
+Expected fixture: Roles list shows `QA Engineer` at index 1 and `QA Analyst` at index 2, both `OPEN`.
+Candidates list shows Alice at index 1 and Ben at index 2, both `Resume`.
 
 #### Role-card candidate totals
 
-1. Run `list role` with the fixture above.<br>
-   Expected: `QA Engineer` shows `Pending: 2`, `Hired: 0`, `Rejected: 0`, `Withdrawn: 0`.
-   `QA Analyst` shows zero in every category. Run `find Alice`, then `list role`; the engineer
+1. Expected roles list: `QA Engineer` shows `Pending: 2`, `Hired: 0`, `Rejected: 0`, `Withdrawn: 0`.
+   `QA Analyst` shows zero in every category. Run `find Alice`; the engineer
    totals remain unchanged because Ben is still included despite the candidate filter.
 
-1. Run `status 1 st/HIRED`, `status 2 st/REJECTED`, then `list role`.<br>
-   Expected: The engineer totals are `Pending: 0`, `Hired: 1`, `Rejected: 1`, `Withdrawn: 0`.
-   Run `role close 1`; the role becomes `CLOSED` without changing its counts. Run `list`,
-   `status 2 st/WITHDRAWN`, then `list role`; rejected becomes zero and withdrawn becomes one.
-   Restart and run `list role`; the same totals are reconstructed.
+1. Run `status 1 st/HIRED`, then `status 2 st/REJECTED`.<br>
+   Expected roles list: The engineer totals are `Pending: 0`, `Hired: 1`, `Rejected: 1`, `Withdrawn: 0`.
+   Run `role close 1`; the role becomes `CLOSED` without changing its counts. Run `status 2 st/WITHDRAWN`; rejected becomes zero and withdrawn becomes one.
+   Restart; the same totals are reconstructed.
 
-1. Run `delete 2`, then `list role`.<br>
-   Expected: The engineer pending total drops to one; other totals remain zero. Run `list` and add
-   another candidate to `QA Engineer`; the pending total increases when roles are listed again.
-   Run `clear`, then `list role`; no old role cards remain. Adding a new empty role shows four zeros.
+1. Run `delete 2`.<br>
+   Expected: The engineer pending total drops to one; other totals remain zero. Add
+   another candidate to `QA Engineer`; the pending total increases.
+   Run `clear`; no old role cards remain. Adding a new empty role shows four zeros.
 
 1. Scroll through enough roles to recycle list cells, then return to the original roles.<br>
    Expected: Their totals remain associated with the correct titles. Resize the window and verify
@@ -1460,12 +1437,12 @@ Always switch back with `list` or `list role` before using indices for that list
    apply: `role add r/+#(), x/Senior` and `role add r/C++@Developer x/Senior` are rejected.
 
 1. Run `role add x/Entry level r/QA Designer`.<br>
-   Expected: `Added open role: QA Designer.` Run `list role` to see it at index 3 with experience
-   `Entry level` and status `OPEN`. Restart the app and run `list role`; the role is unchanged.
+   Expected: `Added open role: QA Designer.` Check the roles list at index 3 to see it with experience
+   `Entry level` and status `OPEN`. Restart the app; the role is unchanged.
 
 1. Run `role add r/  qa engineer  x/Senior`.<br>
    Expected: `A role named “qa engineer” already exists.` There are still two roles.
-   Run `list role`, `role close 2`, then `role add r/qa analyst x/Senior`.<br>
+   Run `role close 2`, then `role add r/qa analyst x/Senior`.<br>
    Expected: The empty analyst role closes successfully, but its title is still rejected as a duplicate.
 
 1. Try the following rejected commands. Check that the role list still has only the fixture's two roles:
@@ -1484,98 +1461,94 @@ Always switch back with `list` or `list role` before using indices for that list
 
 #### Role corrections
 
-1. Run `list role`, then `role edit 1 x/5 years`.<br>
+1. Run `role edit 1 x/5 years`.<br>
    Expected: `Edited role: QA Engineer.` The role card shows `5 years`, with the title and `OPEN`
    status unchanged. Both candidates are retained with their original details and statuses.
-   Restart and run `list role`; the updated experience is restored.
+   Restart; the updated experience is restored.
 
-1. Run `list role`, `role close 2`, then `role edit 2 x/Senior`.<br>
+1. Run `role close 2`, then `role edit 2 x/Senior`.<br>
    Expected: `Edited role: QA Analyst.` Its experience changes to `Senior` but its status stays
    `CLOSED`. Repeating the same edit succeeds without changing the data.
 
 1. Run `find Alice`, then `role edit 1 x/Senior`.<br>
-   Expected: The role-view guard asks for `list role`; no data changes. Run `list role`, then
-   `role edit 1 x/Senior`. The role card updates. Run `help` to show the offline guide without
+   Expected: The role card updates. Run `help` to show the offline guide without
    changing either list or its filter; only Alice is still displayed. Run `list` to restore all candidates.
 
-1. Run `list role` and try `role edit 0 x/Senior`, `role edit 99 x/Senior`, `role edit 1`,
+1. Run `role edit 0 x/Senior`, `role edit 99 x/Senior`, `role edit 1`,
    `role edit 1 x/`, `role edit 1 x/Junior x/Senior`, and `role edit 1 x/Senior r/`.<br>
    Expected: Respectively, invalid-index errors, no editable fields, invalid experience, repeated `x/`,
    and invalid title errors. Records, current filters, and saved data remain unchanged.
    An experience of exactly 50 printable characters succeeds; 51 is rejected. Embedded tabs,
    line separators, and control characters are not valid experience descriptions.
 
-1. Run `find Alice`, `list role`, then `role edit 1 r/Platform Engineer x/Senior`.<br>
-   Expected: `Edited role: Platform Engineer.` Both Alice and hidden Ben now refer to Platform Engineer; names, contact details, notes, tags and statuses are unchanged. The role remains OPEN and its experience is Senior. Run `help` to show the offline guide without resetting either list; only Alice is displayed, with the new title. Run `list` to see both candidates. Restart and verify that the role and both associations persist.
+1. Run `find Alice`, then `role edit 1 r/Platform Engineer x/Senior`.<br>
+   Expected: `Edited role: Platform Engineer.` Both Alice and hidden Ben now refer to Platform Engineer; names, contact details, notes, tags and statuses are unchanged. The role remains OPEN, and its experience is Senior. Run `help` to show the offline guide without resetting either list; in the candidates list, only Alice is displayed, with the new title. Run `list` to see both candidates. Restart and verify that the role and both associations persist.
 
-1. Restore the fixture, run `list role`, then try `role edit 1 r/qa analyst x/Senior` and `role edit 1 r/QA Engineer r/Other`.<br>
+1. Restore the fixture, then try `role edit 1 r/qa analyst x/Senior` and `role edit 1 r/QA Engineer r/Other`.<br>
    Expected: The first reports the duplicate QA Analyst title without changing experience or candidates; the second reports repeated `r/`. Repeat the duplicate check after closing the empty analyst role: its title remains reserved. An invalid title or experience in a combined edit must leave both fields and all candidates unchanged.
 
-1. Restore the fixture, run `list role`, then `role edit 1 r/qa ENGINEER`.<br>
+1. Restore the fixture, then run `role edit 1 r/qa ENGINEER`.<br>
    Expected: The role and both candidates use exactly `qa ENGINEER`. Repeating that edit is a successful no-op. Rename the empty analyst role after closing it; it remains CLOSED. Create a new role with its old title: existing candidates, if any, remain with the renamed role rather than the new opening.
 
 #### Closure and candidate outcomes
 
-1. Run `find Alice`, `list role`, then `role close 1`.<br>
+1. Run `find Alice`, then `role close 1`.<br>
    Expected: `Cannot close role: QA Engineer. 2 candidate(s) still pending.` Both candidates count
    even though Ben was hidden by the candidate filter. The role stays `OPEN`, with no record changes.
 
 1. Run `status 1 st/HIRED`, then `find Ben` and `status 1 st/HIRED`.<br>
    Expected: `QA Engineer already has a hired candidate.` Alice remains hired and Ben remains pending.
    Run `find Alice` and `status 1 st/HIRED` again; reapplying the same status succeeds.
-   Run `list`, `status 2 st/REJECTED`, `list role`, and `role close 1`.<br>
+   Run `list`, `status 2 st/REJECTED`, and `role close 1`.<br>
    Expected: `Closed role: QA Engineer.` The role is `CLOSED`; Alice and Ben are retained with their
    respective final statuses. Restart and verify the same roles and candidates are restored.
 
-1. Run `status 1 st/REJECTED`, `status 2 st/WITHDRAWN`, `list role`, and `role close 1`.<br>
-   Expected: Closure succeeds even with no hire. Separately, `list role` followed by `role close 2`
+1. Run `status 1 st/REJECTED`, `status 2 st/WITHDRAWN`, and `role close 1`.<br>
+   Expected: Closure succeeds even with no hire. Separately `role close 2`
    closes the empty analyst role. No candidate is automatically hired, rejected, or removed.
 
 1. Run `status 1 st/HIRED`, then `status 1 st/INTERVIEW`.<br>
    Expected: Returning to pending succeeds while the role is open. Repeat with each of the four
-   pending statuses (`RESUME`, `INTERVIEW`, `OFFER`, `DECISION`) after assigning a final outcome. `list role` followed by `role close 1`
-   fails while a pending candidate remains. Run `list`, `status 1 st/HIRED`, `status 2 st/REJECTED`,
-   `list role`, and `role close 1`, then run `list` and `status 1 st/INTERVIEW`.<br>
+   pending statuses (`RESUME`, `INTERVIEW`, `OFFER`, `DECISION`) after assigning a final outcome. `role close 1`
+   fails while a pending candidate remains. Run `status 1 st/HIRED`, `status 2 st/REJECTED`, and `role close 1`, then run `status 1 st/INTERVIEW`.<br>
    Expected: `Cannot set a pending status for Alice Test because role QA Engineer is closed.`
    Each of the other pending statuses is rejected too. Final-to-final corrections still succeed,
    provided they do not create a second hire; the role remains closed.
 
-1. Close the empty analyst role using `list role` then `role close 2`. Try
+1. Close the empty analyst role using `role close 2`. Try
    `add n/Cara Test p/91234563 e/cara@example.com a/3 Test Road r/QA Analyst`.<br>
    Expected: `The role “QA Analyst” is closed, so no new candidates can be added to it.`
    Cara is not added. Run `role close 2` again; it reports `QA Analyst is already closed.`
 
+
 1. Run `status 1 st/HIRED`, then
    `add n/Cara Test p/91234563 e/cara@example.com a/3 Test Road r/QA Analyst`, and `status 3 st/HIRED`.<br>
-   Expected: Both Alice and Cara may be hired because they apply to different roles. `list role`
+   Expected: Both Alice and Cara may be hired because they apply to different roles. The roles list
    still shows both roles as `OPEN`; hiring does not close either role automatically.
 
 #### Deletion and displayed-index safeguards
 
-1. Add a third role with `role add r/QA Designer x/Senior`. Run `list role` then `role delete 2`.<br>
+1. Add a third role with `role add r/QA Designer x/Senior`. Then run `role delete 2`.<br>
    Expected: `Deleted role: QA Analyst.` The engineer role remains at index 1; the designer moves
    from index 3 to index 2. Restart and verify the deletion persists. Run
    `role add r/qa analyst x/Senior`; the released title can be used again.
    With the fixture restored, also close the empty analyst role and delete it; this succeeds too.
 
-1. Run `find Alice`, `list role`, then `role delete 1`.<br>
+1. Run `find Alice`, then `role delete 1`.<br>
    Expected: `Cannot delete role: QA Engineer. It has 2 associated candidate(s).`
-   No candidate or role changes. Run `list`, `status 1 st/HIRED`, `status 2 st/REJECTED`, `list role`,
+   No candidate or role changes. Run `list`, `status 1 st/HIRED`, `status 2 st/REJECTED`,
    `role close 1`, then `role delete 1`; deletion remains blocked even with a closed role and final
    candidate outcomes. It never deletes candidates to make the role eligible.
 
-1. Run `list role`, then
-   `add n/Cara Test p/91234563 e/cara@example.com a/3 Test Road r/QA Analyst`.<br>
-   Expected: The successful addition displays candidates. Try `role close 1` and `role delete 1`.<br>
-   Expected for each: `The role list is not displayed. Use list role first.` No role changes.
-   Run `list role`; the same commands can now resolve role indices, but both still fail their
-   candidate checks for the engineer role.
+1. Run `add n/Cara Test p/91234563 e/cara@example.com a/3 Test Road r/QA Analyst`.<br>
+   Expected: The successful addition. Try `role close 1` and `role delete 1`.<br>
+   Expected both still fail their candidate checks for the engineer role.
 
-1. Run `list role`. Try `role close`, `role close 0`, `role close -1`, `role close x`, and
+1. Try `role close`, `role close 0`, `role close -1`, `role close x`, and
    `role close 999`.<br>
    Expected: `Role index must refer to a displayed role.` Repeat with `role delete` instead of
    `role close`; the same error appears. `role close 1 extra` and `role delete 1 extra` report their
-   command-specific "takes only a role index" errors. Rejected commands preserve the displayed list
+   command-specific "takes only a role index" errors. Rejected commands preserve the roles and candidates lists
    and all records. After a successful `role close 2`, a repeated closure reports that it is already closed.
 
 #### Undo and redo for role closure and deletion
@@ -1642,7 +1615,7 @@ Always switch back with `list` or `list role` before using indices for that list
 
 1. Editing a candidate's details
 
-   1. Prerequisites: Start with the sample data and run `list`. The 1st candidate, Alex Yeoh, has a role, a status, a note and an interview.
+   1. Prerequisites: Start with the sample data. The 1st candidate, Alex Yeoh, has a role, a status, a note and an interview.
 
    1. Test case: `edit 1 p/91112222`<br>
       Expected: Alex Yeoh's phone number changes. The role, status, note and interview are unchanged.
@@ -1659,8 +1632,7 @@ Always switch back with `list` or `list role` before using indices for that list
    1. Prerequisites: Use the disposable role-management fixture above with Alice and Ben for QA
       Engineer and an empty, open QA Analyst role. Restore the fixture between independent checks.
 
-   1. Run `status 1 st/HIRED`, `status 2 st/REJECTED`, then `list role` and `role close 1`. Run `list`, then
-      `edit 1 r/QA Analyst`.<br>
+   1. Run `status 1 st/HIRED`, `status 2 st/REJECTED`, `role close 1`, then `edit 1 r/QA Analyst`.<br>
       Expected: Alice transfers from the closed engineer role to the open analyst role and stays hired.
       The engineer role stays closed. Ben remains rejected and associated with the engineer role.
 
@@ -1684,7 +1656,7 @@ Always switch back with `list` or `list role` before using indices for that list
 
 1. Setting and clearing a candidate's note
 
-   1. Prerequisites: Start with the sample data and run `list`.
+   1. Prerequisites: Start with the sample data.
 
    1. Test case: `note 2 Prefers hybrid work`<br>
       Expected: The 2nd candidate's card shows the note `Prefers hybrid work`.
@@ -1705,7 +1677,7 @@ Always switch back with `list` or `list role` before using indices for that list
 
 1. Scheduling, rescheduling and clearing an interview
 
-   1. Prerequisites: Start with the sample data and run `list`. The 1st candidate, Alex Yeoh, has an interview on `2026-10-20 14:00`. The 2nd candidate, Bernice Yu, has no interview, and their card has no interview line.
+   1. Prerequisites: Start with the sample data. The 1st candidate, Alex Yeoh, has an interview on `2026-10-20 14:00`. The 2nd candidate, Bernice Yu, has no interview, and their card has no interview line.
 
    1. Test case: `interview 2 d/2026-10-21 09:30`<br>
       Expected: Bernice Yu's card shows `Interview: 2026-10-21 09:30`. The result message names Bernice Yu, and the note is unchanged.
@@ -1724,7 +1696,7 @@ Always switch back with `list` or `list role` before using indices for that list
 
 1. Rejecting invalid dates and times
 
-   1. Prerequisites: Start with the sample data and run `list`.
+   1. Prerequisites: Start with the sample data.
 
    1. Test case: `interview 1 d/2026-10-20 9:00`<br>
       Expected: No interview is changed. The error message shows the required format `YYYY-MM-DD HH:MM`.
@@ -1862,11 +1834,11 @@ Close the application window before editing or moving data files.
    and restore the fixture.
 
 1. Default candidate status: remove only Alice's `status` field from a valid fixture file, then restart.<br>
-   Expected: Alice loads with `Resume`; `list role` then `role close 1` reports two
+   Expected: Alice loads with `Resume`; `role close 1` reports two
    pending candidates. Removing a role's `status` or a candidate's `role` field instead prevents loading.
 
 1. Legacy inconsistency guard: in a fixture backup, set both candidate statuses to `HIRED` and restart.<br>
-   Expected: The records load, but `list role` then `role close 1` reports
+   Expected: The records load, but `role close 1` reports
    `Cannot close role: QA Engineer. More than one candidate is marked HIRED.` The role stays open.
    Use a separate fixture copy for this check; do not create inconsistent real recruitment data.
 
