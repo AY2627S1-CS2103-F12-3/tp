@@ -85,6 +85,14 @@ public class EmailTest {
     }
 
     @Test
+    public void getUncommonSymbols() {
+        assertEquals("", new Email("o'brien.doe_1+jobs-x@example.com").getUncommonSymbols()); // common symbols only
+        assertEquals("#", new Email("john#doe@example.com").getUncommonSymbols());
+        assertEquals("! #", new Email("a!b#c!@example.com").getUncommonSymbols()); // each symbol listed once
+        assertEquals("", new Email("john@ex-ample.com").getUncommonSymbols()); // domain is not checked
+    }
+
+    @Test
     public void getDomain() {
         assertEquals("example.com", new Email("john.doe@example.com").getDomain());
     }

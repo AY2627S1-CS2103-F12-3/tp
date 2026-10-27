@@ -78,7 +78,7 @@ public class AddCommand extends Command {
         Person personToAdd = toAdd.withRole(role.getTitle());
         model.addPerson(personToAdd);
         String successMessage = String.format(MESSAGE_SUCCESS, Messages.format(personToAdd));
-        return new CommandResult(Messages.appendEmailWarning(successMessage, personToAdd.getEmail()));
+        return new CommandResult(Messages.appendEmailWarnings(successMessage, personToAdd.getEmail()));
     }
 
     /**

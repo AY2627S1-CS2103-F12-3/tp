@@ -566,17 +566,17 @@ _{more aspects and alternatives to be added}_
 
 `Email` checks the part before the `@` (the local part) and the part after it (the domain) separately. The local part follows the unquoted (dot-atom) form of [RFC 5322](https://www.rfc-editor.org/rfc/rfc5322#section-3.2.3), which is also the form the [HTML standard](https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address) accepts for email inputs. It may contain letters, digits and the symbols ``! # $ % & ' * + - / = ? ^ _ ` { | } ~``, with dots only between other characters, so a dot is never first, last, or next to another dot.
 
-`Email#hasDotlessDomain` returns true for a domain such as `gmailcom`. Such a domain is valid, so `Email` accepts it, but `AddCommand` and `EditCommand` add a warning to their success message through `Messages#appendEmailWarning`. `EditCommand` warns only when the email changes, ignoring case, so editing another field of a candidate does not repeat the warning. Loading the data file never warns.
+Two kinds of valid email are likely typos. `Email#getUncommonSymbols` returns the symbols before the `@` other than `. _ - + '`, which major email providers do not issue, such as `#` in `john#doe@example.com`. `Email#hasDotlessDomain` returns true for a domain such as `gmailcom`. `Email` accepts both, but `AddCommand` and `EditCommand` add a warning for each to their success message through `Messages#appendEmailWarnings`. `EditCommand` warns only when the email changes, ignoring case, so editing another field of a candidate does not repeat the warnings. Loading the data file never warns.
 
 #### Design considerations
 
 **Aspect: Which local parts are accepted**
 
-* **Alternative 1 (current choice):** The unquoted form of RFC 5322.
-  * Pros: Every address that an email provider issues is accepted, and the rule comes from a published standard.
-  * Cons: Accepts symbols that rarely appear in real addresses, so a typo such as `john#doe@example.com` is not caught.
+* **Alternative 1 (current choice):** The unquoted form of RFC 5322, with a warning for symbols other than `. _ - + '`.
+  * Pros: Every address that an email provider issues is accepted, the rule comes from a published standard, and a typo such as `john#doe@example.com` is still flagged.
+  * Cons: The user can ignore the warning and keep an address that is a typo.
 * **Alternative 2:** Only letters, digits and `. _ - + '`, the symbols that major email providers issue.
-  * Pros: Catches more typos.
+  * Pros: A typo with another symbol can never be saved.
   * Cons: Rejects some valid addresses.
 * **Alternative 3:** All of RFC 5322, including quoted local parts such as `"john doe"@example.com`.
   * Pros: Accepts every valid address.

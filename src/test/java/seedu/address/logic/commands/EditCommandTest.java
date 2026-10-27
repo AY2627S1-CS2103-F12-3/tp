@@ -119,6 +119,22 @@ public class EditCommandTest {
     }
 
     @Test
+    public void execute_emailChangedToUncommonSymbols_successWithWarning() {
+        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person editedPerson = new PersonBuilder(firstPerson).withEmail("alice!@example.com").build();
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withEmail("alice!@example.com").build());
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson))
+                + "\n" + String.format(Messages.MESSAGE_UNCOMMON_EMAIL_SYMBOLS, "!");
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(firstPerson, editedPerson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
     public void execute_otherFieldEditedWithDotlessDomainEmail_successWithoutWarning() {
         Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         Person personWithDotlessDomain = new PersonBuilder(firstPerson).withEmail("alice@gmailcom").build();

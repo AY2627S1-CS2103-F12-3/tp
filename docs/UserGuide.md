@@ -118,7 +118,9 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
   * Before the `@`, can contain letters, digits and the symbols that standard email addresses allow, such as `.` `_` `-` `+` `'`. A dot cannot come first, last, or twice in a row.
   * Addresses with spaces or quotation marks, such as `"john doe"@example.com`, and addresses with non-English letters, such as `josé@example.com`, are not supported.
 
-  If the part after the `@` has no dot, such as in `john@gmailcom`, the candidate is still saved, but RecruiterBuddy warns that the email may be a typo.
+  RecruiterBuddy still saves the candidate, but warns that the email may be a typo, if:
+  * the part before the `@` has a symbol other than `.` `_` `-` `+` `'`, such as in `john#doe@example.com`, or
+  * the part after the `@` has no dot, such as in `john@gmailcom`.
 * `ROLE` must be the title of an existing role that is `OPEN`. Use [`role add`](#adding-a-role-role-add) to create the role first.
 * `ROLE` is matched ignoring case; for example, `r/software engineer` matches the role `Software Engineer`. The candidate is saved with the role's own spelling of the title.
 * Each candidate needs their own email and phone number. A candidate cannot be added if another candidate already uses the same email or the same phone number, and the error message names that candidate.
@@ -330,7 +332,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITL
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
 * `NAME`, `PHONE_NUMBER` and `EMAIL` follow the same rules as in [`add`](#adding-a-candidate-add), including typing `a/l` and `a/p` in names as `A/L` and `A/P`.
-  The warning for an email without a dot after the `@` appears only when you change the email.
+  The email warnings appear only when you change the email.
 * When editing tags, all of the candidate's existing tags are removed; adding tags is not cumulative.
 * To remove all of a candidate's tags, enter `t/` without a tag after it.
 * Use `r/ROLE_TITLE` to correct the candidate's role, on its own or with other edits. The title must

@@ -114,7 +114,7 @@ public class EditCommand extends Command {
         // Only a newly entered email is checked, so other edits do not keep warning about a saved email.
         boolean isEmailChanged = !editedPerson.getEmail().isSameEmail(personToEdit.getEmail());
         if (isEmailChanged) {
-            successMessage = Messages.appendEmailWarning(successMessage, editedPerson.getEmail());
+            successMessage = Messages.appendEmailWarnings(successMessage, editedPerson.getEmail());
         }
         return new CommandResult(successMessage);
     }

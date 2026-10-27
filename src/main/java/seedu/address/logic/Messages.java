@@ -30,6 +30,8 @@ public class Messages {
             "This phone number is already used by the candidate %1$s.";
     public static final String MESSAGE_DUPLICATE_FIELDS =
                 "Multiple values specified for the following single-valued field(s): ";
+    public static final String MESSAGE_UNCOMMON_EMAIL_SYMBOLS =
+            "Warning: the email has unusual symbols (%1$s). Check that it is not a typo.";
     public static final String MESSAGE_DOTLESS_EMAIL_DOMAIN = "Warning: the email domain “%1$s” has no dot "
             + "(e.g. example.com). Check that it is not a typo.";
 
@@ -60,16 +62,22 @@ public class Messages {
     }
 
     /**
-     * Returns {@code successMessage} followed by a warning on a new line if {@code email} has a domain
-     * without a dot, which is likely a typo, or returns {@code successMessage} unchanged otherwise.
-     * The email is still saved, because a domain without a dot is valid.
+     * Returns {@code successMessage} followed by a warning on a new line for each likely typo in {@code email}:
+     * symbols that email providers do not issue, and a domain without a dot.
+     * The email is still saved, because both are valid.
      */
-    public static String appendEmailWarning(String successMessage, Email email) {
+    public static String appendEmailWarnings(String successMessage, Email email) {
         requireAllNonNull(successMessage, email);
-        if (!email.hasDotlessDomain()) {
-            return successMessage;
+        StringBuilder message = new StringBuilder(successMessage);
+
+        String uncommonSymbols = email.getUncommonSymbols();
+        if (!uncommonSymbols.isEmpty()) {
+            message.append("\n").append(String.format(MESSAGE_UNCOMMON_EMAIL_SYMBOLS, uncommonSymbols));
         }
-        return successMessage + "\n" + String.format(MESSAGE_DOTLESS_EMAIL_DOMAIN, email.getDomain());
+        if (email.hasDotlessDomain()) {
+            message.append("\n").append(String.format(MESSAGE_DOTLESS_EMAIL_DOMAIN, email.getDomain()));
+        }
+        return message.toString();
     }
 
     /**

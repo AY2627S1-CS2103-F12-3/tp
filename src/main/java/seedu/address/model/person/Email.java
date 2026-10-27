@@ -3,6 +3,8 @@ package seedu.address.model.person;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
+import java.util.stream.Collectors;
+
 /**
  * Represents a Person's email in the address book.
  * Guarantees: immutable; is valid as declared in {@link #isValidEmail(String)}
@@ -21,6 +23,8 @@ public class Email {
 
     /** Letters, digits and the symbols that RFC 5322 allows in an unquoted local part. */
     private static final String LOCAL_PART_CHARACTERS = "[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+";
+    /** A character that common email providers issue, so other allowed symbols are likely typos. */
+    private static final String COMMON_LOCAL_PART_CHARACTER = "[A-Za-z0-9._+'-]";
     /** Dot-separated runs of allowed characters, so a dot is never first, last, or next to another dot. */
     private static final String LOCAL_PART_REGEX = "^" + LOCAL_PART_CHARACTERS
             + "(\\." + LOCAL_PART_CHARACTERS + ")*";
@@ -56,6 +60,21 @@ public class Email {
      */
     public String getDomain() {
         return value.substring(value.indexOf('@') + 1);
+    }
+
+    /**
+     * Returns the symbols before the {@code @} that common email providers do not issue, separated by spaces
+     * and each listed once, such as {@code "# !"} for {@code john#doe!@example.com}.
+     * Returns an empty string if there are none.
+     * Such symbols are valid but are most likely typos, so they are worth warning the user about.
+     */
+    public String getUncommonSymbols() {
+        String localPart = value.substring(0, value.indexOf('@'));
+        return localPart.replaceAll(COMMON_LOCAL_PART_CHARACTER, "")
+                .chars()
+                .distinct()
+                .mapToObj(Character::toString)
+                .collect(Collectors.joining(" "));
     }
 
     /**
