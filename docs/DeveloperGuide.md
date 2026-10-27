@@ -124,11 +124,11 @@ creates a `RoleCommandParser`, which selects the parser for `add`, `edit`, `clos
 That parser validates the subcommand arguments and creates its corresponding command.
 
 <puml src="diagrams/RoleParserClassDiagram.puml" width="900"
-  alt="Role command parsing: dispatch to add, edit, close and delete parsers and creation of their commands" />
+  alt="Role command parsing: dispatch to add, edit, close and delete parsers and creation of their commands"></puml>
 
-All five role parsers implement `Parser<T>`, shown by dashed arrows with hollow triangle heads.
+All five role parsers implement <code>Parser&lt;T&gt;</code>, shown by dashed arrows with hollow triangle heads.
 `RoleCommandParser` returns `Command`, while each subcommand parser returns its concrete command
-type. Dependencies labelled `<<create>>` show object creation. Type parameters, command inheritance, and
+type. Dependencies labelled <code>&lt;&lt;create&gt;&gt;</code> show object creation. Type parameters, command inheritance, and
 utility dependencies are omitted here to keep the dispatch relationships readable; the generic
 parser diagram above shows the shared utilities.
 
@@ -247,7 +247,7 @@ list. Candidate copying is shown as a single action to omit unrelated field-cons
 Saving occurs in `LogicManager` after the command returns successfully, as described below.
 
 <puml src="diagrams/EditRoleSequenceDiagram.puml" width="900"
-  alt="Role-edit validation, duplicate-title rejection, role replacement and title propagation to all associated candidates" />
+  alt="Role-edit validation, duplicate-title rejection, role replacement and title propagation to all associated candidates"></puml>
 
 #### Saving and restoring associations
 
@@ -319,7 +319,7 @@ startup with the original in the remembered backup. Only successful preservation
 lead to empty lists, a recovery warning, and an open command window.
 
 <puml src="diagrams/RecruitmentDataStartupActivityDiagram.puml" width="900"
-  alt="Startup recovery with non-overwriting backup selection, collision retries, empty startup and fatal failure branches" />
+  alt="Startup recovery with non-overwriting backup selection, collision retries, empty startup and fatal failure branches"></puml>
 
 Recovery preserves the source before exposing any command that can reach the normal save path.
 If recovery cannot complete safely, startup remains blocked rather than risking the original or its
@@ -354,7 +354,20 @@ their count. An empty role may be deleted whether `OPEN` or `CLOSED`.
 Deletion goes through `Model#deleteRole`, `AddressBook#removeRole`, and `UniqueRoleList#remove`.
 The observable list refreshes and its indices update; the result keeps the role list displayed.
 `LogicManager` saves the removal. Deletion releases the title for reuse but never deletes, detaches,
-or reassigns candidates. It is immediate and has no undo operation in the MVP.
+or reassigns candidates. Deletion takes effect immediately, but can be undone in the current session.
+
+#### Undoing and redoing role changes
+
+Close and delete inherit `Command#isUndoable` returning `true`. Before execution, `LogicManager`
+asks `ModelManager#recordAddressBookState` to retain a complete `AddressBook` snapshot, including
+roles and candidates. Successful execution clears redo history through `commitAddressBookState`;
+an execution failure discards the pending snapshot instead.
+
+`undo` and `redo` restore these snapshots in reverse and forward order respectively, and
+`LogicManager` saves the restored records. Undo can therefore restore a deleted role or reverse a
+closure without a dedicated reopen command. Later changes must be undone first. The history stacks
+are held in memory only: restarting loads saved records but does not restore undo or redo history.
+Run `list role` after undo or redo to display the updated roles; listing does not change history.
 
 #### Status changes and one hire per role
 
@@ -1251,7 +1264,8 @@ testers are expected to do more *exploratory* testing.
 ### Role management
 
 Use a **disposable copy of the JAR in a separate empty folder**, with Java 25. Do not use real
-recruitment data: `clear` and deletion commands below permanently remove records. Run each command
+recruitment data: `clear` and deletion commands below immediately change the saved records, and
+undo history is lost on exit. Run each command
 on its own line. Unless stated otherwise, reset to this fixture before each numbered scenario:
 
 ```text
@@ -1409,6 +1423,32 @@ Always switch back with `list` or `list role` before using indices for that list
    `role close`; the same error appears. `role close 1 extra` and `role delete 1 extra` report their
    command-specific "takes only a role index" errors. Rejected commands preserve the displayed list
    and all records. After a successful `role close 2`, a repeated closure reports that it is already closed.
+
+#### Undo and redo for role closure and deletion
+
+1. With the fixture restored, run `status 1 2 st/REJECTED`, `list role`, `role close 1`,
+   `undo`, then `list role`.<br>
+   Expected: `Undid the previous change.` The engineer role is `OPEN` again. Both candidates
+   retain their details and `REJECTED` status. Run `redo`, then `list role`; the role is `CLOSED`
+   again and neither candidate changes. The saved file follows each successful undo or redo.
+
+1. With the fixture restored, run `list role`, `role delete 2`, `undo`, then `list role`.<br>
+   Expected: The analyst role returns at index 2 with experience `Entry level` and status `OPEN`.
+   Both engineer candidates are unchanged. Run `redo`, then `list role`; only the engineer role
+   remains. Repeat after closing the empty analyst role; undoing deletion restores it as `CLOSED`.
+
+1. With the fixture restored, run `list role`, `role close 2`, `role edit 1 x/Senior`,
+   `undo`, then `list role`.<br>
+   Expected: The engineer's experience returns to `2 years`, but the analyst role remains `CLOSED`.
+   Run `undo` and `list role` again; the analyst role is now `OPEN`. Undo reverses the latest
+   change, not an arbitrarily selected role change. Read-only listing does not consume history.
+   Run `role add r/QA Designer x/Senior`, then `redo`.<br>
+   Expected: `There is no change to redo.` The new change has cleared redo history.
+
+1. With the fixture restored, close the empty analyst role, then restart the app and run `undo`.<br>
+   Expected: `There is no change to undo.` Run `list role`; the analyst role is still `CLOSED`.
+   Repeat with deletion instead of closure: the role remains absent after restart. Saved changes
+   survive restart, but undo and redo history do not.
 
 ### Adding a candidate
 

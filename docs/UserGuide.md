@@ -229,6 +229,8 @@ Example: `list role`, followed by `role close 1`.
 Success shows `Closed role: ROLE_TITLE.` and changes the displayed status to `CLOSED`.
 The role and its candidates are saved automatically; candidate statuses remain unchanged.
 New candidates cannot be added to the closed role. A role is never closed automatically.
+To reverse a closure in the current session, use [`undo`](#undoing-a-change-undo).
+There is no dedicated command to reopen an arbitrary closed role.
 
 If closure fails, no records change:
 
@@ -241,7 +243,7 @@ If closure fails, no records change:
 
 ### Deleting a role: `role delete`
 
-Permanently removes a role entered by mistake. Run `list role` first.
+Removes a role entered by mistake. Run `list role` first.
 
 Format: `role delete INDEX`
 
@@ -253,7 +255,8 @@ Example: `list role`, followed by `role delete 1`.
 
 Success shows `Deleted role: ROLE_TITLE.`. The role disappears, remaining displayed indices update,
 and the change is saved automatically. Its title can be used again with `role add`.
-Deletion is immediate and permanent. It never deletes, detaches, or reassigns candidates.
+Deletion is immediate, but [`undo`](#undoing-a-change-undo) can restore the role in the current
+session. It never deletes, detaches, or reassigns candidates.
 
 If deletion fails, no records change:
 
@@ -287,8 +290,18 @@ Examples:
 * `add ...` followed by `undo` removes the newly added person.
 * `edit 1 p/91234567` followed by `undo` restores the person's previous phone number.
 * `delete 1` followed by `undo` restores the deleted person.
+* `list role`, `role close 1`, then `undo` restores the role's `OPEN` status without changing its candidates.
+* `list role`, `role delete 1`, then `undo` restores the role, including its title, experience level,
+  status, and position in the role list.
 
-The `list`, `find`, `help`, and `exit` commands do not affect undo history. Changes are saved automatically, so an undo also updates the saved address-book data.
+Undo reverses changes in order, not a selected role or candidate. If other changes were made after
+a closure or deletion, undo those changes first. After undoing a role change, run `list role` to
+view the restored roles; this does not affect undo history.
+
+The `list` (including `list role`), `find`, and `help` commands do not affect undo history.
+An undo also updates the saved role and candidate data automatically. Undo and redo history exist
+only in the current session: exiting and restarting preserves saved records, but clears both
+histories. A deletion or closure from an earlier session cannot be reversed with `undo`.
 
 ### Redoing a change: `redo`
 
@@ -297,6 +310,8 @@ Redoes the most recently undone change.
 Format: `redo`
 
 Redo is available only after an `undo`. Executing a new address-book change after an undo clears the redo history. Like all address-book changes, a redo is saved automatically.
+For example, after undoing `role delete 1` or `role close 1`, `redo` deletes or closes the role again.
+Run `list role` to view the result.
 
 ### Editing a person: `edit`
 Each role card also shows `Pending`, `Hired`, `Rejected`, and `Withdrawn` candidate totals, including
@@ -433,7 +448,7 @@ Format: `status INDEX... st/STATUS`
   * In both of the above failure cases, no candidate data changes, even for other candidates specified in the same command whose roles have a vacancy.
 * Reapplying `HIRED` to the same candidate is allowed when no other candidate for that role is hired. Marking a candidate `HIRED` does not close the role; use `role close` explicitly after all candidates have final outcomes.
 * For an `OPEN` role, a candidate with a final outcome (`HIRED`, `REJECTED`, or `WITHDRAWN`) may return to any of the four pending statuses (`RESUME`, `INTERVIEW`, `OFFER`, or `DECISION`) to correct or resume their recruitment process.
-* For a `CLOSED` role, assigning any of the pending statuses is rejected with `Cannot set a pending status for NAME because role ROLE_TITLE is closed.` The candidate, role, current filter, and saved records remain unchanged. Corrections between final outcomes are still allowed, subject to the one-hired-candidate rule. Reopening a role is not supported in the MVP.
+* For a `CLOSED` role, assigning any of the pending statuses is rejected with `Cannot set a pending status for NAME because role ROLE_TITLE is closed.` The candidate, role, current filter, and saved records remain unchanged. Corrections between final outcomes are still allowed, subject to the one-hired-candidate rule. There is no dedicated reopen command, but [`undo`](#undoing-a-change-undo) can reverse a closure in the current session after any later changes have been undone.
 
 Example:
 
