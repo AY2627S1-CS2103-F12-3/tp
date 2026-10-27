@@ -216,7 +216,7 @@ An unrecognized stored value causes data loading to fail and invokes the recover
 
 Batch status updates of candidate statuses is handled by the `status` command.
 
-`StatusCommandParser` requires exactly one `st/` prefix. It splits the preamble on whitespace, parses each index using `ParserUtil#parseIndex`, and stores the results in a set, removing duplicate indices. `ParserUtil#ParseStatus` trims and uppercases the supplied value before matching it to a `Status`.
+`StatusCommandParser` requires exactly one `st/` prefix. It splits the preamble on whitespace, parses each index using `ParserUtil#parseIndex`, and stores the results in a set, removing duplicate indices. `ParserUtil#parseStatus` trims and uppercases the supplied value before matching it to a `Status`.
 
 `StatusCommand` resolves every index against the _currently displayed_ candidate list, and creates replacement `Person` objects with the requested status, updates the model, resets the candidate filter to show all candidates, and returns a success result.
 
