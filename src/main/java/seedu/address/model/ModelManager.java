@@ -80,6 +80,10 @@ public class ModelManager implements Model {
 
     @Override
     public void commitAddressBookState() {
+        if (!undoStack.isEmpty() && undoStack.peek().equals(addressBook)) {
+            undoStack.pop();
+            return;
+        }
         redoStack.clear();
     }
 

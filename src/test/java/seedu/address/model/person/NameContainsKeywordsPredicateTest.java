@@ -77,7 +77,7 @@ public class NameContainsKeywordsPredicateTest {
     public void test_nameDoesNotContainKeywords_returnsFalse() {
         // Zero keywords
         NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of());
-        assertFalse(predicate.test(new PersonBuilder().withName("Alice").build()));
+        assertTrue(predicate.test(new PersonBuilder().withName("Alice").build()));
 
         // Non-matching keyword
         predicate = new NameContainsKeywordsPredicate(List.of("Carol"));
@@ -94,7 +94,7 @@ public class NameContainsKeywordsPredicateTest {
         List<String> keywords = List.of("keyword1", "keyword2");
         NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(keywords);
 
-        String expected = NameContainsKeywordsPredicate.class.getCanonicalName() + "{keywords=" + keywords + "}";
+        String expected = "name: keyword1, keyword2";
         assertEquals(expected, predicate.toString());
     }
 

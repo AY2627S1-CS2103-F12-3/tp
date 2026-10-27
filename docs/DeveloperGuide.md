@@ -473,46 +473,53 @@ Assertions check programmer assumptions rather than user input. `CandidateRoleCh
 
 `RoleWorkflowDiagnosticsTest` checks operation logs and their levels, guards against logging candidate details, and verifies unchanged state after refusal. Focused contract tests inject programmer errors before mutation, while the existing role, transfer, integration and persistence tests exercise valid paths. See the [testing guide](Testing.md#assertions-and-role-workflow-diagnostics) for assertion-enabled and assertion-disabled checks. Command formats, success/error messages, UI behavior and the storage schema are unchanged.
 
-### \[Proposed\] Undo/redo feature
+### Undo/redo feature
 
-#### Proposed Implementation
+#### Implementation
 
-The proposed undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as an `addressBookStateList` and `currentStatePointer`. Additionally, it implements the following operations:
+Undo and redo are implemented by `ModelManager`, which owns two stacks of complete
+`AddressBook` snapshots: `undoStack` and `redoStack`. `LogicManager` records a
+snapshot before each undoable command, then commits or discards that snapshot
+after execution.
 
-* `VersionedAddressBook#commit()` -- Saves the current address book state in its history.
-* `VersionedAddressBook#undo()` -- Restores the previous address book state from its history.
-* `VersionedAddressBook#redo()` -- Restores a previously undone address book state from its history.
+* `Model#recordAddressBookState()` -- records a pre-command snapshot.
+* `Model#commitAddressBookState()` -- clears redo history after a real change.
+* `Model#discardAddressBookState()` -- removes the snapshot after a failed command.
 
-These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively.
+`Model#undoAddressBook()` and `Model#redoAddressBook()` move complete snapshots
+between the two stacks. The existing observable lists are retained when a snapshot
+is restored, so active filters are reevaluated against the restored data.
+
+Commands with no data change do not clear redo history. When a stack is empty, the
+commands return `There is no change to undo.` or `There is no change to redo.`.
 
 Given below is an example usage scenario and how the undo/redo mechanism behaves at each step.
 
-Step 1. The user launches the application for the first time. The `VersionedAddressBook` will be initialized with the initial address book state, and the `currentStatePointer` pointing to that single address book state.
+The current implementation records a complete `AddressBook` snapshot before each undoable command. A successful real change clears redo history; undo and redo move snapshots between the two stacks.
 
 <puml src="diagrams/UndoRedoState0.puml" alt="UndoRedoState0" />
 
-Step 2. The user executes `delete 5` command to delete the 5th person in the address book. The `delete` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete 5` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
+For example, after `delete 1`, `undo` restores the deleted candidate and `redo` reapplies the deletion.
 
 <puml src="diagrams/UndoRedoState1.puml" alt="UndoRedoState1" />
 
-Step 3. The user executes `add n/David …​` to add a new person. The `add` command also calls `Model#commitAddressBook()`, causing another modified address book state to be saved into the `addressBookStateList`.
+If a new real change is made after `undo`, the redo stack is cleared.
 
 <puml src="diagrams/UndoRedoState2.puml" alt="UndoRedoState2" />
 
 <box type="info" seamless>
 
-**Note:** If a command fails its execution, it will not call `Model#commitAddressBook()`, so the address book state will not be saved into the `addressBookStateList`.
+**Note:** Failed commands and logical no-ops do not create a usable history entry.
 </box>
 
-Step 4. The user now decides that adding the person was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoAddressBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous address book state, and restores the address book to that state.
+`undo` calls `Model#undoAddressBook()` and restores the most recent snapshot.
 
 <puml src="diagrams/UndoRedoState3.puml" alt="UndoRedoState3" />
 
 
 <box type="info" seamless>
 
-**Note:** If the `currentStatePointer` is at index 0, pointing to the initial AddressBook state, then there are no previous AddressBook states to restore. The `undo` command uses `Model#canUndoAddressBook()` to check if this is the case. If so, it will return an error to the user rather
-than attempting to perform the undo.
+**Note:** If the undo stack is empty, the command returns `There is no change to undo.`.
 </box>
 
 The following sequence diagram shows how an undo operation goes through the `Logic` component:
@@ -528,18 +535,18 @@ Similarly, how an undo operation goes through the `Model` component is shown bel
 
 <puml src="diagrams/UndoSequenceDiagram-Model.puml" alt="UndoSequenceDiagram-Model" />
 
-The `redo` command does the opposite — it calls `Model#redoAddressBook()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the address book to that state.
+The `redo` command calls `Model#redoAddressBook()` and restores the most recently undone snapshot.
 
 <box type="info" seamless>
 
-**Note:** If the `currentStatePointer` is at index `addressBookStateList.size() - 1`, pointing to the latest address book state, then there are no undone AddressBook states to restore. The `redo` command uses `Model#canRedoAddressBook()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the redo.
+**Note:** If the redo stack is empty, the command returns `There is no change to redo.`.
 </box>
 
-Step 5. The user then decides to execute the command `list`. Commands that do not modify the address book, such as `list`, will usually not call `Model#commitAddressBook()`, `Model#undoAddressBook()` or `Model#redoAddressBook()`. Thus, the `addressBookStateList` remains unchanged.
+Commands such as `list`, `find`, and `help` do not affect either stack.
 
 <puml src="diagrams/UndoRedoState4.puml" alt="UndoRedoState4" />
 
-Step 6. The user executes `clear`, which calls `Model#commitAddressBook()`. Since the `currentStatePointer` is not pointing at the end of the `addressBookStateList`, all address book states after the `currentStatePointer` will be purged. Reason: It no longer makes sense to redo the `add n/David …` command. This is the behavior that most modern desktop applications follow.
+`clear` is an ordinary undoable change and follows the same snapshot rules.
 
 <puml src="diagrams/UndoRedoState5.puml" alt="UndoRedoState5" />
 

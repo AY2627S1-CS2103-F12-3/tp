@@ -51,14 +51,15 @@ public class NameContainsKeywordsPredicate implements Predicate<Person> {
         requireNonNull(person);
         boolean nameMatches = !keywords.isEmpty() && keywords.stream()
                 .anyMatch(keyword -> StringUtil.containsWordIgnoreCase(person.getName().fullName, keyword));
+        boolean hasAnyFilter = !keywords.isEmpty() || hasRoleFilters();
         boolean roleMatches = roleKeywords.isEmpty() && roleStatuses.isEmpty()
                 || roles.stream().anyMatch(role -> roleMatches(person, role));
-        return (!keywords.isEmpty() && nameMatches || keywords.isEmpty() && hasRoleFilters()) && roleMatches;
+        return !hasAnyFilter || (nameMatches || keywords.isEmpty()) && roleMatches;
     }
 
     private boolean roleMatches(Person person, Role role) {
         boolean titleMatches = roleKeywords.isEmpty() || roleKeywords.stream()
-                .allMatch(keyword -> StringUtil.containsWordIgnoreCase(role.getTitle().value, keyword));
+                .anyMatch(keyword -> StringUtil.containsWordIgnoreCase(role.getTitle().value, keyword));
         boolean statusMatches = roleStatuses.isEmpty() || roleStatuses.contains(role.getStatus());
         boolean assignedRoleMatches = person.getRole().isSameTitle(role.getTitle());
         return titleMatches && statusMatches && assignedRoleMatches;
@@ -82,6 +83,24 @@ public class NameContainsKeywordsPredicate implements Predicate<Person> {
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this).add("keywords", keywords).toString();
+        StringBuilder description = new StringBuilder();
+        if (!keywords.isEmpty()) {
+            description.append("name: ").append(String.join(", ", keywords));
+        }
+        if (!roleKeywords.isEmpty()) {
+            appendFilter(description, "role: " + String.join(", ", roleKeywords));
+        }
+        if (!roleStatuses.isEmpty()) {
+            appendFilter(description, "role status: " + roleStatuses.stream().map(Enum::name)
+                    .sorted().collect(java.util.stream.Collectors.joining(", ")));
+        }
+        return description.length() == 0 ? "none" : description.toString();
+    }
+
+    private static void appendFilter(StringBuilder description, String filter) {
+        if (description.length() > 0) {
+            description.append("; ");
+        }
+        description.append(filter);
     }
 }

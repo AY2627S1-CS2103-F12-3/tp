@@ -399,6 +399,10 @@ Finds candidates whose names contain any of the given keywords.
 
 Format: `find [KEYWORD ...] [r/ ROLE ...] [st/ STATUS ...]`
 
+All parts are optional. Bare `find` shows all candidates. Keywords within a name,
+role, or status filter use OR matching; combining different filter types uses AND.
+The result message identifies the applied filters.
+
 `r/` filters by role title and `st/` filters by role status (`OPEN` or `CLOSED`).
 For example, `find r/Software Engineer st/OPEN` shows candidates in open Software
 Engineer roles. The displayed feedback identifies the filter used.

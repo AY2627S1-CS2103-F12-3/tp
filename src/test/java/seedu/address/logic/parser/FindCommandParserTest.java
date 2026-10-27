@@ -19,8 +19,8 @@ public class FindCommandParserTest {
     private FindCommandParser parser = new FindCommandParser();
 
     @Test
-    public void parse_emptyArg_throwsParseException() {
-        assertParseFailure(parser, "     ", String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
+    public void parse_emptyArg_returnsFindCommand() {
+        assertParseSuccess(parser, "     ", new FindCommand(new NameContainsKeywordsPredicate(List.of())));
     }
 
     @Test
