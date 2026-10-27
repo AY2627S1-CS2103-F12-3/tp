@@ -58,7 +58,8 @@ public class FindCommandTest {
 
     @Test
     public void execute_zeroKeywords_noPersonFound() {
-        String expectedMessage = String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, model.getAddressBook().getPersonList().size());
+        String expectedMessage = String.format(MESSAGE_PERSONS_LISTED_OVERVIEW,
+                model.getAddressBook().getPersonList().size());
         NameContainsKeywordsPredicate predicate = preparePredicate(" ");
         FindCommand command = new FindCommand(predicate);
         expectedModel.updateFilteredPersonList(predicate);

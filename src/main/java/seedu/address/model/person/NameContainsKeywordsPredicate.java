@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 import seedu.address.commons.util.StringUtil;
-import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.role.Role;
 import seedu.address.model.role.RoleStatus;
 
