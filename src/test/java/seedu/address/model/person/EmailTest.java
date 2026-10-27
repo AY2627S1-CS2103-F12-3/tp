@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
+import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 
 public class EmailTest {
@@ -73,6 +75,60 @@ public class EmailTest {
         assertTrue(Email.isValidEmail("peter.-jack@example.com")); // period followed by a hyphen
         assertTrue(Email.isValidEmail("-peterjack-@example.com")); // starts and ends with a hyphen
         assertTrue(Email.isValidEmail("a!#$%&*/=?^`{|}~b@example.com")); // other symbols allowed by RFC 5322
+        assertTrue(Email.isValidEmail("peterjack@exa--mple.com")); // consecutive hyphens inside a domain part
+        assertTrue(Email.isValidEmail("peterjack@xn--80ak6aa92e.com")); // encoded non-English domain name
+    }
+
+    @Test
+    public void findProblem_validEmail_returnsEmpty() {
+        assertEquals(Optional.empty(), Email.findProblem("peter.jack@example.com"));
+        assertEquals(Optional.empty(), Email.findProblem("a@bc"));
+    }
+
+    @Test
+    public void findProblem_invalidEmail_returnsSpecificMessage() {
+        assertProblem(Email.MESSAGE_EMPTY, "");
+        assertProblem(Email.MESSAGE_MISSING_AT, "peterjackexample.com");
+        assertProblem(Email.MESSAGE_MULTIPLE_AT, "peter@jack@example.com");
+        assertProblem(Email.MESSAGE_MISSING_NAME, "@example.com");
+        assertProblem(String.format(Email.MESSAGE_INVALID_CHARACTER, "“,”", "before"), "peter,jack@example.com");
+        assertProblem(Email.MESSAGE_LOCAL_PART_DOTS, ".peterjack@example.com");
+        assertProblem(Email.MESSAGE_LOCAL_PART_DOTS, "peterjack.@example.com");
+        assertProblem(Email.MESSAGE_LOCAL_PART_DOTS, "peter..jack@example.com");
+        assertProblem(String.format(Email.MESSAGE_INVALID_CHARACTER, "“_”", "after"), "peterjack@exam_ple.com");
+        assertProblem(Email.MESSAGE_DOMAIN_PARTS, "peterjack@"); // empty domain
+        assertProblem(Email.MESSAGE_DOMAIN_PARTS, "peterjack@.example.com");
+        assertProblem(Email.MESSAGE_DOMAIN_PARTS, "peterjack@example..com");
+        assertProblem(Email.MESSAGE_DOMAIN_PARTS, "peterjack@-example.com");
+        assertProblem(Email.MESSAGE_DOMAIN_PARTS, "peterjack@example-.com");
+        assertProblem(Email.MESSAGE_DOMAIN_ENDING, "peterjack@example.c");
+    }
+
+    @Test
+    public void findProblem_invisibleCharacter_namesCharacter() {
+        assertProblem(String.format(Email.MESSAGE_INVALID_CHARACTER, "a space", "before"), "peter jack@example.com");
+        assertProblem(String.format(Email.MESSAGE_INVALID_CHARACTER, "a tab", "after"), "peterjack@exam\tple.com");
+        assertProblem(String.format(Email.MESSAGE_INVALID_CHARACTER, "a new line", "before"), "peter\njack@a.com");
+        assertProblem(String.format(Email.MESSAGE_INVALID_CHARACTER, "“é”", "before"), "pétér@example.com");
+        assertProblem(String.format(Email.MESSAGE_INVALID_CHARACTER, "a quotation mark", "before"),
+                "\"peterjack\"@example.com");
+    }
+
+    @Test
+    public void findProblem_severalProblems_returnsFirstInCheckOrder() {
+        assertProblem(Email.MESSAGE_MULTIPLE_AT, "peter jack@@example.com"); // '@' count before characters
+        assertProblem(Email.MESSAGE_MISSING_NAME, "@exam_ple.com"); // missing name before domain problems
+        assertProblem(String.format(Email.MESSAGE_INVALID_CHARACTER, "“,”", "before"),
+                "peter,..jack@example.com"); // characters before dots
+        assertProblem(Email.MESSAGE_LOCAL_PART_DOTS, "peter..jack@exam_ple.com"); // local part before domain
+        assertProblem(String.format(Email.MESSAGE_INVALID_CHARACTER, "“_”", "after"),
+                "peterjack@-exam_ple.c"); // domain characters before domain parts
+        assertProblem(Email.MESSAGE_DOMAIN_PARTS, "peterjack@-example.c"); // domain parts before ending length
+    }
+
+    private static void assertProblem(String expectedMessage, String email) {
+        assertEquals(Optional.of(expectedMessage), Email.findProblem(email));
+        assertFalse(Email.isValidEmail(email));
     }
 
     @Test

@@ -115,12 +115,13 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
   Spaces and hyphens are ignored and removed when the number is saved, so `+65 9123-4567` is shown as `+6591234567`.
 * `EMAIL`:
   * Looks like `name@example.com`.
-  * Before the `@`, can contain letters, digits and the symbols that standard email addresses allow, such as `.` `_` `-` `+` `'`. A dot cannot come first, last, or twice in a row.
-  * Addresses with spaces or quotation marks, such as `"john doe"@example.com`, and addresses with non-English letters, such as `josé@example.com`, are not supported.
-
-  RecruiterBuddy still saves the candidate, but warns that the email may be a typo, if:
-  * the part before the `@` has a symbol other than `.` `_` `-` `+` `'`, such as in `john#doe@example.com`, or
-  * the part after the `@` has no dot, such as in `john@gmailcom`.
+  * Before the `@`, can contain letters, digits and dots, plus:
+    * common symbols `_` `-` `+` `'`, such as in `o'brien@example.com`, which are accepted as usual.
+    * less common symbols `` ! # $ % & * / = ? ^ ` { | } ~ ``, such as in `john#doe@example.com`. These are also accepted, but RecruiterBuddy warns that the email may be a typo. If the symbol is intended, you can ignore the warning.
+  * A dot cannot come first, last, or twice in a row before the `@`.
+  * If the part after the `@` has no dot, such as in `john@gmailcom`, the email is also accepted with a warning that it may be a typo.
+  * Addresses with spaces inside them or with quotation marks, such as `"john doe"@example.com`, and addresses with non-English letters, such as `josé@example.com`, are not supported.
+  * If the email is not valid, the error message names the problem, such as `Email cannot contain “,” before the @.`
 * `ROLE` must be the title of an existing role that is `OPEN`. Use [`role add`](#adding-a-role-role-add) to create the role first.
 * `ROLE` is matched ignoring case; for example, `r/software engineer` matches the role `Software Engineer`. The candidate is saved with the role's own spelling of the title.
 * Each candidate needs their own email and phone number. A candidate cannot be added if another candidate already uses the same email or the same phone number, and the error message names that candidate.
@@ -332,7 +333,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITL
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
 * `NAME`, `PHONE_NUMBER` and `EMAIL` follow the same rules as in [`add`](#adding-a-candidate-add), including typing `a/l` and `a/p` in names as `A/L` and `A/P`.
-  The email warnings appear only when you change the email.
+  The email warnings appear only when you change the email to a different address. Changing only its capitals does not count.
 * When editing tags, all of the candidate's existing tags are removed; adding tags is not cumulative.
 * To remove all of a candidate's tags, enter `t/` without a tag after it.
 * Use `r/ROLE_TITLE` to correct the candidate's role, on its own or with other edits. The title must
@@ -516,7 +517,7 @@ For example, this complete file contains one role and no candidates:
 
 When editing candidates, roles and their associations:
 
-* Candidate names and phone numbers must follow the same rules as in [`add`](#adding-a-candidate-add).
+* Candidate names, phone numbers and emails must follow the same rules as in [`add`](#adding-a-candidate-add).
   Files from older versions may contain phone numbers with fewer than 8 digits, which need updating before the file can load.
 * Every role needs `title`, `experienceLevel`, and `status`. Title and experience values must satisfy
   the same constraints as `role add`; role status must be exactly `OPEN` or `CLOSED` in uppercase.

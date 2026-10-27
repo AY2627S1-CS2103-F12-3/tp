@@ -3,6 +3,8 @@ package seedu.address.model.person;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
+import java.util.Arrays;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -21,19 +23,25 @@ public class Email {
             + "After the @, use letters, digits, hyphens and dots. Each part between dots must start and end "
             + "with a letter or digit, and the last part must be at least 2 characters long.";
 
-    /** Letters, digits and the symbols that RFC 5322 allows in an unquoted local part. */
-    private static final String LOCAL_PART_CHARACTERS = "[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+";
+    public static final String MESSAGE_EMPTY = "Email cannot be empty.";
+    public static final String MESSAGE_MISSING_AT = "Email is missing an @, e.g. name@example.com.";
+    public static final String MESSAGE_MULTIPLE_AT = "Email can contain only one @.";
+    public static final String MESSAGE_MISSING_NAME = "Email needs a name before the @, e.g. name@example.com.";
+    public static final String MESSAGE_INVALID_CHARACTER = "Email cannot contain %1$s %2$s the @.";
+    public static final String MESSAGE_LOCAL_PART_DOTS =
+            "Before the @, a dot cannot come first, last, or twice in a row.";
+    public static final String MESSAGE_DOMAIN_PARTS = "After the @, each part between dots must start and end "
+            + "with a letter or digit, e.g. example.com.";
+    public static final String MESSAGE_DOMAIN_ENDING =
+            "The domain must end with a part of at least 2 characters, e.g. .com.";
+
+    /** A letter, a digit, a dot, or a symbol that RFC 5322 allows in an unquoted local part. */
+    private static final String LOCAL_PART_CHARACTER = "[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]";
     /** A character that common email providers issue, so other allowed symbols are likely typos. */
     private static final String COMMON_LOCAL_PART_CHARACTER = "[A-Za-z0-9._+'-]";
-    /** Dot-separated runs of allowed characters, so a dot is never first, last, or next to another dot. */
-    private static final String LOCAL_PART_REGEX = "^" + LOCAL_PART_CHARACTERS
-            + "(\\." + LOCAL_PART_CHARACTERS + ")*";
-    private static final String ALPHANUMERIC_NO_UNDERSCORE = "[^\\W_]+"; // alphanumeric characters except underscore
-    private static final String DOMAIN_PART_REGEX = ALPHANUMERIC_NO_UNDERSCORE
-            + "(-" + ALPHANUMERIC_NO_UNDERSCORE + ")*";
-    private static final String DOMAIN_LAST_PART_REGEX = "(" + DOMAIN_PART_REGEX + "){2,}$"; // At least two chars
-    private static final String DOMAIN_REGEX = "(" + DOMAIN_PART_REGEX + "\\.)*" + DOMAIN_LAST_PART_REGEX;
-    public static final String VALIDATION_REGEX = LOCAL_PART_REGEX + "@" + DOMAIN_REGEX;
+    /** A letter, a digit, a dot or a hyphen, the characters allowed in a domain name. */
+    private static final String DOMAIN_CHARACTER = "[A-Za-z0-9.-]";
+    private static final int MIN_LAST_DOMAIN_PART_LENGTH = 2;
 
     public final String value;
 
@@ -52,7 +60,108 @@ public class Email {
      * Returns true if a given string is a valid email.
      */
     public static boolean isValidEmail(String test) {
-        return test.matches(VALIDATION_REGEX);
+        return findProblem(test).isEmpty();
+    }
+
+    /**
+     * Returns a message describing the first problem that makes {@code test} an invalid email,
+     * or an empty {@code Optional} if {@code test} is valid.
+     * The checks run in a fixed order, so an email with several problems always reports the same one.
+     */
+    public static Optional<String> findProblem(String test) {
+        requireNonNull(test);
+        if (test.isEmpty()) {
+            return Optional.of(MESSAGE_EMPTY);
+        }
+
+        long atCount = test.chars().filter(c -> c == '@').count();
+        if (atCount == 0) {
+            return Optional.of(MESSAGE_MISSING_AT);
+        }
+        if (atCount > 1) {
+            return Optional.of(MESSAGE_MULTIPLE_AT);
+        }
+
+        int atIndex = test.indexOf('@');
+        String localPart = test.substring(0, atIndex);
+        String domain = test.substring(atIndex + 1);
+        return findLocalPartProblem(localPart).or(() -> findDomainProblem(domain));
+    }
+
+    /**
+     * Returns a message describing the first problem with the part of an email before the {@code @}, if any.
+     */
+    private static Optional<String> findLocalPartProblem(String localPart) {
+        if (localPart.isEmpty()) {
+            return Optional.of(MESSAGE_MISSING_NAME);
+        }
+
+        Optional<String> invalidCharacter = findInvalidCharacter(localPart, LOCAL_PART_CHARACTER);
+        if (invalidCharacter.isPresent()) {
+            return Optional.of(String.format(MESSAGE_INVALID_CHARACTER, invalidCharacter.get(), "before"));
+        }
+
+        boolean hasMisplacedDot = localPart.startsWith(".") || localPart.endsWith(".") || localPart.contains("..");
+        if (hasMisplacedDot) {
+            return Optional.of(MESSAGE_LOCAL_PART_DOTS);
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Returns a message describing the first problem with the part of an email after the {@code @}, if any.
+     */
+    private static Optional<String> findDomainProblem(String domain) {
+        Optional<String> invalidCharacter = findInvalidCharacter(domain, DOMAIN_CHARACTER);
+        if (invalidCharacter.isPresent()) {
+            return Optional.of(String.format(MESSAGE_INVALID_CHARACTER, invalidCharacter.get(), "after"));
+        }
+
+        // A limit of -1 keeps empty parts, so an empty domain or a leading, trailing or doubled dot is caught.
+        String[] domainParts = domain.split("\\.", -1);
+        boolean hasInvalidPart = Arrays.stream(domainParts)
+                .anyMatch(part -> part.isEmpty() || part.startsWith("-") || part.endsWith("-"));
+        if (hasInvalidPart) {
+            return Optional.of(MESSAGE_DOMAIN_PARTS);
+        }
+
+        String lastDomainPart = domainParts[domainParts.length - 1];
+        if (lastDomainPart.length() < MIN_LAST_DOMAIN_PART_LENGTH) {
+            return Optional.of(MESSAGE_DOMAIN_ENDING);
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Returns a readable description of the first character in {@code text} that does not match
+     * {@code allowedCharacterRegex}, if any.
+     */
+    private static Optional<String> findInvalidCharacter(String text, String allowedCharacterRegex) {
+        return text.codePoints()
+                .mapToObj(Character::toString)
+                .filter(character -> !character.matches(allowedCharacterRegex))
+                .findFirst()
+                .map(Email::describeCharacter);
+    }
+
+    /**
+     * Returns {@code character} in quotes, or a name for it if it is invisible or is itself a quotation mark,
+     * such as "a space".
+     */
+    private static String describeCharacter(String character) {
+        switch (character) {
+            case "\"":
+                return "a quotation mark";
+            case " ":
+                return "a space";
+            case "\t":
+                return "a tab";
+            case "\n":
+            case "\r":
+                return "a new line";
+            default:
+                return "“" + character + "”";
+        }
     }
 
     /**
