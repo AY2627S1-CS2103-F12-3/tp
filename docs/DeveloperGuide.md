@@ -588,7 +588,7 @@ _{more aspects and alternatives to be added}_
 
 ### Candidate notes
 
-Each `Person` has a `Note`, a free-text field for details such as a candidate's skills or availability. Interview dates and times have their own field, described in [Candidate interviews](#candidate-interviews). An empty note means the candidate has no note, and the candidate card hides it.
+Each `Person` has a `Note`, a free-text field for details such as a candidate's skills or availability. Interview dates and times have their own field, described in [Candidate interviews](#candidate-interviews). The candidate card shows the note as `Note: NOTE`. An empty note means the candidate has no note, and the candidate card hides it.
 
 #### Recording a note
 
@@ -1586,7 +1586,7 @@ Always switch back with `list` or `list role` before using indices for that list
    1. Prerequisites: Start with the sample data and run `list`.
 
    1. Test case: `note 2 Prefers hybrid work`<br>
-      Expected: The 2nd candidate's card shows the note `Prefers hybrid work`. The message starts with `Replaced note of Bernice Yu. Use undo to revert.`, because Bernice had a sample note.
+      Expected: The 2nd candidate's card shows `Note: Prefers hybrid work`. The message starts with `Replaced note of Bernice Yu. Use undo to revert.`, because Bernice had a sample note.
 
    1. Test case: `note 2 Discuss t/java experience`<br>
       Expected: The note is replaced with `Discuss t/java experience`. No `java` tag is added.

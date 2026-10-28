@@ -21,6 +21,7 @@ public class PersonCard extends UiPart<Region> {
     private static final String STATUS_STYLE_CLASS = "cell_status_label";
     private static final String ROLE_FORMAT = "Applying for: %1$s";
     private static final String INTERVIEW_FORMAT = "Interview: %1$s";
+    private static final String NOTE_FORMAT = "Note: %1$s";
 
     /**
      * Note: Certain keywords such as "location" and "resources" are reserved keywords in JavaFX.
@@ -99,7 +100,8 @@ public class PersonCard extends UiPart<Region> {
      * Shows {@code personNote} on the card, or hides the note label if the note is empty.
      */
     private void showNote(Note personNote) {
-        note.setText(personNote.value);
+        // The prefix stops a note such as a phone number being mistaken for the candidate's own details.
+        note.setText(String.format(NOTE_FORMAT, personNote.value));
 
         // An unmanaged label takes up no space, so cards without notes have no blank line.
         boolean hasNote = !personNote.isEmpty();
