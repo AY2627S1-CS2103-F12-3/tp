@@ -72,6 +72,15 @@ public class PersonTest {
     }
 
     @Test
+    public void hasPossiblySamePhone() {
+        String phoneWithCountryCode = "+65" + ALICE.getPhone().value;
+        assertTrue(ALICE.hasPossiblySamePhone(new PersonBuilder(BOB).withPhone(phoneWithCountryCode).build()));
+        assertFalse(ALICE.hasPossiblySamePhone(new PersonBuilder(BOB).withPhone(ALICE.getPhone().value).build()));
+        assertFalse(ALICE.hasPossiblySamePhone(BOB));
+        assertThrows(NullPointerException.class, () -> ALICE.hasPossiblySamePhone(null));
+    }
+
+    @Test
     public void equals() {
         // same values -> returns true
         Person aliceCopy = new PersonBuilder(ALICE).build();

@@ -110,7 +110,11 @@ public class EditCommand extends Command {
         if (isRoleTransfer) {
             logger.info("Updated candidate role in memory at displayed index " + index.getOneBased() + ".");
         }
-        return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)));
+        String successMessage = String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        if (editPersonDescriptor.getPhone().isEmpty()) {
+            return new CommandResult(successMessage);
+        }
+        return new CommandResult(PhoneChecks.appendPhoneWarnings(successMessage, model, editedPerson));
     }
 
     /**
