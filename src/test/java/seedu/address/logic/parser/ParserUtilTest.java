@@ -71,9 +71,15 @@ public class ParserUtilTest {
     public void parseIndex_validInput_success() throws Exception {
         // No whitespaces
         assertEquals(INDEX_FIRST_PERSON, ParserUtil.parseIndex("1"));
+        assertEquals(INDEX_FIRST_PERSON, ParserUtil.parseIndex("0000000001"));
 
         // Leading and trailing whitespaces
         assertEquals(INDEX_FIRST_PERSON, ParserUtil.parseIndex("  1  "));
+    }
+
+    @Test
+    public void parseIndex_excessivelyLongInput_throwsParseException() {
+        assertThrows(ParseException.class, () -> ParserUtil.parseIndex("00000000001"));
     }
 
     @Test

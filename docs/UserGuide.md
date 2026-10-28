@@ -75,6 +75,10 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
 * Extraneous parameters for `help`, `exit`, and `clear` are ignored.<br>
   For example, `help 123` is interpreted as `help`. `list` accepts only `list` or `list role`; anything else is rejected.
 
+* Any command `INDEX` is a positive integer with at most 10 digits. Leading zeros are accepted
+  (`0000000001` is the same as `1`); longer inputs are rejected to avoid unnecessarily large
+  command strings.
+
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </box>
 
@@ -466,7 +470,10 @@ Format: `delete INDEX`
 
 * Deletes the candidate at the specified `INDEX`.
 * The index refers to the index number shown in the displayed candidate list.
-* The index **must be a positive integer** 1, 2, 3, ...
+* The index **must be a positive integer** 1, 2, 3, ... with at most 10 digits. Leading
+  zeros are accepted, so `0000000001` refers to the same entry as `1`. Inputs longer than
+  10 digits are rejected to prevent unnecessarily large command input; this limit still
+  covers any realistic number of candidates or roles.
 
 Examples:
 * `list` followed by `delete 2` deletes the 2nd candidate in RecruiterBuddy.
