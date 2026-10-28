@@ -417,7 +417,10 @@ Finds candidates whose names contain any of the given keywords.
 
 Format: `find [KEYWORD ...] [r/ ROLE ...] [st/ STATUS ...]`
 
-`r/` filters by role title and `st/` filters by role status (`OPEN` or `CLOSED`).
+`r/` filters by role title and `st/` filters by role status (`OPEN` or `CLOSED`). Within
+each filter, multiple keywords are combined with OR: a role/status matches if it matches
+at least one keyword or status. Different filter types are combined with AND, so a candidate
+must satisfy the name filter, role filter, and status filter that were supplied.
 For example, `find r/Software Engineer st/OPEN` shows candidates in open Software
 Engineer roles. The displayed feedback identifies the filter used.
 
@@ -427,9 +430,12 @@ batch `status` command instead of relying on numbers one at a time.
 
 * The search is case-insensitive; for example, `hans` matches `Hans`.
 * Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
-* The search considers only names.
+* Unprefixed keywords search candidate names; `r/` searches role titles and `st/` searches role statuses.
 * Only full words match; for example, `Han` does not match `Hans`.
-* Candidates matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
+* Candidates matching at least one name keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
+* Multiple role keywords also use OR matching; for example, `find r/software test` matches
+  roles containing `software` or `test`. Name, role, and role-status filters are combined
+  with AND when more than one filter type is supplied.
 
 Examples:
 * `find John` returns `john` and `John Doe`
