@@ -111,7 +111,7 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
     * less common symbols `` ! # $ % & * / = ? ^ ` { | } ~ ``, such as in `john#doe@example.com`. These are also accepted, but RecruiterBuddy warns that the email may be a typo. If the symbol is intended, you can ignore the warning.
   * A dot cannot come first, last, or twice in a row before the `@`.
   * If the part after the `@` has no dot, such as in `john@gmailcom`, the email is also accepted with a warning that it may be a typo.
-  * Addresses with spaces inside them or with quotation marks, such as `"john doe"@example.com`, and addresses with non-English letters, such as `josé@example.com`, are not supported.
+  * Emails with spaces inside them or with quotation marks, such as `"john doe"@example.com`, and emails with non-English letters, such as `josé@example.com`, are not supported.
   * If the email is not valid, the error message names the problem, such as `Email cannot contain “,” before the @.`
 * `ROLE` must be the title of an existing role that is `OPEN`. Use [`role add`](#adding-a-role-role-add) to create the role first.
 * `ROLE` is matched ignoring case; for example, `r/software engineer` matches the role `Software Engineer`. The candidate is saved with the role's own spelling of the title.
