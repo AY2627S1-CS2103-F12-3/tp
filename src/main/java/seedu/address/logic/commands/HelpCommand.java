@@ -1,5 +1,7 @@
 package seedu.address.logic.commands;
 
+import static java.util.Objects.requireNonNull;
+
 import seedu.address.model.Model;
 
 /**
@@ -8,10 +10,9 @@ import seedu.address.model.Model;
 public class HelpCommand extends Command {
     public static final String COMMAND_WORD = "help";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Shows program usage instructions.\n"
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Shows the offline command guide.\n"
+            + "Parameters: None\n"
             + "Example: " + COMMAND_WORD;
-
-    public static final String SHOWING_HELP_MESSAGE = "Opened help window.";
 
     @Override
     public boolean isUndoable() {
@@ -20,6 +21,7 @@ public class HelpCommand extends Command {
 
     @Override
     public CommandResult execute(Model model) {
-        return new CommandResult(SHOWING_HELP_MESSAGE, true, false);
+        requireNonNull(model);
+        return new CommandResult(CommandGuide.getOverview(), true, false);
     }
 }

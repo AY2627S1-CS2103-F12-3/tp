@@ -1,6 +1,8 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
@@ -15,6 +17,7 @@ import static seedu.address.testutil.TypicalRoles.SOFTWARE_ENGINEER;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -25,6 +28,7 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.AddRoleCommand;
 import seedu.address.logic.commands.CloseRoleCommand;
+import seedu.address.logic.commands.CommandGuide;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.DeleteRoleCommand;
 import seedu.address.logic.commands.ListCommand;
@@ -81,6 +85,54 @@ public class LogicManagerTest {
     public void execute_validCommand_success() throws Exception {
         String listCommand = ListCommand.COMMAND_WORD;
         assertCommandSuccess(listCommand, ListCommand.MESSAGE_SUCCESS, model);
+    }
+
+    @Test
+    public void execute_help_preservesRecruitmentDataFileAndFilters() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
+        model.addPerson(AMY);
+        model.updateFilteredPersonList(person -> false);
+        model.updateFilteredRoleList(role -> false);
+        addressBookStorage.saveAddressBook(model.getAddressBook());
+        String saved = Files.readString(addressBookStorage.getAddressBookFilePath());
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+
+        CommandResult result = logic.execute("help");
+
+        assertEquals(CommandGuide.getOverview(), result.getFeedbackToUser());
+        assertTrue(result.isShowHelp());
+        assertFalse(result.isExit());
+        assertEquals(expectedModel.getAddressBook(), model.getAddressBook());
+        assertTrue(model.getFilteredPersonList().isEmpty());
+        assertTrue(model.getFilteredRoleList().isEmpty());
+        assertEquals(saved, Files.readString(addressBookStorage.getAddressBookFilePath()));
+    }
+
+    @Test
+    public void execute_help_unavailableStorageIsNotUsed() throws Exception {
+        StorageManager unavailableStorage = new StorageManager(addressBookStorage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"))) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) {
+                throw new AssertionError("Viewing help must not save recruitment data");
+            }
+        };
+        Logic readOnlyLogic = new LogicManager(model, unavailableStorage);
+
+        assertEquals(CommandGuide.getOverview(), readOnlyLogic.execute("help").getFeedbackToUser());
+        assertFalse(Files.exists(addressBookStorage.getAddressBookFilePath()));
+    }
+
+    @Test
+    public void execute_help_preservesUndoAndRedoHistory() throws Exception {
+        logic.execute("role add r/Software Engineer x/2 years");
+        logic.execute("help");
+        logic.execute("undo");
+        assertTrue(model.getAddressBook().getRoleList().isEmpty());
+
+        logic.execute("help");
+        logic.execute("redo");
+        assertEquals(List.of(SOFTWARE_ENGINEER), model.getAddressBook().getRoleList());
     }
 
     @Test

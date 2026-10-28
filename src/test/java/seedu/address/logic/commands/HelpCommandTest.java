@@ -1,7 +1,8 @@
 package seedu.address.logic.commands;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
-import static seedu.address.logic.commands.HelpCommand.SHOWING_HELP_MESSAGE;
+import static seedu.address.testutil.Assert.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
@@ -14,7 +15,17 @@ public class HelpCommandTest {
 
     @Test
     public void execute_help_success() {
-        CommandResult expectedCommandResult = new CommandResult(SHOWING_HELP_MESSAGE, true, false);
+        CommandResult expectedCommandResult = new CommandResult(CommandGuide.getOverview(), true, false);
         assertCommandSuccess(new HelpCommand(), model, expectedCommandResult, expectedModel);
+    }
+
+    @Test
+    public void execute_nullModel_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new HelpCommand().execute(null));
+    }
+
+    @Test
+    public void isUndoable_help_returnsFalse() {
+        assertFalse(new HelpCommand().isUndoable());
     }
 }

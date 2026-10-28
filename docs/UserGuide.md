@@ -37,7 +37,7 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
    create and use files in that folder instead of the JAR file's folder.
    </box>
 
-1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
+1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to read the offline command guide in the result area.<br>
    Some example commands you can try:
 
    * `list` : Lists all candidates.
@@ -89,12 +89,15 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
 
 ### Viewing help: `help`
 
-Shows a message explaining how to access the help page.
-
-![help message](images/helpMessage.png)
+Shows every supported command's purpose, syntax and example in the result area. No internet
+connection is needed. The result area expands for help, wraps long lines and can be scrolled
+vertically. The candidate and role lists remain visible.
 
 Format: `help`
 
+The **Help** menu and **F1** show the same overview. Viewing help does not change candidates,
+roles, either list's filter, the data file or undo/redo history. The next command replaces the
+guide with its usual result message.
 
 ### Adding a candidate: `add`
 
@@ -605,8 +608,7 @@ _Details coming soon ..._
 ## Known issues
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
-2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
-3. **If RecruiterBuddy is launched from a folder other than the JAR file's folder** (for example, by double-clicking the JAR file on some systems), it reads and writes `data/addressbook.json`, `preferences.json`, and `addressbook.log` in that other folder. It may then show sample data instead of your saved data. The remedy is to close the application, back up the `data/addressbook.json` files in both folders, decide which one to keep, copy it into the `data` folder beside the JAR file, and relaunch RecruiterBuddy as described in [Quick start](#quick-start).
+2. **If RecruiterBuddy is launched from a folder other than the JAR file's folder** (for example, by double-clicking the JAR file on some systems), it reads and writes `data/addressbook.json`, `preferences.json`, and `addressbook.log` in that other folder. It may then show sample data instead of your saved data. The remedy is to close the application, back up the `data/addressbook.json` files in both folders, decide which one to keep, copy it into the `data` folder beside the JAR file, and relaunch RecruiterBuddy as described in [Quick start](#quick-start).
 
 --------------------------------------------------------------------------------------------------------------------
 
