@@ -397,9 +397,18 @@ Format: `note INDEX [NOTE]`
 * The candidate's other details are not changed, and the displayed list stays as it is, so a filtered list remains filtered.
 * To record an interview date and time, use [`interview`](#scheduling-or-clearing-an-interview-interview) instead, which checks that the date and time are valid.
 
+<box type="info" seamless>
+
+**Not supported in this version:**
+* Adding text to the end of an existing note. To add to a note, enter the whole note again with the new text. A separate command for adding to a note is planned for a future version.
+* Line breaks in a note. A note is a single line of text, which wraps on the candidate's card.
+* Searching notes. [`find`](#locating-candidates-by-name-find) does not search notes.
+</box>
+
 Examples:
 *  `note 1 Prefers hybrid work` Sets the note of the 1st candidate to `Prefers hybrid work`.
 *  `note 2 Discuss t/java experience` Sets the note of the 2nd candidate to `Discuss t/java experience`.
+*  `note 2 Discuss t/java experience. Available from December` Replaces that note with a longer one that keeps the earlier text.
 *  `note 3` Clears the note of the 3rd candidate.
 
 ### Scheduling or clearing an interview: `interview`

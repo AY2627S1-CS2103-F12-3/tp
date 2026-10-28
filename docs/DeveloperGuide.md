@@ -609,6 +609,15 @@ Notes are stored as the `note` field of each candidate in the JSON data file. A 
   * Pros: Consistent with the other candidate fields.
   * Cons: The tokenizer ends the note at the next prefix. For example, `nt/Discuss t/java` would save the note `Discuss` and add a `java` tag, so valid notes are silently changed. This alternative was implemented and then removed for this reason.
 
+**Aspect: Replacing or adding to a note**
+
+* **Alternative 1 (current choice):** `note INDEX NOTE` replaces the whole note, and `note INDEX` clears it.
+  * Pros: One simple command covers setting, correcting and clearing a note. When a note is replaced or cleared, the result message suggests `undo`, so a note changed by mistake is easy to restore.
+  * Cons: To add to a note, the user types the whole note again.
+* **Alternative 2:** A way to add text to the end of an existing note.
+  * Pros: Saves retyping when a recruiter adds details after each recruitment stage.
+  * Cons: It needs its own command word. A marker inside `note`, such as a leading `+`, would clash with notes that start with that text, such as `+65 9123 4567 (home)`. It is planned for a future version, and the User Guide lists it as not supported yet.
+
 ### Candidate interviews
 
 Each `Person` has an `Interview`, which holds the date and time of the candidate's interview, to the minute. A candidate with no interview has `Interview.NONE`, so no code needs to handle a `null` interview. The candidate card shows the interview as `Interview: YYYY-MM-DD HH:MM`, and hides the line for `Interview.NONE`.
