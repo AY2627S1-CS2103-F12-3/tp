@@ -126,6 +126,7 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
 <box type="tip" seamless>
 
 **Tip:** A candidate can have any number of tags, including zero.
+A tag typed more than once with the same capitalisation is saved only once, so `t/java t/java` gives the candidate a single `java` tag.
 </box>
 
 <box type="tip" seamless>
@@ -325,6 +326,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITL
 * Existing values will be updated to the input values.
 * `NAME` and `PHONE_NUMBER` follow the same rules as in [`add`](#adding-a-candidate-add), including typing `a/l` and `a/p` in names as `A/L` and `A/P`.
 * When editing tags, all of the candidate's existing tags are removed; adding tags is not cumulative.
+* As in [`add`](#adding-a-candidate-add), a tag typed more than once with the same capitalisation is saved only once.
 * To remove all of a candidate's tags, enter `t/` without a tag after it.
 * Use `r/ROLE_TITLE` to correct the candidate's role, on its own or with other edits. The title must
   match an existing role, ignoring case and surrounding spaces; the saved title uses that role's spelling.
