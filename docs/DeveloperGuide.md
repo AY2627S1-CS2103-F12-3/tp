@@ -867,6 +867,9 @@ Use case ends.
 * 4a. The candidate already has an interview recorded, and the interview is being rescheduled.
   * 4a1. RecruiterBuddy replaces the earlier date and time with the new ones.
   * Use case resumes at step 5.
+* 4b. The interview might be a mistake: it is more than a year from today, the candidate already has a final outcome, or another candidate has an interview at the same date and time.
+  * 4b1. RecruiterBuddy records the interview, and points out each possible mistake when confirming it.
+  * Use case ends.
 
 #### UC05 — Save and Load Data
 
