@@ -21,7 +21,7 @@ public class DeleteRoleCommand extends Command {
 
     public static final String COMMAND_WORD = "delete";
     public static final String MESSAGE_USAGE = RoleCommandParser.COMMAND_WORD + " " + COMMAND_WORD
-            + ": Permanently deletes a displayed role with no candidates.\n"
+            + ": Deletes a displayed role with no candidates.\n"
             + "Parameters: INDEX (must be a positive integer)\n"
             + "Example: " + RoleCommandParser.COMMAND_WORD + " " + COMMAND_WORD + " 1";
     public static final String MESSAGE_SUCCESS = "Deleted role: %1$s.";
