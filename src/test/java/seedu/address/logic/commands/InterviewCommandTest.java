@@ -287,9 +287,9 @@ public class InterviewCommandTest {
 
         String expectedMessage = String.join("\n",
                 String.format(InterviewCommand.MESSAGE_SCHEDULE_SUCCESS, firstPerson.getName(), farInterview),
-                String.format(InterviewCommand.MESSAGE_FAR_FUTURE_WARNING, "2062-10-20"),
                 String.format(InterviewCommand.MESSAGE_FINAL_STATUS_WARNING, firstPerson.getName(),
                         Status.WITHDRAWN),
+                String.format(InterviewCommand.MESSAGE_FAR_FUTURE_WARNING, "2062-10-20"),
                 String.format(InterviewCommand.MESSAGE_SAME_TIME, secondPerson.getName()));
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());

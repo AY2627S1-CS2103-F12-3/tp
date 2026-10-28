@@ -632,10 +632,10 @@ The sequence diagram below shows how `interview 1 d/2026-10-20 14:00` is execute
 
 `InterviewCommand#execute` looks up the candidate in the displayed candidate list and replaces it with `Person#withInterview`, a copy that has the new interview. A candidate has only one interview, so scheduling another one replaces the previous interview, and `interview INDEX` replaces it with `Interview.NONE`. Unlike `note`, it does not reset the candidate filter, so a recruiter can schedule interviews for a filtered list by its displayed numbers. Clearing a candidate with no interview, or giving the same date and time again, succeeds without changing the data, as `note` does for notes.
 
-After saving a new interview, `InterviewCommand` checks whether it might be a mistake and adds a line to the result message for each of these cases:
+After saving a new interview, `InterviewCommand` checks whether it might be a mistake and adds a line to the result message for each of these cases, in this order:
 
+* The candidate's status is final (`HIRED`, `REJECTED` or `WITHDRAWN`), using `Status#isPending`. This line comes first, as it suggests the interview may not be needed at all.
 * The date is more than a year after today. Today's date comes from a `Clock`, which is the system clock in the app and a fixed clock in tests.
-* The candidate's status is final (`HIRED`, `REJECTED` or `WITHDRAWN`), using `Status#isPending`.
 * Other candidates in the whole address book, including those hidden by the filter, have an interview at the same date and time. The line `Also at this time:` names them.
 
 Clearing an interview is never checked.

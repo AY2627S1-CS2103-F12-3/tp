@@ -39,9 +39,7 @@ public class InterviewCommand extends Command {
     public static final String MESSAGE_CLEAR_SUCCESS = "Cleared interview for %1$s.";
     public static final String MESSAGE_FAR_FUTURE_WARNING =
             "Note: %1$s is more than a year from today. Check the year if this is a typo.";
-    public static final String MESSAGE_FINAL_STATUS_WARNING =
-            "Note: %1$s's status is %2$s. If this interview is still going ahead, update their status "
-            + "with the status command.";
+    public static final String MESSAGE_FINAL_STATUS_WARNING = "Note: %1$s's status is %2$s.";
     public static final String MESSAGE_SAME_TIME = "Also at this time: %1$s.";
 
     /** Interviews further ahead than this are more likely to have a mistyped year. */
@@ -107,9 +105,10 @@ public class InterviewCommand extends Command {
         lines.add(generateSuccessMessage(editedPerson));
 
         // Clearing an interview can never be a scheduling mistake, so only a new interview is checked.
+        // A final status comes first, as it suggests the interview may not be needed at all.
         if (!interview.isEmpty()) {
-            findFarFutureWarning().ifPresent(lines::add);
             findFinalStatusWarning(editedPerson).ifPresent(lines::add);
+            findFarFutureWarning().ifPresent(lines::add);
             findSameTimeCandidates(model, editedPerson).ifPresent(lines::add);
         }
         return String.join("\n", lines);
