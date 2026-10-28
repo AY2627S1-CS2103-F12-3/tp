@@ -127,6 +127,18 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_successfulNoOpAfterUndo_preservesRedoHistory() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
+        logic.execute("add n/Alice Tan p/91234567 e/alice@example.com a/Bedok r/Software Engineer");
+        logic.execute("edit 1 n/Alicia");
+        logic.execute("undo");
+
+        assertEquals("Status of candidate: Resume", logic.execute("status 1 st/RESUME").getFeedbackToUser());
+        assertEquals("Redid the previous change.", logic.execute("redo").getFeedbackToUser());
+        assertEquals("Alicia", model.getAddressBook().getPersonList().getFirst().getName().fullName);
+    }
+
+    @Test
     public void execute_addRoleCommand_roleAddedAndPersisted() throws Exception {
         Role role = new RoleBuilder().build();
         String addRoleCommand = "role add r/Software Engineer x/2 years";
