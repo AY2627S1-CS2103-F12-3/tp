@@ -13,12 +13,15 @@ import static seedu.address.testutil.TypicalRoles.SOFTWARE_ENGINEER;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.person.Person;
 import seedu.address.model.role.Role;
+import seedu.address.model.role.RoleStatus;
 import seedu.address.testutil.AddressBookBuilder;
 import seedu.address.testutil.RoleBuilder;
 
@@ -109,6 +112,26 @@ public class ModelManagerTest {
     @Test
     public void getFilteredRoleList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredRoleList().remove(0));
+    }
+
+    @Test
+    public void roleChange_refreshesRetainedPersonFilter() {
+        Person candidate = ALICE.withRole(SOFTWARE_ENGINEER.getTitle());
+        modelManager = new ModelManager(new AddressBookBuilder()
+                .withRole(SOFTWARE_ENGINEER)
+                .withPerson(candidate)
+                .build(), new UserPrefs());
+        Predicate<Person> softwareEngineerFilter = person -> modelManager.findRole(person.getRole())
+                .map(role -> !role.isClosed())
+                .orElse(false);
+        modelManager.updateFilteredPersonList(softwareEngineerFilter);
+        assertEquals(List.of(candidate), modelManager.getFilteredPersonList());
+
+        Role closedRole = new Role(SOFTWARE_ENGINEER.getTitle(),
+                SOFTWARE_ENGINEER.getExperienceLevel(), RoleStatus.CLOSED);
+        modelManager.setRole(SOFTWARE_ENGINEER, closedRole);
+
+        assertTrue(modelManager.getFilteredPersonList().isEmpty());
     }
 
     @Test
