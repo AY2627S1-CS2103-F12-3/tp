@@ -594,7 +594,7 @@ Each `Person` has a `Note`, a free-text field for details such as a candidate's 
 
 `NoteCommandParser` splits the arguments into the first word, which is parsed as the index, and the rest, which is trimmed and becomes the note. It does not use `ArgumentTokenizer`, so the note can contain text that looks like a prefix, such as `t/` or `n/`. An empty remainder gives an empty `Note`, so `note 1` clears the first candidate's note.
 
-`NoteCommand#execute` looks up the candidate in the displayed candidate list and replaces it with a copy that has the new note. Other commands that rebuild a `Person`, such as `edit`, `status`, and `interview`, copy the existing note across, so they never change it.
+`NoteCommand#execute` looks up the candidate in the displayed candidate list and replaces it with a copy that has the new note. It does not reset the candidate filter, so a recruiter can add notes to a filtered list by its displayed numbers. Other commands that rebuild a `Person`, such as `edit`, `status`, and `interview`, copy the existing note across, so they never change it.
 
 Notes are stored as the `note` field of each candidate in the JSON data file. A candidate saved without a `note` field loads with an empty note.
 
@@ -630,7 +630,7 @@ The sequence diagram below shows how `interview 1 d/2026-10-20 14:00` is execute
 
 <puml src="diagrams/InterviewSequenceDiagram.puml" alt="Interactions for the interview 1 d/2026-10-20 14:00 command" />
 
-`InterviewCommand#execute` looks up the candidate in the displayed candidate list and replaces it with `Person#withInterview`, a copy that has the new interview. A candidate has only one interview, so scheduling another one replaces the previous interview, and `interview INDEX` replaces it with `Interview.NONE`. Unlike `note`, it does not reset the candidate filter, so a recruiter can schedule interviews for a filtered list by its displayed numbers. Clearing a candidate with no interview, or giving the same date and time again, succeeds without changing the data, as `note` does for notes.
+`InterviewCommand#execute` looks up the candidate in the displayed candidate list and replaces it with `Person#withInterview`, a copy that has the new interview. A candidate has only one interview, so scheduling another one replaces the previous interview, and `interview INDEX` replaces it with `Interview.NONE`. Like `note`, it does not reset the candidate filter, so a recruiter can schedule interviews for a filtered list by its displayed numbers. Clearing a candidate with no interview, or giving the same date and time again, succeeds without changing the data, as `note` does for notes.
 
 Other commands that rebuild a `Person`, such as `edit`, `note`, and `status`, copy the existing interview across, so they never change it.
 
@@ -1593,6 +1593,9 @@ Always switch back with `list` or `list role` before using indices for that list
 
    1. Test case: `note 2`<br>
       Expected: The 2nd candidate's note is cleared and no longer shown on the card.
+
+   1. Test case: `find Bernice Roy`, then `note 2 Strong communicator`<br>
+      Expected: Roy Balakrishnan's note is set to `Strong communicator`. The list still shows only Bernice Yu and Roy Balakrishnan.
 
    1. Test case: `note 0 Prefers hybrid work`<br>
       Expected: No note is changed. The error message shows the correct `note` format.

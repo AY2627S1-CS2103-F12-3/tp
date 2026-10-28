@@ -1,7 +1,6 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
-import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -18,6 +17,7 @@ import seedu.address.model.person.Person;
 /**
  * Replaces the note of a person identified using its displayed index from the address book.
  * An empty note clears the person's existing note.
+ * The current candidate filter is kept, so a recruiter can work through a filtered list by its numbers.
  */
 public class NoteCommand extends Command {
 
@@ -68,7 +68,6 @@ public class NoteCommand extends Command {
         assert editedPerson.getNote().equals(note) : "Edited person should hold the new note";
 
         model.setPerson(personToEdit, editedPerson);
-        model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
         logger.info("Note of candidate at index " + index.getOneBased() + " ("
                 + editedPerson.getName() + ") " + (note.isEmpty() ? "cleared" : "updated"));
         return new CommandResult(generateSuccessMessage(editedPerson));

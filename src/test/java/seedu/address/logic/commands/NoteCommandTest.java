@@ -135,7 +135,7 @@ public class NoteCommandTest {
     }
 
     @Test
-    public void execute_noteFilteredList_success() {
+    public void execute_noteFilteredList_successAndFilterKept() {
         showPersonAtIndex(model, INDEX_SECOND_PERSON);
 
         Person secondPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
@@ -147,8 +147,10 @@ public class NoteCommandTest {
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(secondPerson, editedPerson);
+        showPersonAtIndex(expectedModel, INDEX_SECOND_PERSON);
 
         assertCommandSuccess(noteCommand, model, expectedMessage, expectedModel);
+        assertEquals(1, model.getFilteredPersonList().size());
     }
 
     @Test
