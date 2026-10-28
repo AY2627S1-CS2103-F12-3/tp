@@ -130,7 +130,7 @@ public class InterviewCommand extends Command {
      * which usually means the year was mistyped. Past dates are allowed, to record earlier interviews.
      */
     private Optional<String> findFarFutureWarning() {
-        LocalDate interviewDate = interview.getDateTime().orElseThrow().toLocalDate();
+        LocalDate interviewDate = getInterviewDate();
         LocalDate latestExpectedDate = LocalDate.now(clock).plusYears(FAR_FUTURE_YEARS);
         if (!interviewDate.isAfter(latestExpectedDate)) {
             return Optional.empty();
@@ -140,14 +140,23 @@ public class InterviewCommand extends Command {
 
     /**
      * Returns a warning if {@code editedPerson} already has a final outcome, such as {@code REJECTED},
-     * since an interview usually means they are still in the recruitment process.
+     * and the interview is today or later, since an upcoming interview usually means they are still in
+     * the recruitment process. A past interview is not warned about, as it records what already happened.
      */
     private Optional<String> findFinalStatusWarning(Person editedPerson) {
-        if (editedPerson.getStatus().isPending()) {
+        boolean isPastInterview = getInterviewDate().isBefore(LocalDate.now(clock));
+        if (editedPerson.getStatus().isPending() || isPastInterview) {
             return Optional.empty();
         }
         return Optional.of(String.format(MESSAGE_FINAL_STATUS_WARNING,
                 editedPerson.getName().fullName, editedPerson.getStatus()));
+    }
+
+    /**
+     * Returns the date of the interview being scheduled, which must not be {@link Interview#NONE}.
+     */
+    private LocalDate getInterviewDate() {
+        return interview.getDateTime().orElseThrow().toLocalDate();
     }
 
     /**

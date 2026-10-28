@@ -171,7 +171,7 @@ public class InterviewCommandTest {
 
     @Test
     public void execute_interviewMoreThanAYearAhead_warnsButSaves() {
-        String farInterview = "2027-10-29 09:00"; // one day past a year from TODAY
+        String farInterview = "2027-10-29 09:00"; // one day past a year from the fixed date
         Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         Person editedPerson = new PersonBuilder(firstPerson).withInterview(farInterview).build();
         InterviewCommand interviewCommand =
@@ -205,19 +205,42 @@ public class InterviewCommandTest {
     }
 
     @Test
-    public void execute_candidateWithFinalStatus_warnsButSaves() {
+    public void execute_upcomingInterviewForFinalStatus_warnsButSaves() {
+        // VALID_INTERVIEW_BOB is after the fixed date
+        assertFinalStatusInterview(VALID_INTERVIEW_BOB, true);
+    }
+
+    @Test
+    public void execute_interviewTodayForFinalStatus_warnsButSaves() {
+        // earlier in the day than the fixed clock, but still today
+        assertFinalStatusInterview("2026-10-28 09:00", true);
+    }
+
+    @Test
+    public void execute_pastInterviewForFinalStatus_noWarning() {
+        // recording an interview that already happened, the day before the fixed date
+        assertFinalStatusInterview("2026-10-27 09:00", false);
+    }
+
+    /**
+     * Schedules {@code interviewDateTime} for a rejected candidate and checks the result message,
+     * which has the final status note only if {@code isNoteExpected}.
+     */
+    private void assertFinalStatusInterview(String interviewDateTime, boolean isNoteExpected) {
         Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         Person rejectedPerson = new PersonBuilder(firstPerson).withStatus(Status.REJECTED).build();
         model.setPerson(firstPerson, rejectedPerson);
 
-        Person editedPerson = new PersonBuilder(rejectedPerson).withInterview(VALID_INTERVIEW_AMY).build();
+        Person editedPerson = new PersonBuilder(rejectedPerson).withInterview(interviewDateTime).build();
         InterviewCommand interviewCommand =
-                new InterviewCommand(INDEX_FIRST_PERSON, new Interview(VALID_INTERVIEW_AMY), FIXED_CLOCK);
+                new InterviewCommand(INDEX_FIRST_PERSON, new Interview(interviewDateTime), FIXED_CLOCK);
 
         String expectedMessage = String.format(InterviewCommand.MESSAGE_SCHEDULE_SUCCESS,
-                firstPerson.getName(), VALID_INTERVIEW_AMY) + "\n"
-                + String.format(InterviewCommand.MESSAGE_FINAL_STATUS_WARNING, firstPerson.getName(),
-                        Status.REJECTED);
+                firstPerson.getName(), interviewDateTime);
+        if (isNoteExpected) {
+            expectedMessage += "\n" + String.format(InterviewCommand.MESSAGE_FINAL_STATUS_WARNING,
+                    firstPerson.getName(), Status.REJECTED);
+        }
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(rejectedPerson, editedPerson);

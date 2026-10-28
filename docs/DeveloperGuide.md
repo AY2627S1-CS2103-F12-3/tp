@@ -634,7 +634,7 @@ The sequence diagram below shows how `interview 1 d/2026-10-20 14:00` is execute
 
 After saving a new interview, `InterviewCommand` checks whether it might be a mistake and adds a line to the result message for each of these cases, in this order:
 
-* The candidate's status is final (`HIRED`, `REJECTED` or `WITHDRAWN`), using `Status#isPending`. This line comes first, as it suggests the interview may not be needed at all.
+* The candidate's status is final (`HIRED`, `REJECTED` or `WITHDRAWN`), using `Status#isPending`, and the interview is today or later. This line comes first, as it suggests the interview may not be needed at all. A past interview is not checked, as recording one is how a recruiter keeps the history of a candidate who already has an outcome.
 * The date is more than a year after today. Today's date comes from a `Clock`, which is the system clock in the app and a fixed clock in tests.
 * Other candidates in the whole address book, including those hidden by the filter, have an interview at the same date and time. The line `Also at this time:` names them.
 
@@ -1692,8 +1692,11 @@ Always switch back with `list` or `list role` before using indices for that list
    1. Test case: a date more than a year after today's date on your computer, e.g. `interview 2 d/2062-10-20 14:00`<br>
       Expected: The interview is set, and the result message adds a line saying the date is more than a year from today.
 
-   1. Test case: `status 2 st/REJECTED`, then `interview 2 d/2026-11-01 10:00`<br>
+   1. Test case: `status 2 st/REJECTED`, then `interview 2 d/DATE 10:00`, where `DATE` is any date after today's date on your computer, e.g. `2027-01-15`<br>
       Expected: The interview is set, and the result message adds a line saying Bernice Yu's status is Rejected.
+
+   1. Test case: after the previous test case, `interview 2 d/2020-01-15 10:00`<br>
+      Expected: The past interview is set, and no line about Bernice Yu's status is added, because it records an interview that already happened.
 
    1. Test case: `interview 2`<br>
       Expected: The interview is cleared, and no warning lines are added.
