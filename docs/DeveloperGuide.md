@@ -244,10 +244,18 @@ The activity diagram below summarizes this process.
 #### Role identity and validation
 
 `RoleTitle` strips surrounding whitespace, validates 1–100 Unicode code points and the allowed
-characters, and requires at least one letter. `ExperienceLevel` similarly strips its value and
-validates 1–50 printable code points, excluding control, format, surrogate, unassigned, line-separator,
+characters, and requires at least one letter. Allowed punctuation includes apostrophes, ampersands,
+hyphens, slashes, full stops, plus signs, hashes, parentheses and commas, so titles such as
+`C++ Developer`, `C# Developer`, `Engineer (Backend)` and `Manager, Sales` are accepted.
+The same value object validates role creation, renaming, candidate associations and saved titles;
+punctuation is retained and remains significant when comparing titles. `ExperienceLevel` similarly
+strips its value and validates 1–50 printable code points, excluding control, format, surrogate, unassigned, line-separator,
 and paragraph-separator characters. Their constraint messages use the same length constants as their
 validation, avoiding independently hard-coded limits.
+
+`RoleTitle#MESSAGE_CONSTRAINTS` also lists the allowed characters on a second line, so a title
+with an unsupported symbol is not explained only by its length and letter requirements.
+Construction, command parsing and JSON role/candidate validation reuse this same message.
 
 `Role#isSameRole` compares only titles through `RoleTitle#isSameTitle`, ignoring case. `UniqueRoleList`
 uses that identity to reject duplicates, irrespective of experience level or open/closed status.
@@ -1341,6 +1349,25 @@ Always switch back with `list` or `list role` before using indices for that list
    command field, and scrolling still usable. Check the course-required screen sizes and scaling.
 
 #### Role creation and validation
+
+1. Run `role add r/Engineer@Platform x/2 years`.<br>
+   Expected: No role is created. The first error line states the length and letter requirements;
+   the second reads `Use only letters, digits, spaces, or these symbols: ' & - / . + # ( ) ,`.
+   The allowed-symbol list excludes `@`, explaining why this title fails despite its valid length
+   and letters. Correcting the command to `role add r/Engineer-Platform x/2 years` succeeds.
+   Check that both error lines are readable in the result display.
+
+1. In a separate disposable copy, run `role add r/C++ Developer x/2 years`,
+   `role add r/C# Developer x/2 years`, `role add r/Engineer (Backend) x/2 years`, and
+   `role add r/Manager, Sales x/5 years`, then `list role`.<br>
+   Expected: All four roles are added as `OPEN`, with their punctuation unchanged.
+   Try `role add r/  c++ developer  x/Senior`; it is rejected as a duplicate, while the
+   `C# Developer` role remains distinct. Add a candidate using `r/c++ developer`; the candidate
+   uses the stored spelling `C++ Developer`. Run `list role` and rename that role using
+   `role edit INDEX r/Engineer (C++), Backend`, replacing `INDEX` with its displayed role index.
+   Expected: Both the role and its candidate use the new title. Restart and check that all
+   titles and associations remain unchanged. The ordinary length and letter requirements still
+   apply: `role add r/+#(), x/Senior` and `role add r/C++@Developer x/Senior` are rejected.
 
 1. Run `role add x/Entry level r/QA Designer`.<br>
    Expected: `Added open role: QA Designer.` Run `list role` to see it at index 3 with experience

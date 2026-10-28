@@ -220,11 +220,12 @@ public class JsonAdaptedPersonTest {
 
     @Test
     public void toModelType_invalidRole_throwsIllegalValueException() {
-        JsonAdaptedPerson person =
-                new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS, INVALID_ROLE,
-                        VALID_NOTE, VALID_INTERVIEW, VALID_STATUS, VALID_TAGS);
-        String expectedMessage = RoleTitle.MESSAGE_CONSTRAINTS;
-        assertThrows(IllegalValueException.class, expectedMessage, person::toModelType);
+        for (String title : new String[] {INVALID_ROLE, "Engineer@Platform"}) {
+            JsonAdaptedPerson person =
+                    new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS, title,
+                            VALID_NOTE, VALID_INTERVIEW, VALID_STATUS, VALID_TAGS);
+            assertThrows(IllegalValueException.class, RoleTitle.MESSAGE_CONSTRAINTS, person::toModelType);
+        }
     }
 
     @Test

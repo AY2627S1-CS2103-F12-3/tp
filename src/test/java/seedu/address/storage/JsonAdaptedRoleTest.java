@@ -31,8 +31,10 @@ public class JsonAdaptedRoleTest {
 
     @Test
     public void toModelType_invalidTitle_throwsIllegalValueException() {
-        JsonAdaptedRole role = new JsonAdaptedRole(INVALID_TITLE, VALID_EXPERIENCE_LEVEL, VALID_STATUS);
-        assertThrows(IllegalValueException.class, RoleTitle.MESSAGE_CONSTRAINTS, role::toModelType);
+        for (String title : new String[] {INVALID_TITLE, "Engineer@Platform"}) {
+            JsonAdaptedRole role = new JsonAdaptedRole(title, VALID_EXPERIENCE_LEVEL, VALID_STATUS);
+            assertThrows(IllegalValueException.class, RoleTitle.MESSAGE_CONSTRAINTS, role::toModelType);
+        }
     }
 
     @Test

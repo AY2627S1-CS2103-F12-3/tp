@@ -149,7 +149,8 @@ Both `r/` and `x/` are required, must appear exactly once, and may appear in eit
 Leading and trailing whitespace is removed from each value before validation and storage.
 
 * `ROLE_TITLE`: 1–100 characters after trimming, with at least one letter. It may contain letters,
-  digits, spaces, apostrophes (`'`), ampersands (`&`), hyphens (`-`), slashes (`/`), and full stops (`.`).
+  digits, spaces, apostrophes (`'`), ampersands (`&`), hyphens (`-`), slashes (`/`), full stops (`.`),
+  plus signs (`+`), hashes (`#`), parentheses (`(` and `)`), and commas (`,`).
 * `EXPERIENCE_LEVEL`: 1–50 printable characters after trimming, with no embedded newlines, tabs,
   or other control characters. Examples include `Entry level`, `2 years`, and `Senior`.
 * Role titles must be unique across both `OPEN` and `CLOSED` roles, ignoring case and surrounding
@@ -160,6 +161,10 @@ Examples:
 
 * `role add r/Software Engineer x/2 years`
 * `role add x/Entry level r/Product Analyst`
+* `role add r/C++ Developer x/2 years`
+* `role add r/C# Developer x/2 years`
+* `role add r/Engineer (Backend) x/2 years`
+* `role add r/Manager, Sales x/5 years`
 
 On success, RecruiterBuddy shows `Added open role: ROLE_TITLE.` and saves the role with status `OPEN`.
 Run `list role` to display it; `role add` itself returns to the candidate list.
@@ -170,7 +175,13 @@ If validation fails, no role is created:
 * Missing experience prefix: `Missing required field: x/.`
 * Repeated prefix: `Multiple values specified for the following single-valued field(s): PREFIX`.
   For example, repeating `x/` reports that prefix even if both values are identical.
-* Empty or invalid title: `Role title must be 1–100 characters and contain a letter.`
+* Empty or invalid title:
+
+  ```text
+  Role title must be 1–100 characters and contain a letter.
+  Use only letters, digits, spaces, or these symbols: ' & - / . + # ( ) ,
+  ```
+
 * Empty or invalid experience level:
   `Required experience level must be 1–50 characters and must not contain a new line.`
 * Duplicate title: `A role named “ROLE_TITLE” already exists.`
@@ -207,7 +218,8 @@ Validation failures leave all records, filters, and the saved data unchanged:
 * Candidate list displayed: `The role list is not displayed. Use list role first.`
 * No fields supplied: `At least one field to edit must be provided.`
 * Repeated prefix: `Multiple values specified for the following single-valued field(s): PREFIX`. If both prefixes repeat, the message names both.
-* Empty or invalid title: `Role title must be 1–100 characters and contain a letter.`
+* Empty or invalid title: the same two-line role-title constraint message shown under
+  [`role add`](#adding-a-role-role-add), including the allowed characters.
 * Empty or invalid experience: `Required experience level must be 1–50 characters and must not contain a new line.`
 * Another role has the requested title: `A role named “ROLE_TITLE” already exists.` This also applies if the other role is closed.
 * Extra text before the first prefix: `Invalid command format!`, followed by usage and an example.

@@ -50,6 +50,16 @@ public class AddRoleCommandParserTest {
     }
 
     @Test
+    public void parse_commonJobTitlePunctuation_success() {
+        for (String title : new String[] {"C++ Developer", "C# Developer", "Engineer (Backend)", "Manager, Sales"}) {
+            Role expectedRole = new RoleBuilder().withTitle(title).build();
+            assertParseSuccess(parser, " r/  " + title + "  " + EXPERIENCE_LEVEL_DESC,
+                    new AddRoleCommand(expectedRole));
+            assertParseSuccess(parser, EXPERIENCE_LEVEL_DESC + " r/" + title, new AddRoleCommand(expectedRole));
+        }
+    }
+
+    @Test
     public void parse_repeatedField_failure() {
         assertParseFailure(parser, TITLE_DESC + TITLE_DESC + EXPERIENCE_LEVEL_DESC,
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_ROLE_TITLE));
