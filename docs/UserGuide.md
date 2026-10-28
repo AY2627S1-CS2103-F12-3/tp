@@ -419,6 +419,7 @@ Format: `interview INDEX [d/YYYY-MM-DD HH:MM]`
   * The date is more than a year from today, which may mean the year was mistyped. Today's date is taken from your computer.
   * The candidate's status is already `HIRED`, `REJECTED` or `WITHDRAWN`. If they are back in the process, update their status with [`status`](#updating-a-candidates-status-status).
   * Other candidates have an interview at the same date and time. The line `Also at this time:` names them, including candidates hidden by the current filter.
+* Sorting and filtering candidates by interview date are not supported yet, and are planned for a future version.
 
 Examples:
 *  `interview 1 d/2026-10-20 14:00` Schedules an interview for the 1st candidate on 20 October 2026 at 2pm.
