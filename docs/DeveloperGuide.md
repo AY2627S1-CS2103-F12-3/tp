@@ -723,7 +723,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *` | department recruiter | assign a candidate one controlled recruitment status | record where the candidate stands in the recruitment process |
 | `* * *` | department recruiter | update a candidate's recruitment status | reflect their progress through the recruitment process |
 | `* * *` | department recruiter | record a candidate's interview date and time | refer to when each candidate is being interviewed |
-| `* * *` | department recruiter | add notes to a candidate's record | retain relevant recruitment and interview information |
+| `* * *` | department recruiter | record a free-text note about a candidate | jot down anything else worth remembering about them |
 | `* * *` | department recruiter | remove a candidate | correct an erroneous entry or remove a record that is no longer required |
 | `* * *` | user | have successful changes saved automatically and restored when RecruiterBuddy starts | avoid losing candidate and role information |
 | `* * *` | user | access a guide covering all supported commands and their formats | understand and correctly use RecruiterBuddy's features |
@@ -875,18 +875,18 @@ Use case ends.
 
 Use case ends.
 
-#### UC06 — Add Candidate Notes
+#### UC06 — Set or Clear a Candidate's Note
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter
 
 **Main success scenario:**
 
-1. Recruiter requests to add a note to a candidate’s profile.
+1. Recruiter requests to set the note of a candidate.
 2. RecruiterBuddy requests the note.
 3. Recruiter provides the note.
-4. RecruiterBuddy adds the note to the candidate’s profile.
-5. RecruiterBuddy confirms that the note has been added.
+4. RecruiterBuddy saves the note in the candidate’s profile.
+5. RecruiterBuddy confirms that the note has been saved.
 
 Use case ends.
 
@@ -895,9 +895,15 @@ Use case ends.
 * 1a. The candidate does not exist.
   * 1a1. RecruiterBuddy reports the error.
   * Use case ends.
-* 1b. Recruiter requests to remove the candidate’s existing notes.
-  * 1b1. RecruiterBuddy removes the notes and confirms that they have been removed.
+* 1b. Recruiter requests to clear the candidate’s note.
+  * 1b1. RecruiterBuddy clears the note, shows the cleared note, and informs the recruiter that the change can be undone.
   * Use case ends.
+* 1c. Recruiter requests to clear the note of a candidate who has no note.
+  * 1c1. RecruiterBuddy reports that there is no note to clear.
+  * Use case ends.
+* 4a. The candidate already has a different note.
+  * 4a1. RecruiterBuddy replaces the existing note with the new one, and informs the recruiter that the change can be undone.
+  * Use case resumes at step 5.
 
 #### UC07 — Close Role Opening
 
