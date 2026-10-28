@@ -120,7 +120,7 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
   * Phone numbers are compared exactly as saved, so `+6591234567` and `91234567` are different numbers. Type phone numbers in one consistent format, such as always without the country code.
 * Candidates may share a name, as long as their emails and phone numbers are different.
 * Each candidate applies for one role. Since their email and phone number stay the same, the same person cannot be added again for a second role.
-* Newly added candidates are automatically assigned the status `Pending Resume Screening`.
+* Newly added candidates are automatically assigned the status `RESUME`, displayed as `Resume`.
 * The candidate's card shows the role as `Applying for: ROLE`.
 
 <box type="tip" seamless>
