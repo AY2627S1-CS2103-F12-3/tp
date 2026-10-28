@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import seedu.address.commons.util.StringUtil;
 import seedu.address.commons.util.ToStringBuilder;
@@ -44,6 +45,24 @@ public class NameContainsKeywordsPredicate implements Predicate<Person> {
 
     public boolean hasRoleFilters() {
         return !roleKeywords.isEmpty() || !roleStatuses.isEmpty();
+    }
+
+    /** Returns a user-facing description of the filters applied by this predicate. */
+    public String getFilterDescription() {
+        List<String> filters = new java.util.ArrayList<>();
+        if (!keywords.isEmpty()) {
+            filters.add("Name: " + String.join(", ", keywords));
+        }
+        if (!roleKeywords.isEmpty()) {
+            filters.add("Role: " + String.join(" ", roleKeywords));
+        }
+        if (!roleStatuses.isEmpty()) {
+            filters.add("Role status: " + roleStatuses.stream()
+                    .map(RoleStatus::name)
+                    .sorted()
+                    .collect(Collectors.joining(", ")));
+        }
+        return String.join("; ", filters);
     }
 
     @Override
