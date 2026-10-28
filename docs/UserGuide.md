@@ -417,7 +417,7 @@ Format: `interview INDEX [d/YYYY-MM-DD HH:MM]`
 * If the index is missing, is not a positive whole number, is past the end of the displayed list, or is followed by extra text before `d/`, the error message says which of these happened, so you can tell what to correct.
 * An interview that might be a mistake is still saved, but the result message adds a line about it:
   * The date is more than a year from today, which may mean the year was mistyped. Today's date is taken from your computer.
-  * The candidate's status is already `HIRED`, `REJECTED` or `WITHDRAWN`. If they are back in the process, update their status with [`status`](#updating-a-candidates-status-status).
+  * The candidate's status is already `HIRED`, `REJECTED` or `WITHDRAWN`. If they are back in the process, update their status with [`status`](#updating-a-candidate-s-status-status).
   * Other candidates have an interview at the same date and time. The line `Also at this time:` names them, including candidates hidden by the current filter.
 * Sorting and filtering candidates by interview date are not supported yet, and are planned for a future version.
 
