@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.core.index.Index;
@@ -37,13 +38,18 @@ public class InterviewCommand extends Command {
 
     public static final String MESSAGE_SCHEDULE_SUCCESS = "Scheduled interview for %1$s on %2$s.";
     public static final String MESSAGE_CLEAR_SUCCESS = "Cleared interview for %1$s.";
-    public static final String MESSAGE_FAR_FUTURE_WARNING =
-            "Note: %1$s is more than a year from today. Check the year if this is a typo.";
-    public static final String MESSAGE_FINAL_STATUS_WARNING = "Note: %1$s's status is %2$s.";
+    public static final String MESSAGE_FAR_FUTURE_WARNING = "Note: date is over a year ahead; check the year.";
+    public static final String MESSAGE_PAST_WARNING = "Note: interview is in the past; check the date.";
+    public static final String MESSAGE_FINAL_STATUS_WARNING = "Note: candidate is %1$s.";
     public static final String MESSAGE_SAME_TIME = "Also at this time: %1$s.";
 
     /** Interviews further ahead than this are more likely to have a mistyped year. */
     private static final int FAR_FUTURE_YEARS = 1;
+    /** Limits a same-time reminder to the first few candidates. */
+    private static final int MAX_SAME_TIME_NAMES = 2;
+    /** Keeps an unusually long candidate name from filling the result display. */
+    private static final int MAX_DISPLAYED_NAME_LENGTH = 30;
+    private static final String TRUNCATION_MARK = "…";
 
     private static final Logger logger = LogsCenter.getLogger(InterviewCommand.class);
 
@@ -66,7 +72,7 @@ public class InterviewCommand extends Command {
      *
      * @param index Index of the person in the filtered person list.
      * @param interview New interview of the person, which is {@link Interview#NONE} to clear the existing one.
-     * @param clock Clock that gives today's date, used to spot interviews far in the future.
+     * @param clock Clock that gives today's date, used to generate date warnings.
      */
     InterviewCommand(Index index, Interview interview, Clock clock) {
         requireNonNull(index);
@@ -108,7 +114,7 @@ public class InterviewCommand extends Command {
         // A final status comes first, as it suggests the interview may not be needed at all.
         if (!interview.isEmpty()) {
             findFinalStatusWarning(editedPerson).ifPresent(lines::add);
-            findFarFutureWarning().ifPresent(lines::add);
+            findDateWarning().ifPresent(lines::add);
             findSameTimeCandidates(model, editedPerson).ifPresent(lines::add);
         }
         return String.join("\n", lines);
@@ -126,16 +132,19 @@ public class InterviewCommand extends Command {
     }
 
     /**
-     * Returns a warning if the interview is more than {@value #FAR_FUTURE_YEARS} year from today,
-     * which usually means the year was mistyped. Past dates are allowed, to record earlier interviews.
+     * Returns a warning if the interview is before today or more than {@value #FAR_FUTURE_YEARS} year ahead.
+     * The interview is still saved because past dates may be intentional historical records.
      */
-    private Optional<String> findFarFutureWarning() {
+    private Optional<String> findDateWarning() {
         LocalDate interviewDate = getInterviewDate();
-        LocalDate latestExpectedDate = LocalDate.now(clock).plusYears(FAR_FUTURE_YEARS);
-        if (!interviewDate.isAfter(latestExpectedDate)) {
-            return Optional.empty();
+        LocalDate today = LocalDate.now(clock);
+        if (interviewDate.isBefore(today)) {
+            return Optional.of(MESSAGE_PAST_WARNING);
         }
-        return Optional.of(String.format(MESSAGE_FAR_FUTURE_WARNING, interviewDate));
+        if (interviewDate.isAfter(today.plusYears(FAR_FUTURE_YEARS))) {
+            return Optional.of(MESSAGE_FAR_FUTURE_WARNING);
+        }
+        return Optional.empty();
     }
 
     /**
@@ -148,8 +157,7 @@ public class InterviewCommand extends Command {
         if (editedPerson.getStatus().isPending() || isPastInterview) {
             return Optional.empty();
         }
-        return Optional.of(String.format(MESSAGE_FINAL_STATUS_WARNING,
-                editedPerson.getName().fullName, editedPerson.getStatus()));
+        return Optional.of(String.format(MESSAGE_FINAL_STATUS_WARNING, editedPerson.getStatus()));
     }
 
     /**
@@ -160,8 +168,8 @@ public class InterviewCommand extends Command {
     }
 
     /**
-     * Returns a line naming the other candidates with an interview at the same date and time, if any.
-     * All candidates are checked, including those hidden by the current filter.
+     * Returns a line naming up to {@value #MAX_SAME_TIME_NAMES} other candidates with an interview at the
+     * same date and time, if any. All candidates are checked, including those hidden by the current filter.
      */
     private Optional<String> findSameTimeCandidates(Model model, Person editedPerson) {
         List<String> names = model.getAddressBook().getPersonList().stream()
@@ -172,7 +180,27 @@ public class InterviewCommand extends Command {
         if (names.isEmpty()) {
             return Optional.empty();
         }
-        return Optional.of(String.format(MESSAGE_SAME_TIME, String.join(", ", names)));
+
+        int displayedNameCount = Math.min(names.size(), MAX_SAME_TIME_NAMES);
+        String displayedNames = names.stream()
+                .limit(displayedNameCount)
+                .map(InterviewCommand::truncateName)
+                .collect(Collectors.joining(", "));
+        int otherCandidates = names.size() - displayedNameCount;
+        if (otherCandidates > 0) {
+            displayedNames += String.format(" (+%d others)", otherCandidates);
+        }
+        return Optional.of(String.format(MESSAGE_SAME_TIME, displayedNames));
+    }
+
+    /**
+     * Returns {@code name} shortened to fit the result display, if necessary.
+     */
+    private static String truncateName(String name) {
+        if (name.length() <= MAX_DISPLAYED_NAME_LENGTH) {
+            return name;
+        }
+        return name.substring(0, MAX_DISPLAYED_NAME_LENGTH - TRUNCATION_MARK.length()) + TRUNCATION_MARK;
     }
 
     @Override
