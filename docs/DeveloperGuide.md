@@ -594,7 +594,7 @@ Each `Person` has a `Note`, a free-text field for details such as a candidate's 
 
 `NoteCommandParser` splits the arguments into the first word, which is parsed as the index, and the rest, which is trimmed and becomes the note. It does not use `ArgumentTokenizer`, so the note can contain text that looks like a prefix, such as `t/` or `n/`. An empty remainder gives an empty `Note`, so `note 1` clears the first candidate's note.
 
-`NoteCommand#execute` looks up the candidate in the displayed candidate list and replaces it with a copy that has the new note. It does not reset the candidate filter, so a recruiter can add notes to a filtered list by its displayed numbers. Other commands that rebuild a `Person`, such as `edit`, `status`, and `interview`, copy the existing note across, so they never change it.
+`NoteCommand#execute` looks up the candidate in the displayed candidate list and replaces it with a copy that has the new note. It does not reset the candidate filter, so a recruiter can add notes to a filtered list by its displayed numbers. The result message compares the previous note with the new one: replacing or clearing a note suggests `undo`, and clearing also shows the cleared note, since the user cannot see it anywhere else. Other commands that rebuild a `Person`, such as `edit`, `status`, and `interview`, copy the existing note across, so they never change it.
 
 Notes are stored as the `note` field of each candidate in the JSON data file. A candidate saved without a `note` field loads with an empty note.
 
@@ -1586,13 +1586,16 @@ Always switch back with `list` or `list role` before using indices for that list
    1. Prerequisites: Start with the sample data and run `list`.
 
    1. Test case: `note 2 Prefers hybrid work`<br>
-      Expected: The 2nd candidate's card shows the note `Prefers hybrid work`.
+      Expected: The 2nd candidate's card shows the note `Prefers hybrid work`. The message starts with `Replaced note of Bernice Yu. Use undo to revert.`, because Bernice had a sample note.
 
    1. Test case: `note 2 Discuss t/java experience`<br>
       Expected: The note is replaced with `Discuss t/java experience`. No `java` tag is added.
 
    1. Test case: `note 2`<br>
-      Expected: The 2nd candidate's note is cleared and no longer shown on the card.
+      Expected: The 2nd candidate's note is cleared and no longer shown on the card. The message suggests `undo` and shows `Previous note: Discuss t/java experience`.
+
+   1. Test case: `note 2` again<br>
+      Expected: `Bernice Yu has no note to clear.` Nothing changes.
 
    1. Test case: `find Bernice Roy`, then `note 2 Strong communicator`<br>
       Expected: Roy Balakrishnan's note is set to `Strong communicator`. The list still shows only Bernice Yu and Roy Balakrishnan.

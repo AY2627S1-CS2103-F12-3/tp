@@ -57,11 +57,28 @@ public class NoteCommandTest {
         Person editedPerson = new PersonBuilder(personWithNote).withNote(VALID_NOTE_AMY).build();
         NoteCommand noteCommand = new NoteCommand(INDEX_FIRST_PERSON, new Note(VALID_NOTE_AMY));
 
-        String expectedMessage = String.format(NoteCommand.MESSAGE_UPDATE_NOTE_SUCCESS,
+        String expectedMessage = String.format(NoteCommand.MESSAGE_REPLACE_NOTE_SUCCESS,
                 editedPerson.getName(), VALID_NOTE_AMY);
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(personWithNote, editedPerson);
+
+        assertCommandSuccess(noteCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_sameNote_updatedMessageWithoutUndoHint() {
+        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person personWithNote = new PersonBuilder(firstPerson).withNote(VALID_NOTE_AMY).build();
+        model.setPerson(firstPerson, personWithNote);
+
+        NoteCommand noteCommand = new NoteCommand(INDEX_FIRST_PERSON, new Note(VALID_NOTE_AMY));
+
+        // Nothing is lost, so the message does not suggest undo.
+        String expectedMessage = String.format(NoteCommand.MESSAGE_UPDATE_NOTE_SUCCESS,
+                personWithNote.getName(), VALID_NOTE_AMY);
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
 
         assertCommandSuccess(noteCommand, model, expectedMessage, expectedModel);
     }
@@ -112,7 +129,7 @@ public class NoteCommandTest {
         NoteCommand noteCommand = new NoteCommand(INDEX_FIRST_PERSON, new Note(""));
 
         String expectedMessage = String.format(NoteCommand.MESSAGE_CLEAR_NOTE_SUCCESS,
-                editedPerson.getName());
+                editedPerson.getName(), VALID_NOTE_BOB);
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(personWithNote, editedPerson);
@@ -121,13 +138,12 @@ public class NoteCommandTest {
     }
 
     @Test
-    public void execute_emptyNoteOnPersonWithoutNote_clearedMessage() {
+    public void execute_emptyNoteOnPersonWithoutNote_noNoteToClearMessage() {
         Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         assertTrue(firstPerson.getNote().isEmpty());
         NoteCommand noteCommand = new NoteCommand(INDEX_FIRST_PERSON, new Note(""));
 
-        String expectedMessage = String.format(NoteCommand.MESSAGE_CLEAR_NOTE_SUCCESS,
-                firstPerson.getName());
+        String expectedMessage = String.format(NoteCommand.MESSAGE_NO_NOTE_TO_CLEAR, firstPerson.getName());
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
 
@@ -159,10 +175,19 @@ public class NoteCommandTest {
         String firstName = firstPerson.getName().toString();
 
         CommandResult updateResult = new NoteCommand(INDEX_FIRST_PERSON, new Note(VALID_NOTE_AMY)).execute(model);
-        assertEquals("Updated note of " + firstName + ": " + VALID_NOTE_AMY, updateResult.getFeedbackToUser());
+        assertEquals("Updated note of " + firstName + ".\nNew note: " + VALID_NOTE_AMY,
+                updateResult.getFeedbackToUser());
+
+        CommandResult replaceResult = new NoteCommand(INDEX_FIRST_PERSON, new Note(VALID_NOTE_BOB)).execute(model);
+        assertEquals("Replaced note of " + firstName + ". Use undo to revert.\nNew note: " + VALID_NOTE_BOB,
+                replaceResult.getFeedbackToUser());
 
         CommandResult clearResult = new NoteCommand(INDEX_FIRST_PERSON, new Note("")).execute(model);
-        assertEquals("Cleared note of " + firstName + ".", clearResult.getFeedbackToUser());
+        assertEquals("Cleared note of " + firstName + ". Use undo to revert.\nPrevious note: " + VALID_NOTE_BOB,
+                clearResult.getFeedbackToUser());
+
+        CommandResult clearAgainResult = new NoteCommand(INDEX_FIRST_PERSON, new Note("")).execute(model);
+        assertEquals(firstName + " has no note to clear.", clearAgainResult.getFeedbackToUser());
     }
 
     @Test

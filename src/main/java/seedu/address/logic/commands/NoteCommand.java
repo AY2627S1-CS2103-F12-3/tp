@@ -30,8 +30,17 @@ public class NoteCommand extends Command {
             + "Parameters: INDEX (must be a positive integer) [NOTE]\n"
             + "Example: " + COMMAND_WORD + " 1 Interview 2026-10-20 14:00";
 
-    public static final String MESSAGE_UPDATE_NOTE_SUCCESS = "Updated note of %1$s: %2$s";
-    public static final String MESSAGE_CLEAR_NOTE_SUCCESS = "Cleared note of %1$s.";
+    /*
+     * Messages that remove an existing note suggest undo, so a note replaced or cleared by mistake is easy
+     * to restore. The candidate's name comes first and the note last, so a long note cannot push the name
+     * or the hint out of view.
+     */
+    public static final String MESSAGE_UPDATE_NOTE_SUCCESS = "Updated note of %1$s.\nNew note: %2$s";
+    public static final String MESSAGE_REPLACE_NOTE_SUCCESS =
+            "Replaced note of %1$s. Use undo to revert.\nNew note: %2$s";
+    public static final String MESSAGE_CLEAR_NOTE_SUCCESS =
+            "Cleared note of %1$s. Use undo to revert.\nPrevious note: %2$s";
+    public static final String MESSAGE_NO_NOTE_TO_CLEAR = "%1$s has no note to clear.";
 
     private static final Logger logger = LogsCenter.getLogger(NoteCommand.class);
 
@@ -70,18 +79,27 @@ public class NoteCommand extends Command {
         model.setPerson(personToEdit, editedPerson);
         logger.info("Note of candidate at index " + index.getOneBased() + " ("
                 + editedPerson.getName() + ") " + (note.isEmpty() ? "cleared" : "updated"));
-        return new CommandResult(generateSuccessMessage(editedPerson));
+        return new CommandResult(generateSuccessMessage(personToEdit.getNote(), editedPerson));
     }
 
     /**
-     * Returns the success message for {@code editedPerson}, naming the candidate and showing the new note,
-     * or stating that the note was cleared.
+     * Returns the success message for {@code editedPerson}, naming the candidate.
+     * A new note is shown after the message. Clearing a note shows the cleared note instead,
+     * since the user cannot see it anywhere else.
+     *
+     * @param previousNote The note the candidate had before this command.
+     * @param editedPerson The candidate with the new note.
      */
-    private String generateSuccessMessage(Person editedPerson) {
+    private String generateSuccessMessage(Note previousNote, Person editedPerson) {
         if (note.isEmpty()) {
-            return String.format(MESSAGE_CLEAR_NOTE_SUCCESS, editedPerson.getName());
+            return previousNote.isEmpty()
+                    ? String.format(MESSAGE_NO_NOTE_TO_CLEAR, editedPerson.getName())
+                    : String.format(MESSAGE_CLEAR_NOTE_SUCCESS, editedPerson.getName(), previousNote);
         }
-        return String.format(MESSAGE_UPDATE_NOTE_SUCCESS, editedPerson.getName(), note);
+
+        boolean isOtherNoteReplaced = !previousNote.isEmpty() && !previousNote.equals(note);
+        String messageFormat = isOtherNoteReplaced ? MESSAGE_REPLACE_NOTE_SUCCESS : MESSAGE_UPDATE_NOTE_SUCCESS;
+        return String.format(messageFormat, editedPerson.getName(), note);
     }
 
     @Override
