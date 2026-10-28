@@ -28,15 +28,6 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
 
-   <box type="warning" seamless>
-
-   **Caution:**
-   Always launch RecruiterBuddy this way. RecruiterBuddy creates its data, preferences, and log files
-   in the folder it is launched from. Other ways of launching it, such as double-clicking the JAR file,
-   may launch it from a different folder, depending on your operating system. RecruiterBuddy would then
-   create and use files in that folder instead of the JAR file's folder.
-   </box>
-
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:
 
@@ -470,8 +461,8 @@ Format: `status INDEX... st/STATUS`
 
 Example:
 
-* `status 1 offer`
-* `status 2 4 6 INTERVIEW`
+* `status 1 st/offer`
+* `status 2 4 6 st/INTERVIEW`
 
 ### Deleting a candidate: `delete`
 
@@ -501,11 +492,11 @@ Format: `exit`
 
 ### Saving the data
 
-RecruiterBuddy automatically saves the complete candidate and role data after a command executes
+RecruiterBuddy automatically stores `data/addressbook.json` (containing candidate and role data), `preferences.json`, and log files in the folder containing the JAR file, regardless of the terminal's working directory. Candidate and role data is saved automatically when a command executes
 successfully, including commands such as `list` that do not change records. You do not need to save
 manually. Commands rejected during parsing or validation do not trigger a save.
 
-Upon startup, RecruiterBuddy automatically loads data saved during the previous session. Saved roles retain their titles, required experience levels, and `OPEN` or `CLOSED` statuses after
+Upon startup, RecruiterBuddy automatically loads saved data from the folder where the JAR file is located. Saved roles retain their titles, required experience levels, and `OPEN` or `CLOSED` statuses after
 restarting. Candidates associated with closed roles are retained too. If no data file exists,
 RecruiterBuddy starts with sample roles and candidates, not an empty data set.
 
@@ -517,8 +508,7 @@ problem and run a successful command to retry saving before exiting.
 
 ### Editing the data file
 
-RecruiterBuddy saves data in `data/addressbook.json`, inside the folder it was launched from. If you
-launched it as described in [Quick start](#quick-start), this is the folder containing the JAR file.
+RecruiterBuddy saves data in `data/addressbook.json`, relative to the folder containing the JAR file, regardless of the terminal's working directory.
 The file is created after the first successfully executed command.
 Advanced users may edit this JSON file while the application is closed. Back it up first.
 
@@ -612,7 +602,6 @@ _Details coming soon ..._
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
 2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
-3. **If RecruiterBuddy is launched from a folder other than the JAR file's folder** (for example, by double-clicking the JAR file on some systems), it reads and writes `data/addressbook.json`, `preferences.json`, and `addressbook.log` in that other folder. It may then show sample data instead of your saved data. The remedy is to close the application, back up the `data/addressbook.json` files in both folders, decide which one to keep, copy it into the `data` folder beside the JAR file, and relaunch RecruiterBuddy as described in [Quick start](#quick-start).
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -635,5 +624,5 @@ Action     | Format, Examples
 **Role edit** | `role edit INDEX [r/ROLE_TITLE] [x/EXPERIENCE_LEVEL]`<br> e.g., `list role` followed by `role edit 1 r/Platform Engineer x/5 years`
 **Role close** | `role close INDEX`<br> e.g., `list role` followed by `role close 1`
 **Role delete** | `role delete INDEX`<br> e.g., `list role` followed by `role delete 1`
-**Status** | `status INDEX... st/STATUS`<br> e.g., `status 1 2 3 HIRED`
+**Status** | `status INDEX... st/STATUS`<br> e.g., `status 1 2 3 st/HIRED`
 **Help**   | `help`
