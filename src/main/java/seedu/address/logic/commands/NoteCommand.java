@@ -28,7 +28,7 @@ public class NoteCommand extends Command {
             + "candidate list. "
             + "Everything after the index is saved as the note. Leave NOTE empty to clear the existing note.\n"
             + "Parameters: INDEX (must be a positive integer) [NOTE]\n"
-            + "Example: " + COMMAND_WORD + " 1 Interview 2026-10-20 14:00";
+            + "Example: " + COMMAND_WORD + " 1 Prefers hybrid work";
 
     /*
      * Messages that remove an existing note suggest undo, so a note replaced or cleared by mistake is easy
