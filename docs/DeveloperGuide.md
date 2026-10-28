@@ -124,11 +124,11 @@ creates a `RoleCommandParser`, which selects the parser for `add`, `edit`, `clos
 That parser validates the subcommand arguments and creates its corresponding command.
 
 <puml src="diagrams/RoleParserClassDiagram.puml" width="900"
-  alt="Role command parsing: dispatch to add, edit, close and delete parsers and creation of their commands" />
+  alt="Role command parsing: dispatch to add, edit, close and delete parsers and creation of their commands"></puml>
 
-All five role parsers implement `Parser<T>`, shown by dashed arrows with hollow triangle heads.
+All five role parsers implement <code>Parser&lt;T&gt;</code>, shown by dashed arrows with hollow triangle heads.
 `RoleCommandParser` returns `Command`, while each subcommand parser returns its concrete command
-type. Dependencies labelled `<<create>>` show object creation. Type parameters, command inheritance, and
+type. Dependencies labelled <code>&lt;&lt;create&gt;&gt;</code> show object creation. Type parameters, command inheritance, and
 utility dependencies are omitted here to keep the dispatch relationships readable; the generic
 parser diagram above shows the shared utilities.
 
@@ -237,16 +237,25 @@ Because these checks precede mutation, failures leave all candidates unchanged.
 The activity diagram below summarizes this process.
 
 <puml src="diagrams/BatchStatusActivityDiagram.puml" width="1200"
-alt="Activity flow for parsing and executing a batch status update" />
+  alt="Activity flow for parsing and executing a batch status update"></puml>
+
 ### Role creation and persistence
 
 #### Role identity and validation
 
 `RoleTitle` strips surrounding whitespace, validates 1–100 Unicode code points and the allowed
-characters, and requires at least one letter. `ExperienceLevel` similarly strips its value and
-validates 1–50 printable code points, excluding control, format, surrogate, unassigned, line-separator,
+characters, and requires at least one letter. Allowed punctuation includes apostrophes, ampersands,
+hyphens, slashes, full stops, plus signs, hashes, parentheses and commas, so titles such as
+`C++ Developer`, `C# Developer`, `Engineer (Backend)` and `Manager, Sales` are accepted.
+The same value object validates role creation, renaming, candidate associations and saved titles;
+punctuation is retained and remains significant when comparing titles. `ExperienceLevel` similarly
+strips its value and validates 1–50 printable code points, excluding control, format, surrogate, unassigned, line-separator,
 and paragraph-separator characters. Their constraint messages use the same length constants as their
 validation, avoiding independently hard-coded limits.
+
+`RoleTitle#MESSAGE_CONSTRAINTS` also lists the allowed characters on a second line, so a title
+with an unsupported symbol is not explained only by its length and letter requirements.
+Construction, command parsing and JSON role/candidate validation reuse this same message.
 
 `Role#isSameRole` compares only titles through `RoleTitle#isSameTitle`, ignoring case. `UniqueRoleList`
 uses that identity to reject duplicates, irrespective of experience level or open/closed status.
@@ -283,7 +292,7 @@ list. Candidate copying is shown as a single action to omit unrelated field-cons
 Saving occurs in `LogicManager` after the command returns successfully, as described below.
 
 <puml src="diagrams/EditRoleSequenceDiagram.puml" width="900"
-  alt="Role-edit validation, duplicate-title rejection, role replacement and title propagation to all associated candidates" />
+  alt="Role-edit validation, duplicate-title rejection, role replacement and title propagation to all associated candidates"></puml>
 
 #### Saving and restoring associations
 
@@ -355,7 +364,7 @@ startup with the original in the remembered backup. Only successful preservation
 lead to empty lists, a recovery warning, and an open command window.
 
 <puml src="diagrams/RecruitmentDataStartupActivityDiagram.puml" width="900"
-  alt="Startup recovery with non-overwriting backup selection, collision retries, empty startup and fatal failure branches" />
+  alt="Startup recovery with non-overwriting backup selection, collision retries, empty startup and fatal failure branches"></puml>
 
 Recovery preserves the source before exposing any command that can reach the normal save path.
 If recovery cannot complete safely, startup remains blocked rather than risking the original or its
@@ -390,7 +399,20 @@ their count. An empty role may be deleted whether `OPEN` or `CLOSED`.
 Deletion goes through `Model#deleteRole`, `AddressBook#removeRole`, and `UniqueRoleList#remove`.
 The observable list refreshes and its indices update; the result keeps the role list displayed.
 `LogicManager` saves the removal. Deletion releases the title for reuse but never deletes, detaches,
-or reassigns candidates. It is immediate and has no undo operation in the MVP.
+or reassigns candidates. Deletion takes effect immediately, but can be undone in the current session.
+
+#### Undoing and redoing role changes
+
+Close and delete inherit `Command#isUndoable` returning `true`. Before execution, `LogicManager`
+asks `ModelManager#recordAddressBookState` to retain a complete `AddressBook` snapshot, including
+roles and candidates. Successful execution clears redo history through `commitAddressBookState`;
+an execution failure discards the pending snapshot instead.
+
+`undo` and `redo` restore these snapshots in reverse and forward order respectively, and
+`LogicManager` saves the restored records. Undo can therefore restore a deleted role or reverse a
+closure without a dedicated reopen command. Later changes must be undone first. The history stacks
+are held in memory only: restarting loads saved records but does not restore undo or redo history.
+Run `list role` after undo or redo to display the updated roles; listing does not change history.
 
 #### Status changes and one hire per role
 
@@ -456,8 +478,10 @@ The edited immutable `Person` keeps its status and note, and keeps every other f
 edited. The existing candidate-identity duplicate check is unchanged. For a real role transfer,
 `CandidateRoleChecks#verifyHiringAllowed` rejects a `HIRED` candidate if another stored candidate
 for the destination is hired. It uses all records, not the filtered list, and excludes the original
-candidate by identity rather than the edited name. `StatusCommand` shares this check to prevent the
-two workflows from implementing different single-vacancy rules.
+candidate by identity rather than the edited name. `StatusCommand` validates batch status changes
+separately: before changing any candidate, it checks both existing hires across all stored candidates
+and conflicting hires within the selected batch. Both workflows enforce one hired candidate per role;
+they share error messages, not the validation method.
 
 After validation succeeds, `Model#setPerson` updates the observable candidate collection and the
 candidate filter resets to show all records. The existing `Edited candidate: ...` result formats the
@@ -1318,7 +1342,8 @@ testers are expected to do more *exploratory* testing.
 ### Role management
 
 Use a **disposable copy of the JAR in a separate empty folder**, with Java 25. Do not use real
-recruitment data: `clear` and deletion commands below permanently remove records. Run each command
+recruitment data: `clear` and deletion commands below immediately change the saved records, and
+undo history is lost on exit. Run each command
 on its own line. Unless stated otherwise, reset to this fixture before each numbered scenario:
 
 ```text
@@ -1340,10 +1365,10 @@ Always switch back with `list` or `list role` before using indices for that list
    `QA Analyst` shows zero in every category. Run `find Alice`, then `list role`; the engineer
    totals remain unchanged because Ben is still included despite the candidate filter.
 
-1. Run `status 1 HIRED`, `status 2 REJECTED`, then `list role`.<br>
+1. Run `status 1 st/HIRED`, `status 2 st/REJECTED`, then `list role`.<br>
    Expected: The engineer totals are `Pending: 0`, `Hired: 1`, `Rejected: 1`, `Withdrawn: 0`.
    Run `role close 1`; the role becomes `CLOSED` without changing its counts. Run `list`,
-   `status 2 WITHDRAWN`, then `list role`; rejected becomes zero and withdrawn becomes one.
+   `status 2 st/WITHDRAWN`, then `list role`; rejected becomes zero and withdrawn becomes one.
    Restart and run `list role`; the same totals are reconstructed.
 
 1. Run `delete 2`, then `list role`.<br>
@@ -1357,6 +1382,25 @@ Always switch back with `list` or `list role` before using indices for that list
    command field, and scrolling still usable. Check the course-required screen sizes and scaling.
 
 #### Role creation and validation
+
+1. Run `role add r/Engineer@Platform x/2 years`.<br>
+   Expected: No role is created. The first error line states the length and letter requirements;
+   the second reads `Use only letters, digits, spaces, or these symbols: ' & - / . + # ( ) ,`.
+   The allowed-symbol list excludes `@`, explaining why this title fails despite its valid length
+   and letters. Correcting the command to `role add r/Engineer-Platform x/2 years` succeeds.
+   Check that both error lines are readable in the result display.
+
+1. In a separate disposable copy, run `role add r/C++ Developer x/2 years`,
+   `role add r/C# Developer x/2 years`, `role add r/Engineer (Backend) x/2 years`, and
+   `role add r/Manager, Sales x/5 years`, then `list role`.<br>
+   Expected: All four roles are added as `OPEN`, with their punctuation unchanged.
+   Try `role add r/  c++ developer  x/Senior`; it is rejected as a duplicate, while the
+   `C# Developer` role remains distinct. Add a candidate using `r/c++ developer`; the candidate
+   uses the stored spelling `C++ Developer`. Run `list role` and rename that role using
+   `role edit INDEX r/Engineer (C++), Backend`, replacing `INDEX` with its displayed role index.
+   Expected: Both the role and its candidate use the new title. Restart and check that all
+   titles and associations remain unchanged. The ordinary length and letter requirements still
+   apply: `role add r/+#(), x/Senior` and `role add r/C++@Developer x/Senior` are rejected.
 
 1. Run `role add x/Entry level r/QA Designer`.<br>
    Expected: `Added open role: QA Designer.` Run `list role` to see it at index 3 with experience
@@ -1419,22 +1463,22 @@ Always switch back with `list` or `list role` before using indices for that list
    Expected: `Cannot close role: QA Engineer. 2 candidate(s) still pending.` Both candidates count
    even though Ben was hidden by the candidate filter. The role stays `OPEN`, with no record changes.
 
-1. Run `status 1 HIRED`, then `find Ben` and `status 1 HIRED`.<br>
+1. Run `status 1 st/HIRED`, then `find Ben` and `status 1 st/HIRED`.<br>
    Expected: `QA Engineer already has a hired candidate.` Alice remains hired and Ben remains pending.
-   Run `find Alice` and `status 1 HIRED` again; reapplying the same status succeeds.
-   Run `list`, `status 2 REJECTED`, `list role`, and `role close 1`.<br>
+   Run `find Alice` and `status 1 st/HIRED` again; reapplying the same status succeeds.
+   Run `list`, `status 2 st/REJECTED`, `list role`, and `role close 1`.<br>
    Expected: `Closed role: QA Engineer.` The role is `CLOSED`; Alice and Ben are retained with their
    respective final statuses. Restart and verify the same roles and candidates are restored.
 
-1. Run `status 1 REJECTED`, `status 2 WITHDRAWN`, `list role`, and `role close 1`.<br>
+1. Run `status 1 st/REJECTED`, `status 2 st/WITHDRAWN`, `list role`, and `role close 1`.<br>
    Expected: Closure succeeds even with no hire. Separately, `list role` followed by `role close 2`
    closes the empty analyst role. No candidate is automatically hired, rejected, or removed.
 
-1. Run `status 1 HIRED`, then `status 1 INTERVIEW`.<br>
+1. Run `status 1 st/HIRED`, then `status 1 st/INTERVIEW`.<br>
    Expected: Returning to pending succeeds while the role is open. Repeat with each of the four
    pending statuses (`RESUME`, `INTERVIEW`, `OFFER`, `DECISION`) after assigning a final outcome. `list role` followed by `role close 1`
-   fails while a pending candidate remains. Run `list`, `status 1 HIRED`, `status 2 REJECTED`,
-   `list role`, and `role close 1`, then run `list` and `status 1 INTERVIEW`.<br>
+   fails while a pending candidate remains. Run `list`, `status 1 st/HIRED`, `status 2 st/REJECTED`,
+   `list role`, and `role close 1`, then run `list` and `status 1 st/INTERVIEW`.<br>
    Expected: `Cannot set a pending status for Alice Test because role QA Engineer is closed.`
    Each of the other pending statuses is rejected too. Final-to-final corrections still succeed,
    provided they do not create a second hire; the role remains closed.
@@ -1444,8 +1488,8 @@ Always switch back with `list` or `list role` before using indices for that list
    Expected: `The role “QA Analyst” is closed, so no new candidates can be added to it.`
    Cara is not added. Run `role close 2` again; it reports `QA Analyst is already closed.`
 
-1. Run `status 1 HIRED`, then
-   `add n/Cara Test p/91234563 e/cara@example.com a/3 Test Road r/QA Analyst`, and `status 3 HIRED`.<br>
+1. Run `status 1 st/HIRED`, then
+   `add n/Cara Test p/91234563 e/cara@example.com a/3 Test Road r/QA Analyst`, and `status 3 st/HIRED`.<br>
    Expected: Both Alice and Cara may be hired because they apply to different roles. `list role`
    still shows both roles as `OPEN`; hiring does not close either role automatically.
 
@@ -1459,7 +1503,7 @@ Always switch back with `list` or `list role` before using indices for that list
 
 1. Run `find Alice`, `list role`, then `role delete 1`.<br>
    Expected: `Cannot delete role: QA Engineer. It has 2 associated candidate(s).`
-   No candidate or role changes. Run `list`, `status 1 HIRED`, `status 2 REJECTED`, `list role`,
+   No candidate or role changes. Run `list`, `status 1 st/HIRED`, `status 2 st/REJECTED`, `list role`,
    `role close 1`, then `role delete 1`; deletion remains blocked even with a closed role and final
    candidate outcomes. It never deletes candidates to make the role eligible.
 
@@ -1477,6 +1521,32 @@ Always switch back with `list` or `list role` before using indices for that list
    command-specific "takes only a role index" errors. Rejected commands preserve the displayed list
    and all records. After a successful `role close 2`, a repeated closure reports that it is already closed.
 
+#### Undo and redo for role closure and deletion
+
+1. With the fixture restored, run `status 1 2 st/REJECTED`, `list role`, `role close 1`,
+   `undo`, then `list role`.<br>
+   Expected: `Undid the previous change.` The engineer role is `OPEN` again. Both candidates
+   retain their details and `REJECTED` status. Run `redo`, then `list role`; the role is `CLOSED`
+   again and neither candidate changes. The saved file follows each successful undo or redo.
+
+1. With the fixture restored, run `list role`, `role delete 2`, `undo`, then `list role`.<br>
+   Expected: The analyst role returns at index 2 with experience `Entry level` and status `OPEN`.
+   Both engineer candidates are unchanged. Run `redo`, then `list role`; only the engineer role
+   remains. Repeat after closing the empty analyst role; undoing deletion restores it as `CLOSED`.
+
+1. With the fixture restored, run `list role`, `role close 2`, `role edit 1 x/Senior`,
+   `undo`, then `list role`.<br>
+   Expected: The engineer's experience returns to `2 years`, but the analyst role remains `CLOSED`.
+   Run `undo` and `list role` again; the analyst role is now `OPEN`. Undo reverses the latest
+   change, not an arbitrarily selected role change. Read-only listing does not consume history.
+   Run `role add r/QA Designer x/Senior`, then `redo`.<br>
+   Expected: `There is no change to redo.` The new change has cleared redo history.
+
+1. With the fixture restored, close the empty analyst role, then restart the app and run `undo`.<br>
+   Expected: `There is no change to undo.` Run `list role`; the analyst role is still `CLOSED`.
+   Repeat with deletion instead of closure: the role remains absent after restart. Saved changes
+   survive restart, but undo and redo history do not.
+
 ### Adding a candidate
 
 1. Adding a candidate to an existing role
@@ -1484,7 +1554,7 @@ Always switch back with `list` or `list role` before using indices for that list
    1. Prerequisites: Start with the sample data, which includes the roles `Software Engineer`, `Data Analyst` and `Product Manager`.
 
    1. Test case: `add n/Jane Tan p/91234567 e/jane@example.com a/Clementi Ave 2 r/Data Analyst`<br>
-      Expected: Jane Tan is added to the end of the candidate list. The new card shows `Applying for: Data Analyst` and the status `Pending Resume Screening`.
+      Expected: Jane Tan is added to the end of the candidate list. The new card shows `Applying for: Data Analyst` and the status `Resume`.
 
    1. Test case: `add n/Ben Lim p/92345678 e/ben@example.com a/Jurong West r/product manager`<br>
       Expected: Ben Lim is added. The new card shows the role with the role's own spelling, `Applying for: Product Manager`.
@@ -1519,7 +1589,7 @@ Always switch back with `list` or `list role` before using indices for that list
    1. Prerequisites: Use the disposable role-management fixture above with Alice and Ben for QA
       Engineer and an empty, open QA Analyst role. Restore the fixture between independent checks.
 
-   1. Run `status 1 HIRED`, `status 2 REJECTED`, then `list role` and `role close 1`. Run `list`, then
+   1. Run `status 1 st/HIRED`, `status 2 st/REJECTED`, then `list role` and `role close 1`. Run `list`, then
       `edit 1 r/QA Analyst`.<br>
       Expected: Alice transfers from the closed engineer role to the open analyst role and stays hired.
       The engineer role stays closed. Ben remains rejected and associated with the engineer role.
@@ -1679,7 +1749,7 @@ Close the application window before editing or moving data files.
    and restore the fixture.
 
 1. Default candidate status: remove only Alice's `status` field from a valid fixture file, then restart.<br>
-   Expected: Alice loads with `Pending Resume Screening`; `list role` then `role close 1` reports two
+   Expected: Alice loads with `Resume`; `list role` then `role close 1` reports two
    pending candidates. Removing a role's `status` or a candidate's `role` field instead prevents loading.
 
 1. Legacy inconsistency guard: in a fixture backup, set both candidate statuses to `HIRED` and restart.<br>

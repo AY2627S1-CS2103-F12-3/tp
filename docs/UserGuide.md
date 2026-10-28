@@ -28,15 +28,6 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
 
-   <box type="warning" seamless>
-
-   **Caution:**
-   Always launch RecruiterBuddy this way. RecruiterBuddy creates its data, preferences, and log files
-   in the folder it is launched from. Other ways of launching it, such as double-clicking the JAR file,
-   may launch it from a different folder, depending on your operating system. RecruiterBuddy would then
-   create and use files in that folder instead of the JAR file's folder.
-   </box>
-
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:
 
@@ -129,7 +120,7 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
   * Phone numbers are compared exactly as saved, so `+6591234567` and `91234567` are different numbers. Type phone numbers in one consistent format, such as always without the country code.
 * Candidates may share a name, as long as their emails and phone numbers are different.
 * Each candidate applies for one role. Since their email and phone number stay the same, the same person cannot be added again for a second role.
-* Newly added candidates are automatically assigned the status `Pending Resume Screening`.
+* Newly added candidates are automatically assigned the status `RESUME`, displayed as `Resume`.
 * The candidate's card shows the role as `Applying for: ROLE`.
 
 <box type="tip" seamless>
@@ -158,7 +149,8 @@ Both `r/` and `x/` are required, must appear exactly once, and may appear in eit
 Leading and trailing whitespace is removed from each value before validation and storage.
 
 * `ROLE_TITLE`: 1–100 characters after trimming, with at least one letter. It may contain letters,
-  digits, spaces, apostrophes (`'`), ampersands (`&`), hyphens (`-`), slashes (`/`), and full stops (`.`).
+  digits, spaces, apostrophes (`'`), ampersands (`&`), hyphens (`-`), slashes (`/`), full stops (`.`),
+  plus signs (`+`), hashes (`#`), parentheses (`(` and `)`), and commas (`,`).
 * `EXPERIENCE_LEVEL`: 1–50 printable characters after trimming, with no embedded newlines, tabs,
   or other control characters. Examples include `Entry level`, `2 years`, and `Senior`.
 * Role titles must be unique across both `OPEN` and `CLOSED` roles, ignoring case and surrounding
@@ -169,6 +161,10 @@ Examples:
 
 * `role add r/Software Engineer x/2 years`
 * `role add x/Entry level r/Product Analyst`
+* `role add r/C++ Developer x/2 years`
+* `role add r/C# Developer x/2 years`
+* `role add r/Engineer (Backend) x/2 years`
+* `role add r/Manager, Sales x/5 years`
 
 On success, RecruiterBuddy shows `Added open role: ROLE_TITLE.` and saves the role with status `OPEN`.
 Run `list role` to display it; `role add` itself returns to the candidate list.
@@ -179,7 +175,13 @@ If validation fails, no role is created:
 * Missing experience prefix: `Missing required field: x/.`
 * Repeated prefix: `Multiple values specified for the following single-valued field(s): PREFIX`.
   For example, repeating `x/` reports that prefix even if both values are identical.
-* Empty or invalid title: `Role title must be 1–100 characters and contain a letter.`
+* Empty or invalid title:
+
+  ```text
+  Role title must be 1–100 characters and contain a letter.
+  Use only letters, digits, spaces, or these symbols: ' & - / . + # ( ) ,
+  ```
+
 * Empty or invalid experience level:
   `Required experience level must be 1–50 characters and must not contain a new line.`
 * Duplicate title: `A role named “ROLE_TITLE” already exists.`
@@ -216,7 +218,8 @@ Validation failures leave all records, filters, and the saved data unchanged:
 * Candidate list displayed: `The role list is not displayed. Use list role first.`
 * No fields supplied: `At least one field to edit must be provided.`
 * Repeated prefix: `Multiple values specified for the following single-valued field(s): PREFIX`. If both prefixes repeat, the message names both.
-* Empty or invalid title: `Role title must be 1–100 characters and contain a letter.`
+* Empty or invalid title: the same two-line role-title constraint message shown under
+  [`role add`](#adding-a-role-role-add), including the allowed characters.
 * Empty or invalid experience: `Required experience level must be 1–50 characters and must not contain a new line.`
 * Another role has the requested title: `A role named “ROLE_TITLE” already exists.` This also applies if the other role is closed.
 * Extra text before the first prefix: `Invalid command format!`, followed by usage and an example.
@@ -238,6 +241,8 @@ Example: `list role`, followed by `role close 1`.
 Success shows `Closed role: ROLE_TITLE.` and changes the displayed status to `CLOSED`.
 The role and its candidates are saved automatically; candidate statuses remain unchanged.
 New candidates cannot be added to the closed role. A role is never closed automatically.
+To reverse a closure in the current session, use [`undo`](#undoing-a-change-undo).
+There is no dedicated command to reopen an arbitrary closed role.
 
 If closure fails, no records change:
 
@@ -250,7 +255,7 @@ If closure fails, no records change:
 
 ### Deleting a role: `role delete`
 
-Permanently removes a role entered by mistake. Run `list role` first.
+Removes a role entered by mistake. Run `list role` first.
 
 Format: `role delete INDEX`
 
@@ -262,7 +267,8 @@ Example: `list role`, followed by `role delete 1`.
 
 Success shows `Deleted role: ROLE_TITLE.`. The role disappears, remaining displayed indices update,
 and the change is saved automatically. Its title can be used again with `role add`.
-Deletion is immediate and permanent. It never deletes, detaches, or reassigns candidates.
+Deletion is immediate, but [`undo`](#undoing-a-change-undo) can restore the role in the current
+session. It never deletes, detaches, or reassigns candidates.
 
 If deletion fails, no records change:
 
@@ -296,8 +302,18 @@ Examples:
 * `add ...` followed by `undo` removes the newly added person.
 * `edit 1 p/91234567` followed by `undo` restores the person's previous phone number.
 * `delete 1` followed by `undo` restores the deleted person.
+* `list role`, `role close 1`, then `undo` restores the role's `OPEN` status without changing its candidates.
+* `list role`, `role delete 1`, then `undo` restores the role, including its title, experience level,
+  status, and position in the role list.
 
-The `list`, `find`, `help`, and `exit` commands do not affect undo history. Changes are saved automatically, so an undo also updates the saved address-book data.
+Undo reverses changes in order, not a selected role or candidate. If other changes were made after
+a closure or deletion, undo those changes first. After undoing a role change, run `list role` to
+view the restored roles; this does not affect undo history.
+
+The `list` (including `list role`), `find`, and `help` commands do not affect undo history.
+An undo also updates the saved role and candidate data automatically. Undo and redo history exist
+only in the current session: exiting and restarting preserves saved records, but clears both
+histories. A deletion or closure from an earlier session cannot be reversed with `undo`.
 
 ### Redoing a change: `redo`
 
@@ -306,6 +322,8 @@ Redoes the most recently undone change.
 Format: `redo`
 
 Redo is available only after an `undo`. Executing a new address-book change after an undo clears the redo history. Like all address-book changes, a redo is saved automatically.
+For example, after undoing `role delete 1` or `role close 1`, `redo` deletes or closes the role again.
+Run `list role` to view the result.
 
 ### Editing a person: `edit`
 Each role card also shows `Pending`, `Hired`, `Rejected`, and `Withdrawn` candidate totals, including
@@ -443,12 +461,12 @@ Format: `status INDEX... st/STATUS`
   * In both of the above failure cases, no candidate data changes, even for other candidates specified in the same command whose roles have a vacancy.
 * Reapplying `HIRED` to the same candidate is allowed when no other candidate for that role is hired. Marking a candidate `HIRED` does not close the role; use `role close` explicitly after all candidates have final outcomes.
 * For an `OPEN` role, a candidate with a final outcome (`HIRED`, `REJECTED`, or `WITHDRAWN`) may return to any of the four pending statuses (`RESUME`, `INTERVIEW`, `OFFER`, or `DECISION`) to correct or resume their recruitment process.
-* For a `CLOSED` role, assigning any of the pending statuses is rejected with `Cannot set a pending status for NAME because role ROLE_TITLE is closed.` The candidate, role, current filter, and saved records remain unchanged. Corrections between final outcomes are still allowed, subject to the one-hired-candidate rule. Reopening a role is not supported in the MVP.
+* For a `CLOSED` role, assigning any of the pending statuses is rejected with `Cannot set a pending status for NAME because role ROLE_TITLE is closed.` The candidate, role, current filter, and saved records remain unchanged. Corrections between final outcomes are still allowed, subject to the one-hired-candidate rule. There is no dedicated reopen command, but [`undo`](#undoing-a-change-undo) can reverse a closure in the current session after any later changes have been undone.
 
 Example:
 
-* `status 1 offer`
-* `status 2 4 6 INTERVIEW`
+* `status 1 st/offer`
+* `status 2 4 6 st/INTERVIEW`
 
 ### Deleting a candidate: `delete`
 
@@ -478,11 +496,11 @@ Format: `exit`
 
 ### Saving the data
 
-RecruiterBuddy automatically saves the complete candidate and role data after a command executes
+RecruiterBuddy automatically stores `data/addressbook.json` (containing candidate and role data), `preferences.json`, and log files in the folder containing the JAR file, regardless of the terminal's working directory. Candidate and role data is saved automatically when a command executes
 successfully, including commands such as `list` that do not change records. You do not need to save
 manually. Commands rejected during parsing or validation do not trigger a save.
 
-Upon startup, RecruiterBuddy automatically loads data saved during the previous session. Saved roles retain their titles, required experience levels, and `OPEN` or `CLOSED` statuses after
+Upon startup, RecruiterBuddy automatically loads saved data from the folder where the JAR file is located. Saved roles retain their titles, required experience levels, and `OPEN` or `CLOSED` statuses after
 restarting. Candidates associated with closed roles are retained too. If no data file exists,
 RecruiterBuddy starts with sample roles and candidates, not an empty data set.
 
@@ -494,8 +512,7 @@ problem and run a successful command to retry saving before exiting.
 
 ### Editing the data file
 
-RecruiterBuddy saves data in `data/addressbook.json`, inside the folder it was launched from. If you
-launched it as described in [Quick start](#quick-start), this is the folder containing the JAR file.
+RecruiterBuddy saves data in `data/addressbook.json`, relative to the folder containing the JAR file, regardless of the terminal's working directory.
 The file is created after the first successfully executed command.
 Advanced users may edit this JSON file while the application is closed. Back it up first.
 
@@ -589,7 +606,6 @@ _Details coming soon ..._
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
 2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
-3. **If RecruiterBuddy is launched from a folder other than the JAR file's folder** (for example, by double-clicking the JAR file on some systems), it reads and writes `data/addressbook.json`, `preferences.json`, and `addressbook.log` in that other folder. It may then show sample data instead of your saved data. The remedy is to close the application, back up the `data/addressbook.json` files in both folders, decide which one to keep, copy it into the `data` folder beside the JAR file, and relaunch RecruiterBuddy as described in [Quick start](#quick-start).
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -612,5 +628,5 @@ Action     | Format, Examples
 **Role edit** | `role edit INDEX [r/ROLE_TITLE] [x/EXPERIENCE_LEVEL]`<br> e.g., `list role` followed by `role edit 1 r/Platform Engineer x/5 years`
 **Role close** | `role close INDEX`<br> e.g., `list role` followed by `role close 1`
 **Role delete** | `role delete INDEX`<br> e.g., `list role` followed by `role delete 1`
-**Status** | `status INDEX... st/STATUS`<br> e.g., `status 1 2 3 HIRED`
+**Status** | `status INDEX... st/STATUS`<br> e.g., `status 1 2 3 st/HIRED`
 **Help**   | `help`
