@@ -1,8 +1,12 @@
 package seedu.address.logic.commands;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 import seedu.address.logic.parser.RoleCommandParser;
 
@@ -22,6 +26,14 @@ public final class CommandGuide {
         return "RecruiterBuddy command guide\n"
                 + "Scroll to read all commands. INDEX refers to the number in the relevant displayed list.\n\n"
                 + String.join("\n\n", COMMAND_HELP.values());
+    }
+
+    /**
+     * Returns instructions for {@code commandWord}, ignoring case, or empty if it is unsupported.
+     */
+    public static Optional<String> findHelp(String commandWord) {
+        requireNonNull(commandWord);
+        return Optional.ofNullable(COMMAND_HELP.get(commandWord.toLowerCase(Locale.ROOT)));
     }
 
     /**

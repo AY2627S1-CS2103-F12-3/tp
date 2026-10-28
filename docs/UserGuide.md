@@ -81,8 +81,8 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
 * A parameter may contain text such as `s/o` or `c/o`, as long as it is not one of the command's prefixes.<br>
   For example, in `n/Ravi s/o Kumar` the name is `Ravi s/o Kumar`, because `s/` is not a prefix of `add`.
 
-* Extraneous parameters for `help`, `exit`, and `clear` are ignored.<br>
-  For example, `help 123` is interpreted as `help`. `list` accepts only `list` or `list role`; anything else is rejected.
+* Extraneous parameters for `exit` and `clear` are ignored. `help` accepts at most one command name.
+  `list` accepts only `list` or `list role`; anything else is rejected.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </box>
@@ -93,7 +93,20 @@ Shows every supported command's purpose, syntax and example in the result area. 
 connection is needed. The result area expands for help, wraps long lines and can be scrolled
 vertically. The candidate and role lists remain visible.
 
-Format: `help`
+Format: `help [COMMAND]`
+
+* `help` shows the complete guide; `help COMMAND` shows only that command's syntax, purpose and examples.
+* Supported topics: `add`, `edit`, `delete`, `note`, `interview`, `status`, `find`, `list`, `role`,
+  `clear`, `undo`, `redo`, `exit` and `help`.
+* Help keywords are case-insensitive: `HELP ADD` and `help add` show the same instructions. This does
+  not change the casing accepted when executing other commands.
+* `help list` explains both `list` and `list role`. `help role` explains `role add`, `role edit`,
+  `role close` and `role delete`. Subcommands are grouped under these single-word topics;
+  `help list role` is not supported.
+* An unknown topic shows: `No help is available for “COMMAND”. Use help to view all commands.`
+* More than one argument shows: `Help accepts at most one command name.`
+
+Examples: `help`, `help add`, `help role`.
 
 The **Help** menu and **F1** show the same overview. Viewing help does not change candidates,
 roles, either list's filter, the data file or undo/redo history. The next command replaces the
@@ -632,4 +645,4 @@ Action     | Format, Examples
 **Role close** | `role close INDEX`<br> e.g., `list role` followed by `role close 1`
 **Role delete** | `role delete INDEX`<br> e.g., `list role` followed by `role delete 1`
 **Status** | `status INDEX... st/STATUS`<br> e.g., `status 1 2 3 HIRED`
-**Help**   | `help`
+**Help**   | `help [COMMAND]`<br> e.g., `help role`

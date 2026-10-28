@@ -28,6 +28,9 @@ import seedu.address.testutil.EditPersonDescriptorBuilder;
  */
 public class CommandTestUtil {
 
+    public static final List<String> HELP_TOPICS = List.of("add", "edit", "delete", "note", "interview", "status",
+            "find", "list", "role", "clear", "undo", "redo", "exit", "help");
+
     public static final String VALID_NAME_AMY = "Amy Bee";
     public static final String VALID_NAME_BOB = "Bob Choo";
     public static final String VALID_PHONE_AMY = "11111111";

@@ -3,8 +3,11 @@ package seedu.address.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.commands.CommandTestUtil.HELP_TOPICS;
+import static seedu.address.testutil.Assert.assertThrows;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
@@ -15,8 +18,7 @@ public class CommandGuideTest {
     @Test
     public void getOverview_supportedCommands_containsEveryCommandOnce() {
         String overview = CommandGuide.getOverview();
-        for (String command : List.of("add", "edit", "delete", "note", "interview", "status", "find", "list",
-                "role", "clear", "undo", "redo", "exit", "help")) {
+        for (String command : HELP_TOPICS) {
             assertEquals(1, overview.lines().filter(line -> line.startsWith(command + ": ")).count(), command);
         }
         assertTrue(overview.startsWith("RecruiterBuddy command guide\n"));
@@ -44,9 +46,33 @@ public class CommandGuideTest {
                 .map(line -> line.substring(line.indexOf(": ") + 2))
                 .flatMap(line -> List.of(line.split("; ")).stream())
                 .toList();
-        assertEquals(18, examples.size());
+        assertEquals(20, examples.size());
         for (String example : examples) {
             assertNotNull(parser.parseCommand(example), example);
+        }
+    }
+
+    @Test
+    public void findHelp_unknownTopic_returnsEmpty() {
+        assertTrue(CommandGuide.findHelp("mystery").isEmpty());
+        assertTrue(CommandGuide.findHelp("").isEmpty());
+    }
+
+    @Test
+    public void findHelp_nullTopic_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> CommandGuide.findHelp(null));
+    }
+
+    @Test
+    public void findHelp_mixedCaseAndTurkishLocale_returnsSameInstructions() {
+        Locale original = Locale.getDefault();
+        try {
+            Locale.setDefault(Locale.forLanguageTag("tr-TR"));
+            for (String command : HELP_TOPICS) {
+                assertEquals(CommandGuide.findHelp(command), CommandGuide.findHelp(command.toUpperCase(Locale.ROOT)));
+            }
+        } finally {
+            Locale.setDefault(original);
         }
     }
 }

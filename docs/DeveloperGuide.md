@@ -204,7 +204,14 @@ This section describes some noteworthy details on how certain features are imple
 
 ### Offline command guide
 
-`HelpCommand` returns a non-undoable `CommandResult` containing `CommandGuide#getOverview()`.
+`HelpCommandParser` accepts zero or one command name. More than one token is rejected with the
+dedicated extra-argument message. `AddressBookParser` recognizes the help keyword without case
+sensitivity, without changing dispatch for other commands.
+
+`HelpCommand` returns a non-undoable `CommandResult` containing `CommandGuide#getOverview()` when
+no topic is supplied, or `CommandGuide#findHelp()` for a single topic. Lookup uses `Locale.ROOT` so
+case-insensitive matching is independent of the machine's language settings. Unknown topics produce
+a `CommandException` naming the original input; neither failure path changes the model.
 `CommandGuide` keeps instructions in a stable command order and reuses existing `MESSAGE_USAGE`
 definitions where available. This avoids a second source of truth for command parameters and examples.
 
@@ -1334,6 +1341,13 @@ testers are expected to do more *exploratory* testing.
 1. Run `list`. Expected: Normal result-area height is restored and command execution remains usable.
 1. Add a disposable role, run `help`, then `undo`, `help`, `redo`.
    Expected: Undo removes the added role and redo restores it; help never becomes a history entry.
+1. Run `help add`, `HELP INTERVIEW`, `help status`, `help list`, `help role` and `help help`.
+   Expected: Only the requested topic is shown, using the currently supported syntax (`d/` for
+   interviews and `st/` for statuses). List help covers both lists; role help covers all four role
+   subcommands. Neither `help clear` nor `help exit` executes the command being described.
+1. Run `help NotACommand`, then `help list role`.
+   Expected: Respectively, `No help is available for “NotACommand”. Use help to view all commands.`
+   and `Help accepts at most one command name.` Data, filters and undo/redo history are unchanged.
 
 ### Role management
 
