@@ -393,7 +393,7 @@ Format: `note INDEX [NOTE]`
 * Everything after the index is saved as the note, with leading and trailing spaces removed. The note can contain any text, including text that looks like a prefix, such as `t/` or `n/`.
 * A new note replaces the candidate's existing note. Each candidate has one note, shown on their card as `Note: NOTE`.
 * To clear a candidate's note, enter `note INDEX` without a note after it.
-* If a note is replaced or cleared, the result message says so and suggests `undo`, which restores the previous note. A cleared note is also shown in the message.
+* The result message says whether the note was added, replaced or cleared. A cleared note is also shown in the message. If you replace or clear a note by mistake, use [`undo`](#undoing-a-change-undo) to restore it.
 * The candidate's other details are not changed, and the displayed list stays as it is, so a filtered list remains filtered.
 * To record an interview date and time, use [`interview`](#scheduling-or-clearing-an-interview-interview) instead, which checks that the date and time are valid.
 

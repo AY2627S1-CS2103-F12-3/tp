@@ -31,13 +31,13 @@ public class NoteCommand extends Command {
             + "Example: " + COMMAND_WORD + " 1 Prefers hybrid work";
 
     /*
-     * Messages that remove an existing note suggest undo, so a note replaced or cleared by mistake is easy
-     * to restore. The candidate's name comes first and the note last, so a long note cannot push the name
-     * or the hint out of view.
+     * A new note is not repeated in the message, since the candidate's card already shows it. Replacing a note
+     * says so, so an existing note is never overwritten silently. Clearing suggests undo and shows the cleared
+     * note last, since the user cannot see it anywhere else and a long note cannot push the hint out of view.
      */
-    public static final String MESSAGE_UPDATE_NOTE_SUCCESS = "Updated note of %1$s.\nNew note: %2$s";
-    public static final String MESSAGE_REPLACE_NOTE_SUCCESS =
-            "Replaced note of %1$s. Use undo to revert.\nNew note: %2$s";
+    public static final String MESSAGE_ADD_NOTE_SUCCESS = "Added note to %1$s.";
+    public static final String MESSAGE_REPLACE_NOTE_SUCCESS = "Replaced note of %1$s.";
+    public static final String MESSAGE_UNCHANGED_NOTE_SUCCESS = "Updated note of %1$s.";
     public static final String MESSAGE_CLEAR_NOTE_SUCCESS =
             "Cleared note of %1$s. Use undo to revert.\nPrevious note: %2$s";
     public static final String MESSAGE_NO_NOTE_TO_CLEAR = "%1$s has no note to clear.";
@@ -83,9 +83,8 @@ public class NoteCommand extends Command {
     }
 
     /**
-     * Returns the success message for {@code editedPerson}, naming the candidate.
-     * A new note is shown after the message. Clearing a note shows the cleared note instead,
-     * since the user cannot see it anywhere else.
+     * Returns the success message for {@code editedPerson}, naming the candidate and saying whether the note
+     * was added, replaced, kept the same or cleared. Clearing a note also shows the cleared note.
      *
      * @param previousNote The note the candidate had before this command.
      * @param editedPerson The candidate with the new note.
@@ -97,9 +96,13 @@ public class NoteCommand extends Command {
                     : String.format(MESSAGE_CLEAR_NOTE_SUCCESS, editedPerson.getName(), previousNote);
         }
 
-        boolean isOtherNoteReplaced = !previousNote.isEmpty() && !previousNote.equals(note);
-        String messageFormat = isOtherNoteReplaced ? MESSAGE_REPLACE_NOTE_SUCCESS : MESSAGE_UPDATE_NOTE_SUCCESS;
-        return String.format(messageFormat, editedPerson.getName(), note);
+        if (previousNote.isEmpty()) {
+            return String.format(MESSAGE_ADD_NOTE_SUCCESS, editedPerson.getName());
+        }
+        if (previousNote.equals(note)) {
+            return String.format(MESSAGE_UNCHANGED_NOTE_SUCCESS, editedPerson.getName());
+        }
+        return String.format(MESSAGE_REPLACE_NOTE_SUCCESS, editedPerson.getName());
     }
 
     @Override

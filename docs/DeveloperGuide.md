@@ -594,7 +594,7 @@ Each `Person` has a `Note`, a free-text field for details such as a candidate's 
 
 `NoteCommandParser` splits the arguments into the first word, which is parsed as the index, and the rest, which is trimmed and becomes the note. It does not use `ArgumentTokenizer`, so the note can contain text that looks like a prefix, such as `t/` or `n/`. An empty remainder gives an empty `Note`, so `note 1` clears the first candidate's note.
 
-`NoteCommand#execute` looks up the candidate in the displayed candidate list and replaces it with a copy that has the new note. It does not reset the candidate filter, so a recruiter can add notes to a filtered list by its displayed numbers. The result message compares the previous note with the new one: replacing or clearing a note suggests `undo`, and clearing also shows the cleared note, since the user cannot see it anywhere else. Other commands that rebuild a `Person`, such as `edit`, `status`, and `interview`, copy the existing note across, so they never change it.
+`NoteCommand#execute` looks up the candidate in the displayed candidate list and replaces it with a copy that has the new note. It does not reset the candidate filter, so a recruiter can add notes to a filtered list by its displayed numbers. The result message compares the previous note with the new one, so it says whether a note was added, replaced or cleared. It does not repeat a new note, since the candidate card shows it. Clearing a note suggests `undo` and shows the cleared note, since the user cannot see it anywhere else. Other commands that rebuild a `Person`, such as `edit`, `status`, and `interview`, copy the existing note across, so they never change it.
 
 Notes are stored as the `note` field of each candidate in the JSON data file. A candidate saved without a `note` field loads with an empty note.
 
@@ -612,7 +612,7 @@ Notes are stored as the `note` field of each candidate in the JSON data file. A 
 **Aspect: Replacing or adding to a note**
 
 * **Alternative 1 (current choice):** `note INDEX NOTE` replaces the whole note, and `note INDEX` clears it.
-  * Pros: One simple command covers setting, correcting and clearing a note. When a note is replaced or cleared, the result message suggests `undo`, so a note changed by mistake is easy to restore.
+  * Pros: One simple command covers setting, correcting and clearing a note. The result message says when a note was replaced or cleared, so a note is never overwritten silently, and `undo` restores a note changed by mistake.
   * Cons: To add to a note, the user types the whole note again.
 * **Alternative 2:** A way to add text to the end of an existing note.
   * Pros: Saves retyping when a recruiter adds details after each recruitment stage.
@@ -902,7 +902,7 @@ Use case ends.
   * 1c1. RecruiterBuddy reports that there is no note to clear.
   * Use case ends.
 * 4a. The candidate already has a different note.
-  * 4a1. RecruiterBuddy replaces the existing note with the new one, and informs the recruiter that the change can be undone.
+  * 4a1. RecruiterBuddy replaces the existing note with the new one, and informs the recruiter that the note was replaced.
   * Use case resumes at step 5.
 
 #### UC07 — Close Role Opening
@@ -1601,7 +1601,7 @@ Always switch back with `list` or `list role` before using indices for that list
    1. Prerequisites: Start with the sample data and run `list`.
 
    1. Test case: `note 2 Prefers hybrid work`<br>
-      Expected: The 2nd candidate's card shows `Note: Prefers hybrid work`. The message starts with `Replaced note of Bernice Yu. Use undo to revert.`, because Bernice had a sample note.
+      Expected: The 2nd candidate's card shows `Note: Prefers hybrid work`. The message is `Replaced note of Bernice Yu.`, because Bernice had a sample note.
 
    1. Test case: `note 2 Discuss t/java experience`<br>
       Expected: The note is replaced with `Discuss t/java experience`. No `java` tag is added.
