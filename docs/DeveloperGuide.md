@@ -230,7 +230,9 @@ no network connection or additional files.
 
 The 'Status' enum defines seven candidate statuses: `RESUME`, `INTERVIEW`, `OFFER`, `DECISION`, `HIRED`, `REJECTED`, and `WITHDRAWN`. The first four are _pending_ statuses; the remaining three are _final_ statuses. New candidates are assigned the `RESUME` status by default.
 
-When stored candidate data has no status, loading it defaults to `RESUME`. Upon successful execution of any command, `LogicManager` saves the complete addressbook, and `JsonAdaptedPerson` writes each status using its exact enum name.
+When stored candidate data has no status, loading it defaults to `RESUME`. Upon successful execution
+of any command except `HelpCommand`, `LogicManager` saves the complete address book, and
+`JsonAdaptedPerson` writes each status using its exact enum name. Viewing help does not trigger a save.
 
 An unrecognized stored value causes data loading to fail and invokes the recovery process described in [Protecting unreadable recruitment data](#protecting-unreadable-recruitment-data).
 
@@ -318,8 +320,11 @@ Saving occurs in `LogicManager` after the command returns successfully, as descr
 
 #### Saving and restoring associations
 
-After a command executes successfully, `LogicManager#execute` asks `Storage` to save the complete
-address book, including both collections. This also happens for successful read-only commands.
+After a command other than `HelpCommand` executes successfully, `LogicManager#execute` asks `Storage`
+to save the complete address book, including both collections. This also happens for successful
+read-only commands such as `list`. `HelpCommand` returns before the save call, so viewing help neither
+creates the recruitment data file nor retries a failed save. After resolving a file-access problem,
+the user can run `list` successfully to retry saving.
 Parsing and command-validation failures do not reach the save call. Save errors become
 `CommandException`s; earlier in-memory changes are not rolled back. Normal command saves are not
 transactional and do not create backups. Startup recovery below handles unreadable data separately.
@@ -1721,8 +1726,10 @@ Close the application window before editing or moving data files.
 
 1. Missing file: while the app is closed, move `data/addressbook.json` to a backup location within the
    test folder. Restart.<br>
-   Expected: Sample roles and candidates appear, not empty lists. Close the window and restore the
-   backup before continuing with the other scenarios.
+   Expected: Sample roles and candidates appear, not empty lists. Run `help`, use the Help menu and
+   press F1: instructions appear, but `data/addressbook.json` is not created. Run `list` successfully:
+   the file is created with the displayed sample data. Close the window and restore the backup
+   before continuing with the other scenarios.
 
 1. Invalid file: back up the fixture file while the app is closed. Replace the JSON with `{` and restart.<br>
    Expected: A `Recruitment data backed up` warning identifies the full backup and replacement paths
