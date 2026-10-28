@@ -146,6 +146,24 @@ public class EditCommandTest {
     }
 
     @Test
+    public void execute_unchangedUnusualPhone_successWithoutWarning() {
+        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person personWithUnusualPhone = new PersonBuilder(firstPerson).withPhone("12345678").build();
+        model.setPerson(firstPerson, personWithUnusualPhone);
+
+        // the same number written with a space is saved without it, so it is unchanged
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withPhone("1234 5678").build();
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, descriptor);
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS,
+                Messages.format(personWithUnusualPhone));
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
     public void execute_noFieldSpecifiedUnfilteredList_success() {
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptor());
         Person editedPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());

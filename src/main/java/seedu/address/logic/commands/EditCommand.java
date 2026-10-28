@@ -111,7 +111,9 @@ public class EditCommand extends Command {
             logger.info("Updated candidate role in memory at displayed index " + index.getOneBased() + ".");
         }
         String successMessage = String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
-        if (editPersonDescriptor.getPhone().isEmpty()) {
+        // notes on an unchanged number were already shown when it was saved
+        boolean isPhoneChanged = !editedPerson.getPhone().equals(personToEdit.getPhone());
+        if (!isPhoneChanged) {
             return new CommandResult(successMessage);
         }
         return new CommandResult(PhoneChecks.appendPhoneWarnings(successMessage, model, editedPerson));

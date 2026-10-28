@@ -591,7 +591,7 @@ _{more aspects and alternatives to be added}_
 `Phone` accepts 8 to 15 digits with an optional leading `+`, and removes spaces and hyphens before saving. Two kinds of phone problems are checked when a candidate is added or their phone number is edited:
 
 * **Exact duplicates are rejected.** `Person#isSamePerson` compares phone numbers with `Phone#equals`, which compares the saved digits exactly. `UniquePersonList` and the data-file loader use the same rule.
-* **Possible problems only add a note to the success message.** `PhoneChecks#appendPhoneWarnings` runs after `AddCommand` or `EditCommand` has stored the candidate. `EditCommand` calls it only when `p/` is given.
+* **Possible problems only add a note to the success message.** `PhoneChecks#appendPhoneWarnings` runs after `AddCommand` or `EditCommand` has stored the candidate. `EditCommand` calls it only when the phone number changes, so an unchanged number is not flagged again.
   * `Phone#isPlausibleNumber` treats a number without a `+`, or with `+65`, as a Singapore number, which has 8 digits starting with 3, 6, 8 or 9. Numbers with another country code are not checked, since overseas formats vary.
   * `Phone#isPossiblySameNumber` compares numbers after removing the `+` and, if `65` is followed by exactly 8 digits, the `65`. So `+6591234567`, `6591234567` and `91234567` may be the same number, but are not exact duplicates.
 

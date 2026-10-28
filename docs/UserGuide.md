@@ -366,7 +366,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITL
   same [role-title rules](#adding-a-role-role-add) as role creation.
 * The new email and phone number must not be used by another candidate, following the same rules as in
   [`add`](#adding-a-candidate-add). Keeping a candidate's own email or phone number is fine.
-* When `p/` is given, the result includes the same phone number notes as `add`, if any apply.
+* When `p/` changes the phone number, the result includes the same phone number notes as `add`, if any apply.
 * Success shows `Edited candidate: ...` with the updated name and details, refreshes the candidate
   list to show all candidates, and saves the change. Validation failures leave records and filters unchanged.
 
