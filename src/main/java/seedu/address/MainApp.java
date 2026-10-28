@@ -13,6 +13,7 @@ import javafx.application.Application;
 import javafx.stage.Stage;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.exceptions.DataLoadingException;
+import seedu.address.commons.util.FileUtil;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.Logic;
 import seedu.address.logic.LogicManager;
@@ -93,9 +94,9 @@ public class MainApp extends Application {
         logger.info("=============================[ Initializing AddressBook ]===========================");
         super.init();
 
-        Path jarDir = getDir();
-        JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(jarDir.resolve(userPrefsFilePath));
-        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(jarDir.resolve(addressBookFilePath));
+        Path codeDir = FileUtil.getDir();
+        JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(codeDir.resolve(userPrefsFilePath));
+        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(codeDir.resolve(addressBookFilePath));
         storage = new StorageManager(addressBookStorage, userPrefsStorage);
 
         UserPrefs userPrefs = initPrefs(userPrefsStorage);
@@ -118,7 +119,7 @@ public class MainApp extends Application {
      */
     private boolean recoverRecruitmentData(ReadOnlyUserPrefs userPrefs) throws Exception {
         Path dataBackupPath = null;
-        Path addressBookFullFilePath = getDir().resolve(addressBookFilePath);
+        Path addressBookFullFilePath = storage.getAddressBookFilePath();
         try {
             dataBackupPath = dataRecovery.backUp(addressBookFullFilePath);
             dataRecovery.createEmptyDataFile(addressBookFullFilePath);
@@ -206,13 +207,5 @@ public class MainApp extends Application {
         } catch (IOException e) {
             logger.severe("Failed to save preferences " + StringUtil.getDetails(e));
         }
-    }
-
-    /**
-     * Returns Path to the directory where the JAR is located.
-     */
-    private Path getDir() throws Exception {
-        Path jarPath = Paths.get(MainApp.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-        return jarPath.getParent();
     }
 }
