@@ -2,6 +2,7 @@ package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_ROLE_DISPLAYED_INDEX;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
+import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailureWithReason;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.address.testutil.Assert.assertThrows;
 
@@ -22,7 +23,8 @@ public class CloseRoleCommandParserTest {
     @Test
     public void parse_invalidIndex_failure() {
         for (String input : new String[]{"", " ", "0", "-1", "one", "1.5", "2147483648"}) {
-            assertParseFailure(parser, input, MESSAGE_INVALID_ROLE_DISPLAYED_INDEX);
+            assertParseFailureWithReason(parser, input, MESSAGE_INVALID_ROLE_DISPLAYED_INDEX,
+                    ParserUtil.MESSAGE_INVALID_INDEX);
         }
     }
 

@@ -1,7 +1,6 @@
 package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -34,8 +33,20 @@ public class CommandParserTestUtil {
             parser.parse(userInput);
             throw new AssertionError("The expected ParseException was not thrown.");
         } catch (ParseException pe) {
-            assertTrue(pe.getMessage().startsWith(expectedMessage), () ->
-                    "Expected message prefix: " + expectedMessage + " but was: " + pe.getMessage());
+            assertEquals(expectedMessage, pe.getMessage());
+        }
+    }
+
+    /**
+     * Asserts that a parser rejects the input with an invalid-format message and an explicit reason.
+     */
+    public static void assertParseFailureWithReason(Parser<? extends Command> parser, String userInput,
+            String expectedMessage, String expectedReason) {
+        try {
+            parser.parse(userInput);
+            throw new AssertionError("The expected ParseException was not thrown.");
+        } catch (ParseException pe) {
+            assertEquals(expectedMessage + "\nReason: " + expectedReason, pe.getMessage());
         }
     }
 }

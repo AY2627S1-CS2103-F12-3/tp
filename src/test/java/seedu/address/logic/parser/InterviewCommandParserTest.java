@@ -3,6 +3,7 @@ package seedu.address.logic.parser;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_INTERVIEW;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
+import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailureWithReason;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
@@ -64,28 +65,35 @@ public class InterviewCommandParserTest {
 
     @Test
     public void parse_missingIndex_failure() {
-        assertParseFailure(parser, "", MESSAGE_INVALID_FORMAT);
-        assertParseFailure(parser, "d/2026-10-20 14:00", MESSAGE_INVALID_FORMAT);
+        assertParseFailureWithReason(parser, "", MESSAGE_INVALID_FORMAT, ParserUtil.MESSAGE_INVALID_INDEX);
+        assertParseFailureWithReason(parser, "d/2026-10-20 14:00", MESSAGE_INVALID_FORMAT,
+                ParserUtil.MESSAGE_INVALID_INDEX);
     }
 
     @Test
     public void parse_invalidIndex_failure() {
         // non-numeric index
-        assertParseFailure(parser, "a d/2026-10-20 14:00", MESSAGE_INVALID_FORMAT);
+        assertParseFailureWithReason(parser, "a d/2026-10-20 14:00", MESSAGE_INVALID_FORMAT,
+                ParserUtil.MESSAGE_INVALID_INDEX);
 
         // zero index
-        assertParseFailure(parser, "0 d/2026-10-20 14:00", MESSAGE_INVALID_FORMAT);
+        assertParseFailureWithReason(parser, "0 d/2026-10-20 14:00", MESSAGE_INVALID_FORMAT,
+                ParserUtil.MESSAGE_INVALID_INDEX);
 
         // negative index
-        assertParseFailure(parser, "-1 d/2026-10-20 14:00", MESSAGE_INVALID_FORMAT);
+        assertParseFailureWithReason(parser, "-1 d/2026-10-20 14:00", MESSAGE_INVALID_FORMAT,
+                ParserUtil.MESSAGE_INVALID_INDEX);
 
         // prefix joined to index without a space
-        assertParseFailure(parser, "1d/2026-10-20 14:00", MESSAGE_INVALID_FORMAT);
+        assertParseFailureWithReason(parser, "1d/2026-10-20 14:00", MESSAGE_INVALID_FORMAT,
+                ParserUtil.MESSAGE_INVALID_INDEX);
     }
 
     @Test
     public void parse_extraTextAroundIndex_failure() {
-        assertParseFailure(parser, "1 2 d/2026-10-20 14:00", MESSAGE_INVALID_FORMAT);
-        assertParseFailure(parser, "1 tomorrow", MESSAGE_INVALID_FORMAT);
+        assertParseFailureWithReason(parser, "1 2 d/2026-10-20 14:00", MESSAGE_INVALID_FORMAT,
+                ParserUtil.MESSAGE_INVALID_INDEX);
+        assertParseFailureWithReason(parser, "1 tomorrow", MESSAGE_INVALID_FORMAT,
+                ParserUtil.MESSAGE_INVALID_INDEX);
     }
 }

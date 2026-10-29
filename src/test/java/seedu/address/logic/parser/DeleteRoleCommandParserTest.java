@@ -2,6 +2,7 @@ package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_ROLE_DISPLAYED_INDEX;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
+import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailureWithReason;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.address.testutil.Assert.assertThrows;
 
@@ -20,7 +21,8 @@ public class DeleteRoleCommandParserTest {
 
     @Test
     public void parse_invalidIndex_failure() {
-        assertParseFailure(parser, "0", MESSAGE_INVALID_ROLE_DISPLAYED_INDEX);
+        assertParseFailureWithReason(parser, "0", MESSAGE_INVALID_ROLE_DISPLAYED_INDEX,
+                ParserUtil.MESSAGE_INVALID_INDEX);
     }
 
     @Test

@@ -6,6 +6,7 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_STATUS_1;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_STATUS_1_STRING;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_STATUS;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
+import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailureWithReason;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
@@ -78,7 +79,8 @@ public class StatusCommandParserTest {
         assertParseFailure(parser, VALID_STATUS_1_STRING, MESSAGE_INVALID_FORMAT);
         assertParseFailure(parser, "1", MESSAGE_INVALID_FORMAT);
         assertParseFailure(parser, "1   ", MESSAGE_INVALID_FORMAT);
-        assertParseFailure(parser, " st/HIRED", MESSAGE_INVALID_FORMAT);
+        assertParseFailureWithReason(parser, " st/HIRED", MESSAGE_INVALID_FORMAT,
+                ParserUtil.MESSAGE_INVALID_INDEX);
         assertParseFailure(parser, "1 2", MESSAGE_INVALID_FORMAT);
         assertParseFailure(parser, "1 2 HIRED", MESSAGE_INVALID_FORMAT);
     }
@@ -86,10 +88,13 @@ public class StatusCommandParserTest {
     @Test
     public void parse_invalidIndex_failure() {
         for (String invalidIndex : new String[]{"a", "0", "-1", "1.5", "2147483648", "1,2"}) {
-            assertParseFailure(parser, invalidIndex + " st/" + VALID_STATUS_1_STRING, MESSAGE_INVALID_FORMAT);
-            assertParseFailure(parser, "1 " + invalidIndex + " 2 st/" + VALID_STATUS_1_STRING, MESSAGE_INVALID_FORMAT);
+            assertParseFailureWithReason(parser, invalidIndex + " st/" + VALID_STATUS_1_STRING, MESSAGE_INVALID_FORMAT,
+                    ParserUtil.MESSAGE_INVALID_INDEX);
+            assertParseFailureWithReason(parser, "1 " + invalidIndex + " 2 st/" + VALID_STATUS_1_STRING,
+                    MESSAGE_INVALID_FORMAT, ParserUtil.MESSAGE_INVALID_INDEX);
         }
-        assertParseFailure(parser, "1 2 a st/" + VALID_STATUS_1_STRING, MESSAGE_INVALID_FORMAT);
+        assertParseFailureWithReason(parser, "1 2 a st/" + VALID_STATUS_1_STRING, MESSAGE_INVALID_FORMAT,
+                ParserUtil.MESSAGE_INVALID_INDEX);
     }
 
     @Test
