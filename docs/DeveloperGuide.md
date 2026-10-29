@@ -623,13 +623,13 @@ The loader must keep using only the exact rule. Otherwise, a pair of candidates 
 
 ### Candidate notes
 
-Each `Person` has a `Note`, a free-text field for details such as a candidate's skills or availability. Interview dates and times have their own field, described in [Candidate interviews](#candidate-interviews). An empty note means the candidate has no note, and the candidate card hides it.
+Each `Person` has a `Note`, a free-text field for details such as a candidate's skills or availability. Interview dates and times have their own field, described in [Candidate interviews](#candidate-interviews). The candidate card shows the note as `Note: NOTE`. An empty note means the candidate has no note, and the candidate card hides it.
 
 #### Recording a note
 
 `NoteCommandParser` splits the arguments into the first word, which is parsed as the index, and the rest, which is trimmed and becomes the note. It does not use `ArgumentTokenizer`, so the note can contain text that looks like a prefix, such as `t/` or `n/`. An empty remainder gives an empty `Note`, so `note 1` clears the first candidate's note.
 
-`NoteCommand#execute` looks up the candidate in the displayed candidate list and replaces it with a copy that has the new note. Other commands that rebuild a `Person`, such as `edit`, `status`, and `interview`, copy the existing note across, so they never change it.
+`NoteCommand#execute` looks up the candidate in the displayed candidate list and replaces it with a copy that has the new note. It does not reset the candidate filter, so a recruiter can add notes to a filtered list by its displayed numbers. The result message compares the previous note with the new one, so it says whether a note was added, replaced or cleared. It does not repeat a new note, since the candidate card shows it. Clearing a note suggests `undo` and shows the cleared note, since the user cannot see it anywhere else. Other commands that rebuild a `Person`, such as `edit`, `status`, and `interview`, copy the existing note across, so they never change it.
 
 Notes are stored as the `note` field of each candidate in the JSON data file. A candidate saved without a `note` field loads with an empty note.
 
@@ -643,6 +643,15 @@ Notes are stored as the `note` field of each candidate in the JSON data file. A 
 * **Alternative 2:** An `nt/NOTE` prefix on `add` and `edit`.
   * Pros: Consistent with the other candidate fields.
   * Cons: The tokenizer ends the note at the next prefix. For example, `nt/Discuss t/java` would save the note `Discuss` and add a `java` tag, so valid notes are silently changed. This alternative was implemented and then removed for this reason.
+
+**Aspect: Replacing or adding to a note**
+
+* **Alternative 1 (current choice):** `note INDEX NOTE` replaces the whole note, and `note INDEX` clears it.
+  * Pros: One simple command covers setting, correcting and clearing a note. The result message says when a note was replaced or cleared, so a note is never overwritten silently, and `undo` restores a note changed by mistake.
+  * Cons: To add to a note, the user types the whole note again.
+* **Alternative 2:** A way to add text to the end of an existing note.
+  * Pros: Saves retyping when a recruiter adds details after each recruitment stage.
+  * Cons: It needs its own command word. A marker inside `note`, such as a leading `+`, would clash with notes that start with that text, such as `+65 9123 4567 (home)`. It is planned for a future version, and the User Guide lists it as not supported yet.
 
 ### Candidate interviews
 
@@ -665,7 +674,7 @@ The sequence diagram below shows how `interview 1 d/2026-10-20 14:00` is execute
 
 <puml src="diagrams/InterviewSequenceDiagram.puml" alt="Interactions for the interview 1 d/2026-10-20 14:00 command" />
 
-`InterviewCommand#execute` looks up the candidate in the displayed candidate list and replaces it with `Person#withInterview`, a copy that has the new interview. A candidate has only one interview, so scheduling another one replaces the previous interview, and `interview INDEX` replaces it with `Interview.NONE`. Unlike `note`, it does not reset the candidate filter, so a recruiter can schedule interviews for a filtered list by its displayed numbers. Clearing a candidate with no interview, or giving the same date and time again, succeeds without changing the data, as `note` does for notes.
+`InterviewCommand#execute` looks up the candidate in the displayed candidate list and replaces it with `Person#withInterview`, a copy that has the new interview. A candidate has only one interview, so scheduling another one replaces the previous interview, and `interview INDEX` replaces it with `Interview.NONE`. Like `note`, it does not reset the candidate filter, so a recruiter can schedule interviews for a filtered list by its displayed numbers. Clearing a candidate with no interview, or giving the same date and time again, succeeds without changing the data, as `note` does for notes.
 
 After saving a new interview, `InterviewCommand` checks whether it might be a mistake and adds a line to the result message for each of these cases, in this order:
 
@@ -766,7 +775,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *` | department recruiter | assign a candidate one controlled recruitment status | record where the candidate stands in the recruitment process |
 | `* * *` | department recruiter | update a candidate's recruitment status | reflect their progress through the recruitment process |
 | `* * *` | department recruiter | record a candidate's interview date and time | refer to when each candidate is being interviewed |
-| `* * *` | department recruiter | add notes to a candidate's record | retain relevant recruitment and interview information |
+| `* * *` | department recruiter | record a free-text note about a candidate | jot down anything else worth remembering about them |
 | `* * *` | department recruiter | remove a candidate | correct an erroneous entry or remove a record that is no longer required |
 | `* * *` | user | have successful changes saved automatically and restored when RecruiterBuddy starts | avoid losing candidate and role information |
 | `* * *` | user | access a guide covering all supported commands and their formats | understand and correctly use RecruiterBuddy's features |
@@ -921,18 +930,18 @@ Use case ends.
 
 Use case ends.
 
-#### UC06 — Add Candidate Notes
+#### UC06 — Set or Clear a Candidate's Note
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter
 
 **Main success scenario:**
 
-1. Recruiter requests to add a note to a candidate’s profile.
+1. Recruiter requests to set the note of a candidate.
 2. RecruiterBuddy requests the note.
 3. Recruiter provides the note.
-4. RecruiterBuddy adds the note to the candidate’s profile.
-5. RecruiterBuddy confirms that the note has been added.
+4. RecruiterBuddy saves the note in the candidate’s profile.
+5. RecruiterBuddy confirms that the note has been saved.
 
 Use case ends.
 
@@ -941,9 +950,15 @@ Use case ends.
 * 1a. The candidate does not exist.
   * 1a1. RecruiterBuddy reports the error.
   * Use case ends.
-* 1b. Recruiter requests to remove the candidate’s existing notes.
-  * 1b1. RecruiterBuddy removes the notes and confirms that they have been removed.
+* 1b. Recruiter requests to clear the candidate’s note.
+  * 1b1. RecruiterBuddy clears the note, shows the cleared note, and informs the recruiter that the change can be undone.
   * Use case ends.
+* 1c. Recruiter requests to clear the note of a candidate who has no note.
+  * 1c1. RecruiterBuddy reports that there is no note to clear.
+  * Use case ends.
+* 4a. The candidate already has a different note.
+  * 4a1. RecruiterBuddy replaces the existing note with the new one, and informs the recruiter that the note was replaced.
+  * Use case resumes at step 5.
 
 #### UC07 — Close Role Opening
 
@@ -1659,13 +1674,19 @@ Candidates list shows Alice at index 1 and Ben at index 2, both `Resume`.
    1. Prerequisites: Start with the sample data.
 
    1. Test case: `note 2 Prefers hybrid work`<br>
-      Expected: The 2nd candidate's card shows the note `Prefers hybrid work`.
+      Expected: The 2nd candidate's card shows `Note: Prefers hybrid work`. The message is `Replaced note of Bernice Yu.`, because Bernice had a sample note.
 
    1. Test case: `note 2 Discuss t/java experience`<br>
       Expected: The note is replaced with `Discuss t/java experience`. No `java` tag is added.
 
    1. Test case: `note 2`<br>
-      Expected: The 2nd candidate's note is cleared and no longer shown on the card.
+      Expected: The 2nd candidate's note is cleared and no longer shown on the card. The message suggests `undo` and shows `Previous note: Discuss t/java experience`.
+
+   1. Test case: `note 2` again<br>
+      Expected: `Bernice Yu has no note to clear.` Nothing changes.
+
+   1. Test case: `find Bernice Roy`, then `note 2 Strong communicator`<br>
+      Expected: Roy Balakrishnan's note is set to `Strong communicator`. The list still shows only Bernice Yu and Roy Balakrishnan.
 
    1. Test case: `note 0 Prefers hybrid work`<br>
       Expected: No note is changed. The error message shows the correct `note` format.

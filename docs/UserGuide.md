@@ -413,13 +413,24 @@ Format: `note INDEX [NOTE]`
 
 * Sets the note of the candidate at the specified `INDEX`. The index refers to the index number shown in the displayed candidate list. The index **must be a positive integer** 1, 2, 3, ...
 * Everything after the index is saved as the note, with leading and trailing spaces removed. The note can contain any text, including text that looks like a prefix, such as `t/` or `n/`.
-* A new note replaces the candidate's existing note.
+* A new note replaces the candidate's existing note. Each candidate has one note, shown on their card as `Note: NOTE`.
 * To clear a candidate's note, enter `note INDEX` without a note after it.
+* The result message says whether the note was added, replaced or cleared. A cleared note is also shown in the message. If you replace or clear a note by mistake, use [`undo`](#undoing-a-change-undo) to restore it.
+* The candidate's other details are not changed, and the displayed list stays as it is, so a filtered list remains filtered.
 * To record an interview date and time, use [`interview`](#scheduling-or-clearing-an-interview-interview) instead, which checks that the date and time are valid.
+
+<box type="info" seamless>
+
+**Not supported in this version:**
+* Adding text to the end of an existing note. To add to a note, enter the whole note again with the new text. A separate command for adding to a note is planned for a future version.
+* Line breaks in a note. A note is a single line of text, which wraps on the candidate's card.
+* Searching notes. [`find`](#locating-candidates-by-name-find) does not search notes.
+</box>
 
 Examples:
 *  `note 1 Prefers hybrid work` Sets the note of the 1st candidate to `Prefers hybrid work`.
 *  `note 2 Discuss t/java experience` Sets the note of the 2nd candidate to `Discuss t/java experience`.
+*  `note 2 Discuss t/java experience. Available from December` Replaces that note with a longer one that keeps the earlier text.
 *  `note 3` Clears the note of the 3rd candidate.
 
 ### Scheduling or clearing an interview: `interview`
