@@ -613,6 +613,28 @@ The following activity diagram summarizes what happens when a user executes a ne
 
 _{more aspects and alternatives to be added}_
 
+### Candidate phone numbers
+
+`Phone` accepts 8 to 15 digits with an optional leading `+`, and removes spaces and hyphens before saving. Two kinds of phone problems are checked when a candidate is added or their phone number is edited:
+
+* **Exact duplicates are rejected.** `Person#isSamePerson` compares phone numbers with `Phone#equals`, which compares the saved digits exactly. `UniquePersonList` and the data-file loader use the same rule.
+* **Possible problems only add a note to the success message.** `PhoneChecks#appendPhoneWarnings` runs after `AddCommand` or `EditCommand` has stored the candidate. `EditCommand` calls it only when the phone number changes, so an unchanged number is not flagged again.
+  * `Phone#isPlausibleNumber` treats a number without a `+`, or with `+65`, as a Singapore number, which has 8 digits starting with 3, 6, 8 or 9. Numbers with another country code are not checked, since overseas formats vary.
+  * `Phone#isPossiblySameNumber` compares numbers after removing the `+` and, if `65` is followed by exactly 8 digits, the `65`. So `+6591234567`, `6591234567` and `91234567` may be the same number, but are not exact duplicates.
+
+#### Design considerations
+
+**Aspect: What to do with a number that may be another candidate's**
+
+* **Alternative 1 (current choice):** Accept it and add a note naming the candidates whose number may be the same.
+  * Pros: A real but unusual number, such as an overseas number written without its `+`, is never blocked.
+  * Cons: The user may miss the note and keep a duplicate.
+* **Alternative 2:** Reject it, like an exact duplicate.
+  * Pros: Duplicates cannot be added by mistake.
+  * Cons: Wrongly blocks different numbers that happen to match, such as an overseas number without its country code. The loader would also have to reject such pairs, so data files saved by older versions could stop loading.
+
+The loader must keep using only the exact rule. Otherwise, a pair of candidates accepted with a note could be saved in a file that then fails to load.
+
 ### Candidate notes
 
 Each `Person` has a `Note`, a free-text field for details such as a candidate's skills or availability. Interview dates and times have their own field, described in [Candidate interviews](#candidate-interviews). An empty note means the candidate has no note, and the candidate card hides it.
@@ -1601,7 +1623,20 @@ Always switch back with `list` or `list role` before using indices for that list
       Expected: No candidate is added. The error message shows the correct `add` format, which includes `r/ROLE`.
 
    1. Test case: `add n/Alex Yeoh p/94567890 e/alex2@example.com a/Bedok r/Data Analyst`<br>
-      Expected: No candidate is added, because a candidate named Alex Yeoh already exists.
+      Expected: A second Alex Yeoh is added, because candidates may share a name if their emails and phone numbers differ.
+
+1. Adding a candidate with a duplicate or unusual phone number
+
+   1. Prerequisites: Start with the sample data. Alex Yeoh's phone number is `87438807`.
+
+   1. Test case: `add n/Kim Lee p/8743 8807 e/kim@example.com a/Bedok r/Data Analyst`<br>
+      Expected: No candidate is added. The error message says the phone number is already used by Alex Yeoh.
+
+   1. Test case: `add n/Kim Lee p/+65 8743 8807 e/kim@example.com a/Bedok r/Data Analyst`<br>
+      Expected: Kim Lee is added with `+6587438807`. The result has a note that the number may belong to `Alex Yeoh (87438807)`.
+
+   1. Test case: `add n/Tom Ong p/12345678 e/tom@example.com a/Bedok r/Data Analyst`<br>
+      Expected: Tom Ong is added. The result has a note that the number does not look like a Singapore number.
 
 ### Editing a candidate
 

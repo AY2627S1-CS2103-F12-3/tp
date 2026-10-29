@@ -120,11 +120,20 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
   * Can include spaces and hyphens, such as `+65 9123-4567`.
 
   Spaces and hyphens are ignored and removed when the number is saved, so `+65 9123-4567` is shown as `+6591234567`.
+
+  A number without a country code is treated as a Singapore number. If it does not look like one (8 digits
+  starting with 3, 6, 8 or 9), such as `12345678`, the candidate is still added, and the result includes a note
+  reminding you to include the country code for an overseas number, such as `+60 12-345 6789`.
 * `ROLE` must be the title of an existing role that is `OPEN`. Use [`role add`](#adding-a-role-role-add) to create the role first.
 * `ROLE` is matched ignoring case; for example, `r/software engineer` matches the role `Software Engineer`. The candidate is saved with the role's own spelling of the title.
 * Each candidate needs their own email and phone number. A candidate cannot be added if another candidate already uses the same email or the same phone number, and the error message names that candidate.
   * Emails are compared ignoring case, so `Alex@Example.com` and `alex@example.com` are the same email.
-  * Phone numbers are compared exactly as saved, so `+6591234567` and `91234567` are different numbers. Type phone numbers in one consistent format, such as always without the country code.
+  * Phone numbers are compared as saved, so `9123 4567` and `91234567` are the same number and cannot both be used.
+  * A number that only differs from another candidate's by a `+` or the Singapore country code `65`, such as
+    `+65 9123 4567`, `6591234567` and `91234567`, is still accepted, since it may be a different number.
+    The result includes a note naming every candidate whose number may be the same, so you can check.
+  * Overseas numbers written with and without their country code, such as `+60 12-345 6789` and
+    `012-345 6789`, are not recognised as possibly the same number.
 * Candidates may share a name, as long as their emails and phone numbers are different.
 * Each candidate applies for one role. Since their email and phone number stay the same, the same person cannot be added again for a second role.
 * Newly added candidates are automatically assigned the status `RESUME`, displayed as `Resume`.
@@ -375,6 +384,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITL
   same [role-title rules](#adding-a-role-role-add) as role creation.
 * The new email and phone number must not be used by another candidate, following the same rules as in
   [`add`](#adding-a-candidate-add). Keeping a candidate's own email or phone number is fine.
+* When `p/` changes the phone number, the result includes the same phone number notes as `add`, if any apply.
 * Success shows `Edited candidate: ...` with the updated name and details, refreshes the candidate
   list to show all candidates, and saves the change. Validation failures leave records and filters unchanged.
 
@@ -559,7 +569,8 @@ When editing candidates, roles and their associations:
   the same constraints as `role add`; role status must be exactly `OPEN` or `CLOSED` in uppercase.
 * Do not repeat role titles, even with different capitalisation or experience levels.
 * No two candidates may share an email (ignoring case) or a phone number, following the same rules as in
-  [`add`](#adding-a-candidate-add).
+  [`add`](#adding-a-candidate-add). Numbers that `add` accepts with a note, such as `+6591234567` and
+  `91234567`, load normally.
 * Each candidate's `role` field must name an existing role, ignoring case. It may name a closed role,
   because closing preserves candidates. On loading, the role's stored capitalisation is used for
   its candidates. If you rename a role in the file, update every associated candidate's `role` too.
