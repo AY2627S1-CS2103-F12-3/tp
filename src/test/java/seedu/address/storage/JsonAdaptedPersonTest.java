@@ -247,4 +247,13 @@ public class JsonAdaptedPersonTest {
         assertThrows(IllegalValueException.class, person::toModelType);
     }
 
+    @Test
+    public void toModelType_tagsDifferOnlyInCase_keepsOneTag() throws Exception {
+        List<JsonAdaptedTag> tags = List.of(new JsonAdaptedTag("Referral"), new JsonAdaptedTag("referral"));
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS,
+                VALID_ROLE, VALID_NOTE, VALID_INTERVIEW, VALID_STATUS, tags);
+
+        assertEquals(1, person.toModelType().getTags().size());
+    }
+
 }
