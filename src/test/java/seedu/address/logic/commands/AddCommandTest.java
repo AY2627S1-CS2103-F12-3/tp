@@ -48,7 +48,8 @@ public class AddCommandTest {
     }
 
     @Test
-    public void execute_emailWithUncommonSymbolsAndDotlessDomain_addsPersonWithBothWarnings() throws Exception {
+    public void execute_emailWithUncommonSymbolsAndDotlessDomain_addsPersonWithBothWarnings()
+            throws Exception {
         assertAddSuccess(new PersonBuilder().withEmail("amy#lee@gmailcom").build(),
                 String.format(Messages.MESSAGE_UNCOMMON_EMAIL_SYMBOLS, "#"),
                 String.format(Messages.MESSAGE_DOTLESS_EMAIL_DOMAIN, "gmailcom"));

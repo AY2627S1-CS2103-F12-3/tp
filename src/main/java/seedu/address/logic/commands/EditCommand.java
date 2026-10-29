@@ -27,7 +27,6 @@ import seedu.address.model.Model;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
-import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.role.Role;
@@ -41,7 +40,8 @@ public class EditCommand extends Command {
 
     public static final String COMMAND_WORD = "edit";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits the details of the candidate identified "
+    public static final String MESSAGE_USAGE = COMMAND_WORD
+            + ": Edits the details of the candidate identified "
             + "by the index number used in the displayed candidate list. "
             + "Existing values will be overwritten by the input values.\n"
             + "Parameters: INDEX (must be a positive integer) "
@@ -104,7 +104,8 @@ public class EditCommand extends Command {
             logger.info("Updated candidate role in memory at displayed index " + index.getOneBased() + ".");
         }
         String successMessage = String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
-        return new CommandResult(appendWarningsForChangedFields(successMessage, model, personToEdit, editedPerson));
+        return new CommandResult(
+                appendWarningsForChangedFields(successMessage, model, personToEdit, editedPerson));
     }
 
     /**
@@ -125,12 +126,13 @@ public class EditCommand extends Command {
     }
 
     /**
-     * Returns {@code successMessage} followed by any warnings about the phone and email of {@code editedPerson}.
+     * Returns {@code successMessage} followed by any warnings about the phone and email of
+     * {@code editedPerson}.
      * Only a newly entered phone or email is checked, since warnings about a saved value were already shown
      * when it was saved, and repeating them on every edit would hide new warnings.
      */
-    private static String appendWarningsForChangedFields(String successMessage, Model model, Person personToEdit,
-            Person editedPerson) {
+    private static String appendWarningsForChangedFields(String successMessage, Model model,
+            Person personToEdit, Person editedPerson) {
         String resultMessage = successMessage;
 
         boolean isPhoneChanged = !editedPerson.getPhone().equals(personToEdit.getPhone());
@@ -185,11 +187,11 @@ public class EditCommand extends Command {
         Phone updatedPhone = editPersonDescriptor.getPhone().orElse(personToEdit.getPhone());
         Email updatedEmail = editPersonDescriptor.getEmail().orElse(personToEdit.getEmail());
         Address updatedAddress = editPersonDescriptor.getAddress().orElse(personToEdit.getAddress());
-        Note note = personToEdit.getNote();
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
 
-        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedRole, note,
-                personToEdit.getInterview(), personToEdit.getStatus(), updatedTags);
+        // The note, interview and status cannot be edited here, as each has its own command.
+        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedRole,
+                personToEdit.getNote(), personToEdit.getInterview(), personToEdit.getStatus(), updatedTags);
     }
 
     @Override

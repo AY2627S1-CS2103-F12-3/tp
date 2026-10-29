@@ -45,7 +45,8 @@ public class ParserUtil {
             return Index.fromOneBased(Integer.parseInt(trimmedIndex));
         }
 
-        // A positive number that does not fit in an int is a valid index form, so say it is too large instead.
+        // A positive number that does not fit in an int is a valid index form,
+        // so say it is too large instead.
         if (isTooLargeIndex(trimmedIndex)) {
             throw new ParseException(String.format(MESSAGE_INDEX_TOO_LARGE, trimmedIndex));
         }
@@ -143,11 +144,9 @@ public class ParserUtil {
     public static Interview parseInterview(String interview) throws ParseException {
         requireNonNull(interview);
         String trimmedInterview = interview.trim();
-        if (!Interview.isValidFormat(trimmedInterview)) {
-            throw new ParseException(Interview.MESSAGE_INVALID_FORMAT);
-        }
-        if (!Interview.isValidDateTime(trimmedInterview)) {
-            throw new ParseException(Interview.MESSAGE_INVALID_DATE_TIME);
+        Optional<String> validationError = Interview.findValidationError(trimmedInterview);
+        if (validationError.isPresent()) {
+            throw new ParseException(validationError.get());
         }
         return new Interview(trimmedInterview);
     }

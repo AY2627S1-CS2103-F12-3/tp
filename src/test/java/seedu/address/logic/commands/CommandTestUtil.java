@@ -12,16 +12,20 @@ import static seedu.address.testutil.Assert.assertThrows;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
+import seedu.address.model.ModelManager;
+import seedu.address.model.UserPrefs;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Status;
 import seedu.address.model.role.Role;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
+import seedu.address.testutil.PersonBuilder;
 
 /**
  * Contains helper methods for testing commands.
@@ -69,7 +73,8 @@ public class CommandTestUtil {
     public static final String INVALID_PHONE_DESC = " " + PREFIX_PHONE + "911a"; // 'a' not allowed in phones
     public static final String INVALID_EMAIL_DESC = " " + PREFIX_EMAIL + "bob!yahoo"; // missing '@' symbol
     public static final String INVALID_ADDRESS_DESC = " " + PREFIX_ADDRESS; // empty string not allowed for addresses
-    public static final String INVALID_ROLE_DESC = " " + PREFIX_ROLE_TITLE + "2027"; // role titles need a letter
+    // role titles need a letter
+    public static final String INVALID_ROLE_DESC = " " + PREFIX_ROLE_TITLE + "2027";
     public static final String INVALID_TAG_DESC = " " + PREFIX_TAG + "hubby*"; // '*' not allowed in tags
 
     public static final String PREAMBLE_WHITESPACE = "\t  \r  \n";
@@ -143,6 +148,32 @@ public class CommandTestUtil {
         model.updateFilteredPersonList(new NameContainsKeywordsPredicate(List.of(splitName[0])));
 
         assertEquals(1, model.getFilteredPersonList().size());
+    }
+
+    /**
+     * Replaces the displayed person at {@code index} in {@code model} with a version changed by
+     * {@code changePerson}, and returns that version, so a test can start from a person with a given value.
+     */
+    public static Person replacePerson(Model model, Index index, UnaryOperator<PersonBuilder> changePerson) {
+        Person person = model.getFilteredPersonList().get(index.getZeroBased());
+        Person changedPerson = changePerson.apply(new PersonBuilder(person)).build();
+        model.setPerson(person, changedPerson);
+        return changedPerson;
+    }
+
+    /**
+     * Returns a copy of {@code model} with {@code target} replaced by {@code editedPerson}, showing the same
+     * persons as {@code model}, for checking a command that edits one person and keeps the current filter.
+     */
+    public static Model copyModelWithPersonReplaced(Model model, Person target, Person editedPerson) {
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(target, editedPerson);
+
+        // The edit keeps the person's identity, so the displayed persons are matched by isSamePerson.
+        List<Person> displayedPersons = List.copyOf(model.getFilteredPersonList());
+        expectedModel.updateFilteredPersonList(person
+                -> displayedPersons.stream().anyMatch(person::isSamePerson));
+        return expectedModel;
     }
 
 }

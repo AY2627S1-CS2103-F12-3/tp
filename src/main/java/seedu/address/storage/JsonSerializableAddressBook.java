@@ -25,7 +25,8 @@ class JsonSerializableAddressBook {
     public static final String MESSAGE_DUPLICATE_PERSON =
             "Candidates list contains candidates with the same email or phone number.";
     public static final String MESSAGE_DUPLICATE_ROLE = "Roles list contains duplicate role(s).";
-    public static final String MESSAGE_UNKNOWN_ROLE = "Persons list contains a person whose role does not exist.";
+    public static final String MESSAGE_UNKNOWN_ROLE =
+            "Persons list contains a person whose role does not exist.";
 
     private final List<JsonAdaptedPerson> persons = new ArrayList<>();
     private final List<JsonAdaptedRole> roles = new ArrayList<>();

@@ -74,8 +74,10 @@ public class PersonTest {
     @Test
     public void hasPossiblySamePhone() {
         String phoneWithCountryCode = "+65" + ALICE.getPhone().value;
-        assertTrue(ALICE.hasPossiblySamePhone(new PersonBuilder(BOB).withPhone(phoneWithCountryCode).build()));
-        assertFalse(ALICE.hasPossiblySamePhone(new PersonBuilder(BOB).withPhone(ALICE.getPhone().value).build()));
+        assertTrue(ALICE.hasPossiblySamePhone(
+                new PersonBuilder(BOB).withPhone(phoneWithCountryCode).build()));
+        assertFalse(ALICE.hasPossiblySamePhone(
+                new PersonBuilder(BOB).withPhone(ALICE.getPhone().value).build()));
         assertFalse(ALICE.hasPossiblySamePhone(BOB));
         assertThrows(NullPointerException.class, () -> ALICE.hasPossiblySamePhone(null));
     }
@@ -166,11 +168,18 @@ public class PersonTest {
     }
 
     @Test
+    public void withNote_newNote_changesOnlyNote() {
+        Person expectedPerson = new PersonBuilder(ALICE).withNote(VALID_NOTE_BOB).build();
+        assertEquals(expectedPerson, ALICE.withNote(new Note(VALID_NOTE_BOB)));
+    }
+
+    @Test
     public void toStringMethod() {
-        String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
-                + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", role=" + ALICE.getRole()
-                + ", note=" + ALICE.getNote() + ", interview=" + ALICE.getInterview() + ", status=" + ALICE.getStatus()
-                + ", tags=" + ALICE.getTags() + "}";
+        String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName()
+                + ", phone=" + ALICE.getPhone() + ", email=" + ALICE.getEmail()
+                + ", address=" + ALICE.getAddress() + ", role=" + ALICE.getRole()
+                + ", note=" + ALICE.getNote() + ", interview=" + ALICE.getInterview()
+                + ", status=" + ALICE.getStatus() + ", tags=" + ALICE.getTags() + "}";
         assertEquals(expected, ALICE.toString());
     }
 }

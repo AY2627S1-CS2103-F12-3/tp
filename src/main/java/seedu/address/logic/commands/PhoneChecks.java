@@ -26,9 +26,9 @@ final class PhoneChecks {
     /**
      * Returns {@code message} followed by a warning for each phone number problem of {@code candidate},
      * one per line, or {@code message} unchanged if there is none.
-     * Call this after {@code candidate} is stored in {@code model}, so that an edited candidate is not compared
-     * with their own previous number. The stored candidate itself is never reported, since only numbers that are
-     * not exactly the same count as possible duplicates.
+     * Call this after {@code candidate} is stored in {@code model}, so that an edited candidate is
+     * not compared with their own previous number. The stored candidate itself is never reported,
+     * since only numbers that are not exactly the same count as possible duplicates.
      */
     static String appendPhoneWarnings(String message, Model model, Person candidate) {
         requireAllNonNull(message, model, candidate);
@@ -38,12 +38,12 @@ final class PhoneChecks {
             warnings.add(Messages.MESSAGE_UNUSUAL_PHONE);
         }
 
-        String possibleDuplicates = model.getAddressBook().getPersonList().stream()
+        String possibleDuplicatesText = model.getAddressBook().getPersonList().stream()
                 .filter(candidate::hasPossiblySamePhone)
                 .map(person -> person.getName() + " (" + person.getPhone() + ")")
                 .collect(Collectors.joining(", "));
-        if (!possibleDuplicates.isEmpty()) {
-            warnings.add(String.format(Messages.MESSAGE_POSSIBLE_DUPLICATE_PHONE, possibleDuplicates));
+        if (!possibleDuplicatesText.isEmpty()) {
+            warnings.add(String.format(Messages.MESSAGE_POSSIBLE_DUPLICATE_PHONE, possibleDuplicatesText));
         }
 
         if (!warnings.isEmpty()) {

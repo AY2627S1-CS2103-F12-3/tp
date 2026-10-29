@@ -147,7 +147,8 @@ A candidate (`Person`) is immutable and always has exactly one of each field exc
 * Two candidates are the same person if they share an email (ignoring case) or a phone number. Names
   are not compared, as different candidates can share a name.
 * The candidate's role is a `RoleTitle`, the same class that names a `Role`.
-* An empty `Note` means the candidate has no note.
+* An empty `Note` means the candidate has no note. New candidates share the empty `Note.NONE`, so the
+  association to `Note` is not a composition.
 * `Interview.NONE` means the candidate has no interview, and is the only `Interview` without a date
   and time. It is shared by every such candidate, so the association to `Interview` is not a
   composition. See [Candidate interviews](#candidate-interviews).

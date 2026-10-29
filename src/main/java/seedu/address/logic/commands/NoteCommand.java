@@ -25,15 +25,16 @@ public class NoteCommand extends Command {
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
             + ": Replaces the note of the candidate identified by the index number used in the displayed "
-            + "candidate list. "
-            + "Everything after the index is saved as the note. Leave NOTE empty to clear the existing note.\n"
+            + "candidate list. Everything after the index is saved as the note. "
+            + "Leave NOTE empty to clear the existing note.\n"
             + "Parameters: INDEX (must be a positive integer) [NOTE]\n"
             + "Example: " + COMMAND_WORD + " 1 Prefers hybrid work";
 
     /*
-     * A new note is not repeated in the message, since the candidate's card already shows it. Replacing a note
-     * says so, so an existing note is never overwritten silently. Clearing suggests undo and shows the cleared
-     * note last, since the user cannot see it anywhere else and a long note cannot push the hint out of view.
+     * A new note is not repeated in the message, since the candidate's card already shows it.
+     * Replacing a note says so, so an existing note is never overwritten silently. Clearing suggests
+     * undo and shows the cleared note last, since the user cannot see it anywhere else and a long note
+     * cannot push the hint out of view.
      */
     public static final String MESSAGE_ADD_NOTE_SUCCESS = "Added note to %1$s.";
     public static final String MESSAGE_REPLACE_NOTE_SUCCESS = "Replaced note of %1$s.";
@@ -71,14 +72,13 @@ public class NoteCommand extends Command {
         }
 
         Person personToEdit = lastShownList.get(index.getZeroBased());
-        Person editedPerson = new Person(personToEdit.getName(), personToEdit.getPhone(), personToEdit.getEmail(),
-                personToEdit.getAddress(), personToEdit.getRole(), note, personToEdit.getInterview(),
-                personToEdit.getStatus(), personToEdit.getTags());
+        Person editedPerson = personToEdit.withNote(note);
         assert editedPerson.getNote().equals(note) : "Edited person should hold the new note";
 
         model.setPerson(personToEdit, editedPerson);
-        logger.info("Note of candidate at index " + index.getOneBased() + " ("
-                + editedPerson.getName() + ") " + (note.isEmpty() ? "cleared" : "updated"));
+        String noteChange = note.isEmpty() ? "cleared" : "updated";
+        logger.info(String.format("Note of candidate at index %d (%s) %s",
+                index.getOneBased(), editedPerson.getName(), noteChange));
         return new CommandResult(generateSuccessMessage(personToEdit.getNote(), editedPerson));
     }
 

@@ -5,15 +5,29 @@ skinparam arrowColor MODEL_COLOR
 skinparam classBackgroundColor MODEL_COLOR
 skinparam classAttributeIconSize 0
 skinparam classAttributeFontColor #FFFFFF
-skinparam nodesep 45
+skinparam nodesep 60
 skinparam ranksep 70
 
-Class Person
+'A wide Person box spreads out the arrows that leave it.
+<style>
+classDiagram {
+    class {
+        .wide {
+            MinimumWidth 300
+        }
+    }
+}
+</style>
+
+Class Person <<wide>>
+hide <<wide>> stereotype
 Class Name
 Class Phone
 Class Email
 Class Address
-Class Note
+Class Note {
+    {static} +NONE: Note
+}
 Class Tag
 Class RoleTitle
 Class Interview {
@@ -30,6 +44,7 @@ Enum Status <<enumeration>> {
     WITHDRAWN
 }
 
+show Note fields
 show Interview fields
 show Status fields
 
@@ -38,7 +53,7 @@ Person *--> "1" Phone
 Person *--> "1" Email
 Person *--> "1" Address
 'Trailing spaces move these labels left, off the arrows. ~ stops "* " becoming a bullet.
-Person *--> "1   " Note
+Person --> "1   " Note
 Person *--> "~*   " Tag
 Person -right-> "1" RoleTitle : applies for
 Person -left-> "1" Interview

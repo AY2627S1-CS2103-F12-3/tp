@@ -58,10 +58,10 @@ public class SampleDataUtil {
                         + "and can start in December after serving one month of notice."),
                 Interview.NONE, Status.RESUME, getTagSet("java", "referral")),
             new Person(new Name("Charlotte Oliveiro"), new Phone("93210283"), new Email("charlotte@example.com"),
-                new Address("Blk 11 Ang Mo Kio Street 74, #11-04"), DATA_ANALYST, new Note(""),
+                new Address("Blk 11 Ang Mo Kio Street 74, #11-04"), DATA_ANALYST, Note.NONE,
                 new Interview("2026-10-23 10:00"), Status.OFFER, getTagSet("intern")),
             new Person(new Name("David Li"), new Phone("91031282"), new Email("lidavid@example.com"),
-                new Address("Blk 436 Serangoon Gardens Street 26, #16-43"), DATA_ANALYST, new Note(""),
+                new Address("Blk 436 Serangoon Gardens Street 26, #16-43"), DATA_ANALYST, Note.NONE,
                 Interview.NONE, Status.REJECTED, getTagSet("postgraduate")),
             new Person(new Name("Irfan Ibrahim"), new Phone("92492021"), new Email("irfan@example.com"),
                 new Address("Blk 47 Tampines Street 20, #17-35"), PRODUCT_MANAGER,
@@ -72,10 +72,10 @@ public class SampleDataUtil {
                 new Note("Accepted an offer elsewhere"),
                 Interview.NONE, Status.WITHDRAWN, getTagSet("remote")),
             new Person(new Name("Nur Aisyah"), new Phone("96543210"), new Email("nuraisyah@example.com"),
-                new Address("Blk 12 Bedok North Avenue 4, #03-21"), UX_DESIGNER, new Note(""),
+                new Address("Blk 12 Bedok North Avenue 4, #03-21"), UX_DESIGNER, Note.NONE,
                 Interview.NONE, Status.HIRED, getTagSet("figma")),
             new Person(new Name("Marcus Tan"), new Phone("81234567"), new Email("marcustan@example.com"),
-                new Address("Blk 208 Jurong East Street 21, #09-12"), UX_DESIGNER, new Note(""),
+                new Address("Blk 208 Jurong East Street 21, #09-12"), UX_DESIGNER, Note.NONE,
                 Interview.NONE, Status.REJECTED, getTagSet("graduate"))
         };
     }

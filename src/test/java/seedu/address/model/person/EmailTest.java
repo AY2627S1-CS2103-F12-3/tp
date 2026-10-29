@@ -122,14 +122,18 @@ public class EmailTest {
 
     @Test
     public void findValidationError_severalProblems_returnsFirstInCheckOrder() {
-        assertValidationError(Email.MESSAGE_MULTIPLE_AT, "peter jack@@example.com"); // '@' count before characters
-        assertValidationError(Email.MESSAGE_MISSING_NAME, "@exam_ple.com"); // missing name before domain problems
+        assertValidationError(Email.MESSAGE_MULTIPLE_AT,
+                "peter jack@@example.com"); // '@' count before characters
+        assertValidationError(Email.MESSAGE_MISSING_NAME,
+                "@exam_ple.com"); // missing name before domain problems
         assertValidationError(String.format(Email.MESSAGE_INVALID_LOCAL_PART_CHARACTER, "“,”"),
                 "peter,..jack@example.com"); // characters before dots
-        assertValidationError(Email.MESSAGE_LOCAL_PART_DOTS, "peter..jack@exam_ple.com"); // local part before domain
+        assertValidationError(Email.MESSAGE_LOCAL_PART_DOTS,
+                "peter..jack@exam_ple.com"); // local part before domain
         assertValidationError(String.format(Email.MESSAGE_INVALID_DOMAIN_CHARACTER, "“_”"),
                 "peterjack@-exam_ple.c"); // domain characters before domain parts
-        assertValidationError(Email.MESSAGE_DOMAIN_PARTS, "peterjack@-example.c"); // domain parts before ending length
+        assertValidationError(Email.MESSAGE_DOMAIN_PARTS,
+                "peterjack@-example.c"); // domain parts before ending length
     }
 
     private static void assertValidationError(String expectedMessage, String email) {
@@ -148,7 +152,8 @@ public class EmailTest {
 
     @Test
     public void getUncommonSymbols() {
-        assertEquals("", new Email("o'brien.doe_1+jobs-x@example.com").getUncommonSymbols()); // common symbols only
+        // common symbols only
+        assertEquals("", new Email("o'brien.doe_1+jobs-x@example.com").getUncommonSymbols());
         assertEquals("#", new Email("john#doe@example.com").getUncommonSymbols());
         assertEquals("! #", new Email("a!b#c!@example.com").getUncommonSymbols()); // each symbol listed once
         assertEquals("", new Email("john@ex-ample.com").getUncommonSymbols()); // domain is not checked

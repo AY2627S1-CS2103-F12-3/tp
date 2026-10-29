@@ -86,6 +86,13 @@ public class Person {
     }
 
     /**
+     * Returns a copy of this candidate with {@code newNote} as its note.
+     */
+    public Person withNote(Note newNote) {
+        return new Person(name, phone, email, address, role, newNote, interview, status, tags);
+    }
+
+    /**
      * Returns this candidate's interview, which is {@link Interview#NONE} if no interview is scheduled.
      */
     public Interview getInterview() {

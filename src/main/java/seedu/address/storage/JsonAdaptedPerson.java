@@ -97,8 +97,8 @@ class JsonAdaptedPerson {
         final Interview modelInterview = toModelInterview();
         final Status modelStatus = toModelStatus();
         final Set<Tag> modelTags = toModelTags();
-        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelRole, modelNote, modelInterview,
-                modelStatus, modelTags);
+        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelRole, modelNote,
+                modelInterview, modelStatus, modelTags);
     }
 
     /**
@@ -108,7 +108,8 @@ class JsonAdaptedPerson {
      */
     private static void requireField(String storedValue, Class<?> fieldClass) throws IllegalValueException {
         if (storedValue == null) {
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, fieldClass.getSimpleName()));
+            throw new IllegalValueException(
+                    String.format(MISSING_FIELD_MESSAGE_FORMAT, fieldClass.getSimpleName()));
         }
     }
 
@@ -156,7 +157,7 @@ class JsonAdaptedPerson {
      * Notes are optional, so a missing note (e.g., in a file saved before notes existed) means no note.
      */
     private Note toModelNote() {
-        return (note == null) ? new Note("") : new Note(note);
+        return (note == null) ? Note.NONE : new Note(note);
     }
 
     private Set<Tag> toModelTags() throws IllegalValueException {
@@ -169,19 +170,19 @@ class JsonAdaptedPerson {
 
     /**
      * Converts the stored interview into the model's {@code Interview} object.
-     * A missing interview (e.g., in a file saved before interviews existed) or an empty one means no interview.
+     * A missing interview (e.g., in a file saved before interviews existed) or an empty one
+     * means no interview.
      *
-     * @throws IllegalValueException if the stored interview has the wrong format or is not a real date and time.
+     * @throws IllegalValueException if the stored interview has the wrong format
+     *         or is not a real date and time.
      */
     private Interview toModelInterview() throws IllegalValueException {
         if (interview == null || interview.isEmpty()) {
             return Interview.NONE;
         }
-        if (!Interview.isValidFormat(interview)) {
-            throw new IllegalValueException(Interview.MESSAGE_INVALID_FORMAT);
-        }
-        if (!Interview.isValidDateTime(interview)) {
-            throw new IllegalValueException(Interview.MESSAGE_INVALID_DATE_TIME);
+        Optional<String> interviewError = Interview.findValidationError(interview);
+        if (interviewError.isPresent()) {
+            throw new IllegalValueException(interviewError.get());
         }
         return new Interview(interview);
     }
