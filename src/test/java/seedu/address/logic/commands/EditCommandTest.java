@@ -201,6 +201,17 @@ public class EditCommandTest {
                 new PersonBuilder(personWithDotlessDomain).withPhone(VALID_PHONE_BOB).build());
     }
 
+    @Test
+    public void execute_emailCaseChangedForDotlessDomainEmail_successWithoutWarning() {
+        Person personWithDotlessDomain = replaceFirstPerson(builder -> builder.withEmail(DOTLESS_DOMAIN_EMAIL));
+        String upperCaseEmail = DOTLESS_DOMAIN_EMAIL.toUpperCase();
+
+        // Emails are compared ignoring case, so this is the same email and is not checked again.
+        assertEditSuccess(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withEmail(upperCaseEmail).build(),
+                new PersonBuilder(personWithDotlessDomain).withEmail(upperCaseEmail).build());
+    }
+
     /**
      * Replaces the first displayed candidate with a version changed by {@code changeFirstPerson},
      * and returns that version, so a test can start from a candidate with an unusual saved value.
