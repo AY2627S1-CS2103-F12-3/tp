@@ -135,6 +135,27 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void setAddressBook_refreshesRetainedPersonFilterAfterRolesRestore() {
+        Person candidate = ALICE.withRole(SOFTWARE_ENGINEER.getTitle());
+        Role closedRole = new Role(SOFTWARE_ENGINEER.getTitle(),
+                SOFTWARE_ENGINEER.getExperienceLevel(), RoleStatus.CLOSED);
+        AddressBook openAddressBook = new AddressBookBuilder()
+                .withRole(SOFTWARE_ENGINEER).withPerson(candidate).build();
+        AddressBook closedAddressBook = new AddressBookBuilder()
+                .withRole(closedRole).withPerson(candidate).build();
+        modelManager = new ModelManager(openAddressBook, new UserPrefs());
+        Predicate<Person> openRoleFilter = person -> modelManager.findRole(person.getRole())
+                .map(role -> !role.isClosed()).orElse(false);
+        modelManager.updateFilteredPersonList(openRoleFilter);
+
+        modelManager.setAddressBook(closedAddressBook);
+        assertTrue(modelManager.getFilteredPersonList().isEmpty());
+
+        modelManager.setAddressBook(openAddressBook);
+        assertEquals(List.of(candidate), modelManager.getFilteredPersonList());
+    }
+
+    @Test
     public void equals() {
         AddressBook addressBook = new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build();
         AddressBook differentAddressBook = new AddressBook();
