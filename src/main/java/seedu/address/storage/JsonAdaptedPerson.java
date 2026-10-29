@@ -5,6 +5,7 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -87,72 +88,101 @@ class JsonAdaptedPerson {
      * @throws IllegalValueException if there were any data constraints violated in the adapted person.
      */
     public Person toModelType() throws IllegalValueException {
-        final List<Tag> personTags = new ArrayList<>();
-        for (JsonAdaptedTag tag : tags) {
-            personTags.add(tag.toModelType());
-        }
+        final Name modelName = toModelName();
+        final Phone modelPhone = toModelPhone();
+        final Email modelEmail = toModelEmail();
+        final Address modelAddress = toModelAddress();
+        final RoleTitle modelRole = toModelRole();
+        final Note modelNote = toModelNote();
+        final Interview modelInterview = toModelInterview();
+        final Status modelStatus = toModelStatus();
+        final Set<Tag> modelTags = toModelTags();
+        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelRole, modelNote,
+                modelInterview, modelStatus, modelTags);
+    }
 
-        if (name == null) {
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Name.class.getSimpleName()));
+    /**
+     * Checks that a required field, whose model class is {@code fieldClass}, is present in the stored person.
+     *
+     * @throws IllegalValueException if {@code storedValue} is missing.
+     */
+    private static void requireField(String storedValue, Class<?> fieldClass) throws IllegalValueException {
+        if (storedValue == null) {
+            throw new IllegalValueException(
+                    String.format(MISSING_FIELD_MESSAGE_FORMAT, fieldClass.getSimpleName()));
         }
+    }
+
+    private Name toModelName() throws IllegalValueException {
+        requireField(name, Name.class);
         if (!Name.isValidName(name)) {
             throw new IllegalValueException(Name.MESSAGE_CONSTRAINTS);
         }
-        final Name modelName = new Name(name);
+        return new Name(name);
+    }
 
-        if (phone == null) {
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Phone.class.getSimpleName()));
-        }
+    private Phone toModelPhone() throws IllegalValueException {
+        requireField(phone, Phone.class);
         if (!Phone.isValidPhone(phone)) {
             throw new IllegalValueException(Phone.MESSAGE_CONSTRAINTS);
         }
-        final Phone modelPhone = new Phone(phone);
+        return new Phone(phone);
+    }
 
-        if (email == null) {
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Email.class.getSimpleName()));
+    /**
+     * Converts the stored email into the model's {@code Email} object.
+     *
+     * @throws IllegalValueException if the stored email is missing, or invalid, in which case the message
+     *         names the specific problem.
+     */
+    private Email toModelEmail() throws IllegalValueException {
+        requireField(email, Email.class);
+        Optional<String> emailError = Email.findValidationError(email);
+        if (emailError.isPresent()) {
+            throw new IllegalValueException(emailError.get());
         }
-        if (!Email.isValidEmail(email)) {
-            throw new IllegalValueException(Email.MESSAGE_CONSTRAINTS);
-        }
-        final Email modelEmail = new Email(email);
+        return new Email(email);
+    }
 
-        if (address == null) {
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Address.class.getSimpleName()));
-        }
+    private Address toModelAddress() throws IllegalValueException {
+        requireField(address, Address.class);
         if (!Address.isValidAddress(address)) {
             throw new IllegalValueException(Address.MESSAGE_CONSTRAINTS);
         }
-        final Address modelAddress = new Address(address);
+        return new Address(address);
+    }
 
-        final RoleTitle modelRole = toModelRole();
+    /**
+     * Converts the stored note into the model's {@code Note} object.
+     * Notes are optional, so a missing note (e.g., in a file saved before notes existed) means no note.
+     */
+    private Note toModelNote() {
+        return (note == null) ? Note.NONE : new Note(note);
+    }
 
-        // Notes are optional, so a missing note (e.g., in a file saved before notes existed) means no note.
-        final Note modelNote = (note == null) ? new Note("") : new Note(note);
-
-        final Interview modelInterview = toModelInterview();
-
-        final Status modelStatus = toModelStatus();
-
-        final Set<Tag> modelTags = new HashSet<>(personTags);
-        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelRole, modelNote, modelInterview,
-                modelStatus, modelTags);
+    private Set<Tag> toModelTags() throws IllegalValueException {
+        final Set<Tag> modelTags = new HashSet<>();
+        for (JsonAdaptedTag tag : tags) {
+            modelTags.add(tag.toModelType());
+        }
+        return modelTags;
     }
 
     /**
      * Converts the stored interview into the model's {@code Interview} object.
-     * A missing interview (e.g., in a file saved before interviews existed) or an empty one means no interview.
+     * A missing interview (e.g., in a file saved before interviews existed) or an empty one
+     * means no interview.
      *
-     * @throws IllegalValueException if the stored interview has the wrong format or is not a real date and time.
+     * @throws IllegalValueException if the stored interview has the wrong format
+     *         or is not a real date and time.
      */
     private Interview toModelInterview() throws IllegalValueException {
         if (interview == null || interview.isEmpty()) {
             return Interview.NONE;
         }
-        if (!Interview.isValidFormat(interview)) {
-            throw new IllegalValueException(Interview.MESSAGE_INVALID_FORMAT);
-        }
-        if (!Interview.isValidDateTime(interview)) {
-            throw new IllegalValueException(Interview.MESSAGE_INVALID_DATE_TIME);
+        Optional<String> interviewError = Interview.findValidationError(interview);
+        if (interviewError.isPresent()) {
+            throw new IllegalValueException(interviewError.get());
         }
         return new Interview(interview);
     }
@@ -164,10 +194,7 @@ class JsonAdaptedPerson {
      * @throws IllegalValueException if the stored role title is missing or invalid.
      */
     private RoleTitle toModelRole() throws IllegalValueException {
-        if (role == null) {
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT,
-                    RoleTitle.class.getSimpleName()));
-        }
+        requireField(role, RoleTitle.class);
         if (!RoleTitle.isValidRoleTitle(role)) {
             throw new IllegalValueException(RoleTitle.MESSAGE_CONSTRAINTS);
         }

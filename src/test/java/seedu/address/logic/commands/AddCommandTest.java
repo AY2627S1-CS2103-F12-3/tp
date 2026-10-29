@@ -38,14 +38,37 @@ public class AddCommandTest {
 
     @Test
     public void execute_personAcceptedByModel_addSuccessful() throws Exception {
+        assertAddSuccess(new PersonBuilder().build());
+    }
+
+    @Test
+    public void execute_emailWithDotlessDomain_addsPersonWithWarning() throws Exception {
+        assertAddSuccess(new PersonBuilder().withEmail("amy@gmailcom").build(),
+                String.format(Messages.MESSAGE_DOTLESS_EMAIL_DOMAIN, "gmailcom"));
+    }
+
+    @Test
+    public void execute_emailWithUncommonSymbolsAndDotlessDomain_addsPersonWithBothWarnings()
+            throws Exception {
+        assertAddSuccess(new PersonBuilder().withEmail("amy#lee@gmailcom").build(),
+                String.format(Messages.MESSAGE_UNCOMMON_EMAIL_SYMBOLS, "#"),
+                String.format(Messages.MESSAGE_DOTLESS_EMAIL_DOMAIN, "gmailcom"));
+    }
+
+    /**
+     * Adds {@code person} to a model with an open Software Engineer role, and checks that the person is added
+     * and that the result message ends with {@code expectedWarnings}, one per line.
+     */
+    private void assertAddSuccess(Person person, String... expectedWarnings) throws Exception {
         ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded(SOFTWARE_ENGINEER);
-        Person validPerson = new PersonBuilder().build();
 
-        CommandResult commandResult = new AddCommand(validPerson).execute(modelStub);
+        CommandResult commandResult = new AddCommand(person).execute(modelStub);
 
-        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validPerson)),
-                commandResult.getFeedbackToUser());
-        assertEquals(List.of(validPerson), modelStub.personsAdded);
+        List<String> expectedLines = new ArrayList<>();
+        expectedLines.add(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(person)));
+        expectedLines.addAll(List.of(expectedWarnings));
+        assertEquals(String.join("\n", expectedLines), commandResult.getFeedbackToUser());
+        assertEquals(List.of(person), modelStub.personsAdded);
     }
 
     @Test

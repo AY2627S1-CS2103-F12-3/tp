@@ -137,6 +137,16 @@ public class ArgumentTokenizerTest {
     }
 
     @Test
+    public void tokenize_slashTextInsideAddress_isNotRecognizedAsPrefix() {
+        Prefix address = new Prefix("a/");
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(" a/12/p/t Tower, unit 4", address, pSlash, dashT);
+
+        assertArgumentPresent(argMultimap, address, "12/p/t Tower, unit 4");
+        assertArgumentAbsent(argMultimap, pSlash);
+        assertArgumentAbsent(argMultimap, dashT);
+    }
+
+    @Test
     public void equalsMethod() {
         Prefix aaa = new Prefix("aaa");
 

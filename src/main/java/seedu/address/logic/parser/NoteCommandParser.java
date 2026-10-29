@@ -25,24 +25,34 @@ public class NoteCommandParser implements Parser<NoteCommand> {
     /**
      * Parses the given {@code String} of arguments in the context of the NoteCommand
      * and returns a NoteCommand object for execution.
+     *
      * @throws ParseException if the user input does not conform to the expected format
      */
     public NoteCommand parse(String args) throws ParseException {
         requireNonNull(args);
         Matcher matcher = NOTE_COMMAND_FORMAT.matcher(args.trim());
         if (!matcher.matches()) {
-            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, NoteCommand.MESSAGE_USAGE));
+            throw new ParseException(
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, NoteCommand.MESSAGE_USAGE));
         }
 
-        Index index;
-        try {
-            index = ParserUtil.parseIndex(matcher.group("index"));
-        } catch (ParseException pe) {
-            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, NoteCommand.MESSAGE_USAGE), pe);
-        }
-
+        Index index = parseNoteIndex(matcher.group("index"));
         Note note = ParserUtil.parseNote(matcher.group("note"));
         return new NoteCommand(index, note);
+    }
+
+    /**
+     * Parses {@code index} into an {@code Index}, reporting an invalid index with the note command's usage.
+     *
+     * @throws ParseException if {@code index} is not a valid index.
+     */
+    private static Index parseNoteIndex(String index) throws ParseException {
+        try {
+            return ParserUtil.parseIndex(index);
+        } catch (ParseException pe) {
+            throw new ParseException(
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, NoteCommand.MESSAGE_USAGE), pe);
+        }
     }
 
 }
