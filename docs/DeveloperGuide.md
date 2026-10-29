@@ -325,7 +325,7 @@ Saving occurs in `LogicManager` after the command returns successfully, as descr
 #### Saving and restoring associations
 
 After a command other than `HelpCommand` executes successfully, `LogicManager#execute` asks `Storage` to save the complete
-address book, including both collections. This also happens for successful read-only commands such as `list`. 
+address book, including both collections. This also happens for successful read-only commands such as `list`.
 `HelpCommand` returns before the save call, so viewing help neither
 creates the recruitment data file nor retries a failed save. After resolving a file-access problem,
 the user can run `list` successfully to retry saving.
