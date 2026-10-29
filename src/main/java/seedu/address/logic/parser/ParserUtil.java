@@ -5,6 +5,7 @@ import static seedu.address.logic.Messages.MESSAGE_INVALID_ROLE_DISPLAYED_INDEX;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.commons.core.index.Index;
@@ -26,7 +27,12 @@ import seedu.address.model.tag.Tag;
  */
 public class ParserUtil {
 
-    public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+    public static final String MESSAGE_INVALID_INDEX = "Index must be a positive whole number, such as 1.";
+    public static final String MESSAGE_INDEX_TOO_LARGE = "Index %1$s is larger than any list. "
+            + "Use an index shown in the list.";
+
+    private static final String DIGITS_REGEX = "\\d+";
+    private static final String ZEROS_REGEX = "0+";
 
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be
@@ -35,10 +41,24 @@ public class ParserUtil {
      */
     public static Index parseIndex(String oneBasedIndex) throws ParseException {
         String trimmedIndex = oneBasedIndex.trim();
-        if (!StringUtil.isNonZeroUnsignedInteger(trimmedIndex)) {
-            throw new ParseException(MESSAGE_INVALID_INDEX);
+        if (StringUtil.isNonZeroUnsignedInteger(trimmedIndex)) {
+            return Index.fromOneBased(Integer.parseInt(trimmedIndex));
         }
-        return Index.fromOneBased(Integer.parseInt(trimmedIndex));
+
+        // A positive number that does not fit in an int is a valid index form,
+        // so say it is too large instead.
+        if (isTooLargeIndex(trimmedIndex)) {
+            throw new ParseException(String.format(MESSAGE_INDEX_TOO_LARGE, trimmedIndex));
+        }
+        throw new ParseException(MESSAGE_INVALID_INDEX);
+    }
+
+    /**
+     * Returns true if {@code index} is a positive whole number, assuming it has already failed
+     * {@link StringUtil#isNonZeroUnsignedInteger(String)}, so it can only be too large for an {@code int}.
+     */
+    private static boolean isTooLargeIndex(String index) {
+        return index.matches(DIGITS_REGEX) && !index.matches(ZEROS_REGEX);
     }
 
     /**
@@ -124,11 +144,9 @@ public class ParserUtil {
     public static Interview parseInterview(String interview) throws ParseException {
         requireNonNull(interview);
         String trimmedInterview = interview.trim();
-        if (!Interview.isValidFormat(trimmedInterview)) {
-            throw new ParseException(Interview.MESSAGE_INVALID_FORMAT);
-        }
-        if (!Interview.isValidDateTime(trimmedInterview)) {
-            throw new ParseException(Interview.MESSAGE_INVALID_DATE_TIME);
+        Optional<String> validationError = Interview.findValidationError(trimmedInterview);
+        if (validationError.isPresent()) {
+            throw new ParseException(validationError.get());
         }
         return new Interview(trimmedInterview);
     }
@@ -142,8 +160,9 @@ public class ParserUtil {
     public static Email parseEmail(String email) throws ParseException {
         requireNonNull(email);
         String trimmedEmail = email.trim();
-        if (!Email.isValidEmail(trimmedEmail)) {
-            throw new ParseException(Email.MESSAGE_CONSTRAINTS);
+        Optional<String> validationError = Email.findValidationError(trimmedEmail);
+        if (validationError.isPresent()) {
+            throw new ParseException(validationError.get());
         }
         return new Email(trimmedEmail);
     }

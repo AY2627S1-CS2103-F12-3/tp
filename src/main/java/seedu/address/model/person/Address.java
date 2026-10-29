@@ -26,7 +26,7 @@ public class Address {
      */
     public Address(String address) {
         requireNonNull(address);
-        String normalizedAddress = address.trim().replaceAll("\\s+", " ");
+        String normalizedAddress = normalizeWhitespace(address.trim().replaceAll("\\s+", " "));
         checkArgument(isValidAddress(normalizedAddress), MESSAGE_CONSTRAINTS);
         value = normalizedAddress;
     }
@@ -35,7 +35,12 @@ public class Address {
      * Returns true if a given string is a valid address.
      */
     public static boolean isValidAddress(String test) {
-        return test.matches(VALIDATION_REGEX);
+        requireNonNull(test);
+        return normalizeWhitespace(test).matches(VALIDATION_REGEX);
+    }
+
+    private static String normalizeWhitespace(String address) {
+        return address.replaceAll("[\\s\\p{Z}]+", " ").trim();
     }
 
     @Override

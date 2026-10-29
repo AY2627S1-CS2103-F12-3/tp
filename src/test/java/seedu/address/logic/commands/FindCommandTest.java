@@ -57,13 +57,14 @@ public class FindCommandTest {
     }
 
     @Test
-    public void execute_zeroKeywords_noPersonFound() {
-        String expectedMessage = String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 0);
+    public void execute_zeroKeywords_listsAllPersons() {
+        String expectedMessage = String.format(MESSAGE_PERSONS_LISTED_OVERVIEW,
+                model.getAddressBook().getPersonList().size());
         NameContainsKeywordsPredicate predicate = preparePredicate(" ");
         FindCommand command = new FindCommand(predicate);
         expectedModel.updateFilteredPersonList(predicate);
         assertCommandSuccess(command, model, expectedMessage, expectedModel);
-        assertEquals(List.of(), model.getFilteredPersonList());
+        assertEquals(model.getAddressBook().getPersonList(), model.getFilteredPersonList());
     }
 
     @Test
@@ -93,7 +94,7 @@ public class FindCommandTest {
                 List.of("Alice"), List.of("Software"), java.util.Set.of(RoleStatus.OPEN), List.of());
         CommandResult result = new FindCommand(predicate).execute(roleModel);
         assertEquals(1, roleModel.getFilteredPersonList().size());
-        assertTrue(result.getFeedbackToUser().contains("List filter:"));
+        assertTrue(result.getFeedbackToUser().contains("List filter: Name: Alice; Role: Software; Role status: OPEN"));
     }
 
     /**

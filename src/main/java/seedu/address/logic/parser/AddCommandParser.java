@@ -34,8 +34,8 @@ public class AddCommandParser implements Parser<AddCommand> {
      * @throws ParseException if the user input does not conform to the expected format
      */
     public AddCommand parse(String args) throws ParseException {
-        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
-                PREFIX_ADDRESS, PREFIX_ROLE_TITLE, PREFIX_TAG);
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE,
+                PREFIX_EMAIL, PREFIX_ADDRESS, PREFIX_ROLE_TITLE, PREFIX_TAG);
 
         if (!arePrefixesPresent(argMultimap, PREFIX_NAME, PREFIX_ADDRESS, PREFIX_PHONE, PREFIX_EMAIL,
                 PREFIX_ROLE_TITLE)
@@ -50,10 +50,10 @@ public class AddCommandParser implements Parser<AddCommand> {
         Email email = ParserUtil.parseEmail(argMultimap.getValue(PREFIX_EMAIL).get());
         Address address = ParserUtil.parseAddress(argMultimap.getValue(PREFIX_ADDRESS).get());
         RoleTitle role = ParserUtil.parseRoleTitle(argMultimap.getValue(PREFIX_ROLE_TITLE).get());
-        Note note = new Note("");
         Set<Tag> tagList = ParserUtil.parseTags(argMultimap.getAllValues(PREFIX_TAG));
 
-        Person person = new Person(name, phone, email, address, role, note, Interview.NONE,
+        // A new candidate starts with no note and no interview; these are set by their own commands.
+        Person person = new Person(name, phone, email, address, role, Note.NONE, Interview.NONE,
                 Person.DEFAULT_STATUS, tagList);
 
         return new AddCommand(person);

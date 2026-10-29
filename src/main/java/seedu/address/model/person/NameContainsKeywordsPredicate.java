@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import seedu.address.commons.util.StringUtil;
 import seedu.address.commons.util.ToStringBuilder;
@@ -46,6 +47,24 @@ public class NameContainsKeywordsPredicate implements Predicate<Person> {
         return !roleKeywords.isEmpty() || !roleStatuses.isEmpty();
     }
 
+    /** Returns a user-facing description of the filters applied by this predicate. */
+    public String getFilterDescription() {
+        List<String> filters = new java.util.ArrayList<>();
+        if (!keywords.isEmpty()) {
+            filters.add("Name: " + String.join(", ", keywords));
+        }
+        if (!roleKeywords.isEmpty()) {
+            filters.add("Role: " + String.join(" ", roleKeywords));
+        }
+        if (!roleStatuses.isEmpty()) {
+            filters.add("Role status: " + roleStatuses.stream()
+                    .map(RoleStatus::name)
+                    .sorted()
+                    .collect(Collectors.joining(", ")));
+        }
+        return String.join("; ", filters);
+    }
+
     @Override
     public boolean test(Person person) {
         requireNonNull(person);
@@ -53,7 +72,8 @@ public class NameContainsKeywordsPredicate implements Predicate<Person> {
                 .anyMatch(keyword -> StringUtil.containsWordIgnoreCase(person.getName().fullName, keyword));
         boolean roleMatches = roleKeywords.isEmpty() && roleStatuses.isEmpty()
                 || roles.stream().anyMatch(role -> roleMatches(person, role));
-        return (!keywords.isEmpty() && nameMatches || keywords.isEmpty() && hasRoleFilters()) && roleMatches;
+        boolean nameFilterMatches = keywords.isEmpty() || nameMatches;
+        return nameFilterMatches && roleMatches;
     }
 
     private boolean roleMatches(Person person, Role role) {

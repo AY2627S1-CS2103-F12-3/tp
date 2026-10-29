@@ -9,12 +9,14 @@ Class "<<interface>>\nUi" as Ui
 Class "{abstract}\nUiPart" as UiPart
 Class UiManager
 Class MainWindow
-Class HelpWindow
 Class ResultDisplay
 Class PersonListPanel
 Class PersonCard
+Class RoleListPanel
+Class RoleCard
 Class StatusBarFooter
 Class CommandBox
+Class "<<record>>\nStartupDataNotice" as StartupDataNotice
 }
 
 package Model <<Rectangle>> {
@@ -30,13 +32,15 @@ HiddenOutside ..> Ui
 
 UiManager .left.|> Ui
 UiManager -down-> "1" MainWindow
+UiManager .right.> StartupDataNotice
 MainWindow *-down->  "1" CommandBox
 MainWindow *-down-> "1" ResultDisplay
 MainWindow *-down-> "1" PersonListPanel
+MainWindow *-down-> "1" RoleListPanel
 MainWindow *-down-> "1" StatusBarFooter
-MainWindow --> "0..1" HelpWindow
 
 PersonListPanel -down-> "*" PersonCard
+RoleListPanel -down-> "*" RoleCard
 
 MainWindow -left-|> UiPart
 
@@ -44,15 +48,19 @@ ResultDisplay --|> UiPart
 CommandBox --|> UiPart
 PersonListPanel --|> UiPart
 PersonCard --|> UiPart
+RoleListPanel --|> UiPart
+RoleCard --|> UiPart
 StatusBarFooter --|> UiPart
-HelpWindow --|> UiPart
 
-PersonCard ..> Model
+PersonListPanel .down.> Model
+PersonCard .down.> Model
+RoleListPanel .down.> Model
+RoleCard .down.> Model
+
 UiManager -right-> Logic
 MainWindow -left-> Logic
 
-PersonListPanel -[hidden]left- HelpWindow
-HelpWindow -[hidden]left- CommandBox
+RoleListPanel -[hidden]left- PersonListPanel
 CommandBox -[hidden]left- ResultDisplay
 ResultDisplay -[hidden]left- StatusBarFooter
 

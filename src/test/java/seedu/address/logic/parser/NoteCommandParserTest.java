@@ -35,8 +35,8 @@ public class NoteCommandParserTest {
 
     @Test
     public void parse_indexOnly_emptyNote() {
-        assertParseSuccess(parser, "1", new NoteCommand(INDEX_FIRST_PERSON, new Note("")));
-        assertParseSuccess(parser, " 1   ", new NoteCommand(INDEX_FIRST_PERSON, new Note("")));
+        assertParseSuccess(parser, "1", new NoteCommand(INDEX_FIRST_PERSON, Note.NONE));
+        assertParseSuccess(parser, " 1   ", new NoteCommand(INDEX_FIRST_PERSON, Note.NONE));
     }
 
     @Test
