@@ -65,13 +65,7 @@ public class AddCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
 
-        Optional<Person> existingPerson = model.findSamePerson(toAdd);
-        if (existingPerson.isPresent()) {
-            String message = Messages.getErrorMessageForDuplicatePerson(toAdd, existingPerson.get());
-            logger.info("Rejected duplicate candidate " + toAdd.getName() + ": " + message);
-            throw new CommandException(message);
-        }
-
+        verifyNotDuplicate(model);
         Role role = findOpenRole(model);
 
         // Saves the role's own spelling of the title, so each role is shown and stored in one way.
@@ -81,6 +75,20 @@ public class AddCommand extends Command {
         logger.info("Added candidate " + personToAdd.getName());
         String messageWithPhoneWarnings = PhoneChecks.appendPhoneWarnings(successMessage, model, personToAdd);
         return new CommandResult(EmailChecks.appendEmailWarnings(messageWithPhoneWarnings, personToAdd.getEmail()));
+    }
+
+    /**
+     * Checks that no candidate in {@code model} has the same email or phone number as the candidate to add.
+     *
+     * @throws CommandException if such a candidate exists, with a message naming them and the shared field.
+     */
+    private void verifyNotDuplicate(Model model) throws CommandException {
+        Optional<Person> existingPerson = model.findSamePerson(toAdd);
+        if (existingPerson.isPresent()) {
+            String message = Messages.getErrorMessageForDuplicatePerson(toAdd, existingPerson.get());
+            logger.info("Rejected duplicate candidate " + toAdd.getName() + ": " + message);
+            throw new CommandException(message);
+        }
     }
 
     /**
