@@ -120,8 +120,7 @@ public class Email {
 
         // A limit of -1 keeps empty parts, so an empty domain or a leading, trailing or doubled dot is caught.
         String[] domainParts = domain.split("\\.", -1);
-        boolean hasInvalidPart = Arrays.stream(domainParts)
-                .anyMatch(part -> part.isEmpty() || part.startsWith("-") || part.endsWith("-"));
+        boolean hasInvalidPart = Arrays.stream(domainParts).anyMatch(part -> !isValidDomainPart(part));
         if (hasInvalidPart) {
             return Optional.of(MESSAGE_DOMAIN_PARTS);
         }
@@ -131,6 +130,14 @@ public class Email {
             return Optional.of(MESSAGE_DOMAIN_ENDING);
         }
         return Optional.empty();
+    }
+
+    /**
+     * Returns true if {@code domainPart}, a part of a domain between dots, is not empty and does not start
+     * or end with a hyphen. Its characters are assumed to be checked already.
+     */
+    private static boolean isValidDomainPart(String domainPart) {
+        return !domainPart.isEmpty() && !domainPart.startsWith("-") && !domainPart.endsWith("-");
     }
 
     /**
@@ -169,7 +176,7 @@ public class Email {
      * Returns the part of this email after the {@code @}, such as {@code example.com}.
      */
     public String getDomain() {
-        return value.substring(value.indexOf('@') + 1);
+        return value.substring(getAtSignIndex() + 1);
     }
 
     /**
@@ -179,7 +186,7 @@ public class Email {
      * Such symbols are valid but are most likely typos, so they are worth warning the user about.
      */
     public String getUncommonSymbols() {
-        String localPart = value.substring(0, value.indexOf('@'));
+        String localPart = value.substring(0, getAtSignIndex());
         return localPart.replaceAll(COMMON_LOCAL_PART_CHARACTER, "")
                 .chars()
                 .distinct()
@@ -193,6 +200,15 @@ public class Email {
      */
     public boolean hasDotlessDomain() {
         return !getDomain().contains(".");
+    }
+
+    /**
+     * Returns the position of the {@code @} that separates the two parts of this email.
+     */
+    private int getAtSignIndex() {
+        int atIndex = value.indexOf('@');
+        assert atIndex > 0 && atIndex == value.lastIndexOf('@') : "A valid email has exactly one @, after its name";
+        return atIndex;
     }
 
     @Override
