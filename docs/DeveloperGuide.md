@@ -149,8 +149,9 @@ A candidate (`Person`) is immutable and always has exactly one of each field exc
 * The candidate's role is a `RoleTitle`, the same class that names a `Role`.
 * An empty `Note` means the candidate has no note. New candidates share the empty `Note.NONE`, so the
   association to `Note` is not a composition.
-* `Interview.NONE` means the candidate has no interview. It is shared by every such candidate, so the
-  association to `Interview` is not a composition. See [Candidate interviews](#candidate-interviews).
+* `Interview.NONE` means the candidate has no interview, and is the only `Interview` without a date
+  and time. It is shared by every such candidate, so the association to `Interview` is not a
+  composition. See [Candidate interviews](#candidate-interviews).
 * A new candidate's `Status` is `RESUME`.
 
 The `Model` component,
@@ -702,9 +703,9 @@ Strict resolving is needed because the default resolver silently adjusts `2026-0
 
 `InterviewCommandParser` tokenizes the arguments with the `d/` prefix. The preamble must be exactly one index. A missing index, an index joined to `d/` without a space, an index that is not a positive whole number, and extra text after the index each get their own error message, so the user can tell what to correct. If `d/` is present, `ParserUtil#parseInterview` runs the two checks above and creates the `Interview`. If `d/` is left out, the parser uses `Interview.NONE`, so `interview 1` clears the first candidate's interview. An empty `d/` is rejected with the format error instead of clearing the interview, so a user who forgets to type the date does not lose the existing one.
 
-The sequence diagram below shows how `interview 1 d/2026-10-20 14:00` is executed, including the two date and time checks and the branch that clears the interview when `d/` is left out.
+The sequence diagram below shows how `InterviewCommandParser` parses `interview 1 d/2026-10-20 14:00`, and the branch that clears the interview when `d/` is left out. The steps before and after parsing are the same as for `delete` (see the [Logic component](#logic-component)).
 
-<puml src="diagrams/InterviewSequenceDiagram.puml" alt="Interactions for the interview 1 d/2026-10-20 14:00 command" />
+<puml src="diagrams/InterviewSequenceDiagram.puml" alt="Parsing the interview 1 d/2026-10-20 14:00 command" />
 
 `InterviewCommand#execute` looks up the candidate in the displayed candidate list and replaces it with `Person#withInterview`, a copy that has the new interview. A candidate has only one interview, so scheduling another one replaces the previous interview, and `interview INDEX` replaces it with `Interview.NONE`. Like `note`, it does not reset the candidate filter, so a recruiter can schedule interviews for a filtered list by its displayed numbers. Clearing a candidate with no interview, or giving the same date and time again, succeeds without changing the data, as `note` does for notes.
 
