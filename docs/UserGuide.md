@@ -421,8 +421,9 @@ Format: `find [KEYWORD ...] [r/ ROLE ...] [st/ STATUS ...]`
 each filter, multiple keywords are combined with OR: a role/status matches if it matches
 at least one keyword or status. Different filter types are combined with AND, so a candidate
 must satisfy the name filter, role filter, and status filter that were supplied.
-For example, `find r/Software Engineer st/OPEN` shows candidates in open Software
-Engineer roles. The displayed feedback identifies the filter used.
+For example, `find r/Software Engineer st/OPEN` shows candidates in open roles whose
+titles contain either `Software` or `Engineer`, such as Software Engineer, Hardware
+Engineer, or Software Tester roles. The displayed feedback identifies the filter used.
 
 When a candidate is updated and no longer matches the current filter, they disappear
 from the list and the displayed numbers shift. For updating many candidates, use the
