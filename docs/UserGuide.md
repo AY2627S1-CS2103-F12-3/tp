@@ -116,7 +116,10 @@ guide with its usual result message.
 
 Adds a candidate who is applying for a role.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
+Format: `add n/NAME p/PHONE_NUMBER e/EMAIL [a/ADDRESS] r/ROLE [t/TAG]... `
+
+`a/ADDRESS` is optional. If it is omitted, the candidate is saved with the placeholder
+address `N/A`. An explicitly supplied address must not be blank.
 
 Address text may contain slash sequences such as `/p` and `/t`. They remain part of the
 address when attached to other text, for example `12/p/t Tower`. A command prefix is
