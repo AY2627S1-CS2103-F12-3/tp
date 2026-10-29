@@ -4,8 +4,10 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.Messages;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
@@ -15,6 +17,8 @@ import seedu.address.model.person.Person;
  * Exact duplicates are rejected elsewhere; these checks only add notes to a successful command's message.
  */
 final class PhoneChecks {
+
+    private static final Logger logger = LogsCenter.getLogger(PhoneChecks.class);
 
     private PhoneChecks() {
     }
@@ -42,9 +46,9 @@ final class PhoneChecks {
             warnings.add(String.format(Messages.MESSAGE_POSSIBLE_DUPLICATE_PHONE, possibleDuplicates));
         }
 
-        if (warnings.isEmpty()) {
-            return message;
+        if (!warnings.isEmpty()) {
+            logger.info("Phone of candidate " + candidate.getName() + " saved with warnings: " + warnings);
         }
-        return message + "\n" + String.join("\n", warnings);
+        return Messages.appendWarnings(message, warnings);
     }
 }

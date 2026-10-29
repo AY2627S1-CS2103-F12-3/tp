@@ -111,16 +111,29 @@ public class EditCommand extends Command {
             logger.info("Updated candidate role in memory at displayed index " + index.getOneBased() + ".");
         }
         String successMessage = String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
-        // Only a newly entered phone or email is checked, so other edits do not repeat the same warnings.
+        return new CommandResult(appendWarningsForChangedFields(successMessage, model, personToEdit, editedPerson));
+    }
+
+    /**
+     * Returns {@code successMessage} followed by any warnings about the phone and email of {@code editedPerson}.
+     * Only a newly entered phone or email is checked, since warnings about a saved value were already shown
+     * when it was saved, and repeating them on every edit would hide new warnings.
+     */
+    private static String appendWarningsForChangedFields(String successMessage, Model model, Person personToEdit,
+            Person editedPerson) {
+        String resultMessage = successMessage;
+
         boolean isPhoneChanged = !editedPerson.getPhone().equals(personToEdit.getPhone());
         if (isPhoneChanged) {
-            successMessage = PhoneChecks.appendPhoneWarnings(successMessage, model, editedPerson);
+            resultMessage = PhoneChecks.appendPhoneWarnings(resultMessage, model, editedPerson);
         }
+
+        // Emails are compared ignoring case, so changing only the case of an email is not a new email.
         boolean isEmailChanged = !editedPerson.getEmail().isSameEmail(personToEdit.getEmail());
         if (isEmailChanged) {
-            successMessage = Messages.appendEmailWarnings(successMessage, editedPerson.getEmail());
+            resultMessage = EmailChecks.appendEmailWarnings(resultMessage, editedPerson.getEmail());
         }
-        return new CommandResult(successMessage);
+        return resultMessage;
     }
 
     /**

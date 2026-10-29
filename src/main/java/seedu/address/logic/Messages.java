@@ -3,13 +3,13 @@ package seedu.address.logic;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.parser.Prefix;
-import seedu.address.model.person.Email;
 import seedu.address.model.person.Person;
 
 /**
@@ -73,22 +73,15 @@ public class Messages {
     }
 
     /**
-     * Returns {@code successMessage} followed by a warning on a new line for each likely typo in {@code email}:
-     * symbols that email providers do not issue, and a domain without a dot.
-     * The email is still saved, because both are valid.
+     * Returns {@code message} followed by each of {@code warnings} on its own line,
+     * or {@code message} unchanged if there are no warnings.
      */
-    public static String appendEmailWarnings(String successMessage, Email email) {
-        requireAllNonNull(successMessage, email);
-        StringBuilder message = new StringBuilder(successMessage);
-
-        String uncommonSymbols = email.getUncommonSymbols();
-        if (!uncommonSymbols.isEmpty()) {
-            message.append("\n").append(String.format(MESSAGE_UNCOMMON_EMAIL_SYMBOLS, uncommonSymbols));
+    public static String appendWarnings(String message, List<String> warnings) {
+        requireAllNonNull(message, warnings);
+        if (warnings.isEmpty()) {
+            return message;
         }
-        if (email.hasDotlessDomain()) {
-            message.append("\n").append(String.format(MESSAGE_DOTLESS_EMAIL_DOMAIN, email.getDomain()));
-        }
-        return message.toString();
+        return message + "\n" + String.join("\n", warnings);
     }
 
     /**

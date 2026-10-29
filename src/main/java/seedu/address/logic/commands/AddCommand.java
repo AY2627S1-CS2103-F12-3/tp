@@ -78,8 +78,9 @@ public class AddCommand extends Command {
         Person personToAdd = toAdd.withRole(role.getTitle());
         model.addPerson(personToAdd);
         String successMessage = String.format(MESSAGE_SUCCESS, Messages.format(personToAdd));
-        String resultMessage = PhoneChecks.appendPhoneWarnings(successMessage, model, personToAdd);
-        return new CommandResult(Messages.appendEmailWarnings(resultMessage, personToAdd.getEmail()));
+        logger.info("Added candidate " + personToAdd.getName());
+        String messageWithPhoneWarnings = PhoneChecks.appendPhoneWarnings(successMessage, model, personToAdd);
+        return new CommandResult(EmailChecks.appendEmailWarnings(messageWithPhoneWarnings, personToAdd.getEmail()));
     }
 
     /**
