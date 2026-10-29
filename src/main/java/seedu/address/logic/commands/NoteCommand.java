@@ -72,9 +72,7 @@ public class NoteCommand extends Command {
         }
 
         Person personToEdit = lastShownList.get(index.getZeroBased());
-        Person editedPerson = new Person(personToEdit.getName(), personToEdit.getPhone(),
-                personToEdit.getEmail(), personToEdit.getAddress(), personToEdit.getRole(), note,
-                personToEdit.getInterview(), personToEdit.getStatus(), personToEdit.getTags());
+        Person editedPerson = personToEdit.withNote(note);
         assert editedPerson.getNote().equals(note) : "Edited person should hold the new note";
 
         model.setPerson(personToEdit, editedPerson);

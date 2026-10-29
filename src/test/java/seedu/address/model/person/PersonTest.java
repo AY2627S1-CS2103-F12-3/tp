@@ -168,6 +168,12 @@ public class PersonTest {
     }
 
     @Test
+    public void withNote_newNote_changesOnlyNote() {
+        Person expectedPerson = new PersonBuilder(ALICE).withNote(VALID_NOTE_BOB).build();
+        assertEquals(expectedPerson, ALICE.withNote(new Note(VALID_NOTE_BOB)));
+    }
+
+    @Test
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName()
                 + ", phone=" + ALICE.getPhone() + ", email=" + ALICE.getEmail()

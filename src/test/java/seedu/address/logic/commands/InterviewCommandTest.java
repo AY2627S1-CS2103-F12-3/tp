@@ -8,6 +8,8 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_INTERVIEW_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NOTE_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
+import static seedu.address.logic.commands.CommandTestUtil.copyModelWithPersonReplaced;
+import static seedu.address.logic.commands.CommandTestUtil.replacePerson;
 import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
@@ -18,12 +20,13 @@ import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
-import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
@@ -41,6 +44,9 @@ public class InterviewCommandTest {
     private static final Clock BEFORE_VALID_INTERVIEWS_CLOCK =
             Clock.fixed(Instant.parse("2026-10-01T00:00:00Z"), ZoneOffset.UTC);
 
+    /** A fourth typical candidate, for tests that need more than two other candidates. */
+    private static final Index INDEX_FOURTH_PERSON = Index.fromOneBased(4);
+
     private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
 
     @Test
@@ -56,342 +62,187 @@ public class InterviewCommandTest {
 
     @Test
     public void execute_scheduleInterviewUnfilteredList_success() {
-        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person editedPerson = new PersonBuilder(firstPerson).withInterview(VALID_INTERVIEW_AMY).build();
-        InterviewCommand interviewCommand =
-                new InterviewCommand(INDEX_FIRST_PERSON, new Interview(VALID_INTERVIEW_AMY),
-                        BEFORE_VALID_INTERVIEWS_CLOCK);
-
-        String expectedMessage = String.format(InterviewCommand.MESSAGE_SCHEDULE_SUCCESS,
-                firstPerson.getName(), VALID_INTERVIEW_AMY);
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(firstPerson, editedPerson);
-
-        assertCommandSuccess(interviewCommand, model, expectedMessage, expectedModel);
+        assertScheduleSuccess(INDEX_FIRST_PERSON, VALID_INTERVIEW_AMY, BEFORE_VALID_INTERVIEWS_CLOCK);
     }
 
     @Test
     public void execute_pastInterview_warnsButSaves() {
-        String pastInterview = "2020-01-15 09:30";
-        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person editedPerson = new PersonBuilder(firstPerson).withInterview(pastInterview).build();
-        InterviewCommand interviewCommand =
-                new InterviewCommand(INDEX_FIRST_PERSON, new Interview(pastInterview), FIXED_CLOCK);
-
-        String expectedMessage = String.format(InterviewCommand.MESSAGE_SCHEDULE_SUCCESS,
-                firstPerson.getName(), pastInterview) + "\n" + InterviewCommand.MESSAGE_PAST_WARNING;
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(firstPerson, editedPerson);
-
-        assertCommandSuccess(interviewCommand, model, expectedMessage, expectedModel);
+        assertScheduleSuccess(INDEX_FIRST_PERSON, "2020-01-15 09:30", FIXED_CLOCK,
+                InterviewCommand.MESSAGE_PAST_WARNING);
     }
 
     @Test
     public void execute_personWithInterview_interviewReplacedAndNotePreserved() {
-        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person personWithInterview = new PersonBuilder(firstPerson).withNote(VALID_NOTE_BOB)
-                .withInterview(VALID_INTERVIEW_BOB).build();
-        model.setPerson(firstPerson, personWithInterview);
+        replacePerson(model, INDEX_FIRST_PERSON,
+                builder -> builder.withNote(VALID_NOTE_BOB).withInterview(VALID_INTERVIEW_BOB));
 
-        Person editedPerson = new PersonBuilder(personWithInterview)
-                .withInterview(VALID_INTERVIEW_AMY).build();
-        InterviewCommand interviewCommand =
-                new InterviewCommand(INDEX_FIRST_PERSON, new Interview(VALID_INTERVIEW_AMY),
-                        BEFORE_VALID_INTERVIEWS_CLOCK);
-
-        String expectedMessage = String.format(InterviewCommand.MESSAGE_SCHEDULE_SUCCESS,
-                firstPerson.getName(), VALID_INTERVIEW_AMY);
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(personWithInterview, editedPerson);
-
-        assertCommandSuccess(interviewCommand, model, expectedMessage, expectedModel);
+        assertScheduleSuccess(INDEX_FIRST_PERSON, VALID_INTERVIEW_AMY, BEFORE_VALID_INTERVIEWS_CLOCK);
     }
 
     @Test
     public void execute_sameInterview_success() {
-        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person personWithInterview = new PersonBuilder(firstPerson)
-                .withInterview(VALID_INTERVIEW_AMY).build();
-        model.setPerson(firstPerson, personWithInterview);
+        replacePerson(model, INDEX_FIRST_PERSON, builder -> builder.withInterview(VALID_INTERVIEW_AMY));
 
-        InterviewCommand interviewCommand =
-                new InterviewCommand(INDEX_FIRST_PERSON, new Interview(VALID_INTERVIEW_AMY),
-                        BEFORE_VALID_INTERVIEWS_CLOCK);
-
-        String expectedMessage = String.format(InterviewCommand.MESSAGE_SCHEDULE_SUCCESS,
-                firstPerson.getName(), VALID_INTERVIEW_AMY);
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-
-        assertCommandSuccess(interviewCommand, model, expectedMessage, expectedModel);
+        assertScheduleSuccess(INDEX_FIRST_PERSON, VALID_INTERVIEW_AMY, BEFORE_VALID_INTERVIEWS_CLOCK);
     }
 
     @Test
     public void execute_clearInterview_success() {
-        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person personWithInterview = new PersonBuilder(firstPerson)
-                .withInterview(VALID_INTERVIEW_AMY).build();
-        model.setPerson(firstPerson, personWithInterview);
+        replacePerson(model, INDEX_FIRST_PERSON, builder -> builder.withInterview(VALID_INTERVIEW_AMY));
 
-        Person editedPerson = new PersonBuilder(personWithInterview).withInterview(Interview.NONE).build();
-        InterviewCommand interviewCommand = new InterviewCommand(INDEX_FIRST_PERSON, Interview.NONE);
-
-        String expectedMessage = String.format(InterviewCommand.MESSAGE_CLEAR_SUCCESS, firstPerson.getName());
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(personWithInterview, editedPerson);
-
-        assertCommandSuccess(interviewCommand, model, expectedMessage, expectedModel);
+        assertClearSuccess(INDEX_FIRST_PERSON);
     }
 
     @Test
     public void execute_clearPersonWithoutInterview_success() {
         Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         assertTrue(firstPerson.getInterview().isEmpty());
-        InterviewCommand interviewCommand = new InterviewCommand(INDEX_FIRST_PERSON, Interview.NONE);
 
-        String expectedMessage = String.format(InterviewCommand.MESSAGE_CLEAR_SUCCESS, firstPerson.getName());
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-
-        assertCommandSuccess(interviewCommand, model, expectedMessage, expectedModel);
+        assertClearSuccess(INDEX_FIRST_PERSON);
     }
 
     @Test
     public void execute_filteredList_successAndFilterKept() {
         showPersonAtIndex(model, INDEX_SECOND_PERSON);
 
-        Person secondPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person editedPerson = new PersonBuilder(secondPerson).withInterview(VALID_INTERVIEW_AMY).build();
-        InterviewCommand interviewCommand =
-                new InterviewCommand(INDEX_FIRST_PERSON, new Interview(VALID_INTERVIEW_AMY),
-                        BEFORE_VALID_INTERVIEWS_CLOCK);
-
-        String expectedMessage = String.format(InterviewCommand.MESSAGE_SCHEDULE_SUCCESS,
-                secondPerson.getName(), VALID_INTERVIEW_AMY);
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(secondPerson, editedPerson);
-        showPersonAtIndex(expectedModel, INDEX_SECOND_PERSON);
-
-        assertCommandSuccess(interviewCommand, model, expectedMessage, expectedModel);
+        assertScheduleSuccess(INDEX_FIRST_PERSON, VALID_INTERVIEW_AMY, BEFORE_VALID_INTERVIEWS_CLOCK);
         assertEquals(1, model.getFilteredPersonList().size());
     }
 
     @Test
     public void execute_interviewMoreThanAYearAhead_warnsButSaves() {
-        String farInterview = "2027-10-29 09:00"; // one day past a year from the fixed date
-        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person editedPerson = new PersonBuilder(firstPerson).withInterview(farInterview).build();
-        InterviewCommand interviewCommand =
-                new InterviewCommand(INDEX_FIRST_PERSON, new Interview(farInterview), FIXED_CLOCK);
-
-        String expectedMessage = String.format(InterviewCommand.MESSAGE_SCHEDULE_SUCCESS,
-                firstPerson.getName(), farInterview) + "\n"
-                + InterviewCommand.MESSAGE_FAR_FUTURE_WARNING;
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(firstPerson, editedPerson);
-
-        assertCommandSuccess(interviewCommand, model, expectedMessage, expectedModel);
+        // one day past a year from the fixed date
+        assertScheduleSuccess(INDEX_FIRST_PERSON, "2027-10-29 09:00", FIXED_CLOCK,
+                InterviewCommand.MESSAGE_FAR_FUTURE_WARNING);
     }
 
     @Test
     public void execute_interviewExactlyAYearAhead_noWarning() {
-        String yearAheadInterview = "2027-10-28 09:00";
-        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person editedPerson = new PersonBuilder(firstPerson).withInterview(yearAheadInterview).build();
-        InterviewCommand interviewCommand =
-                new InterviewCommand(INDEX_FIRST_PERSON, new Interview(yearAheadInterview), FIXED_CLOCK);
-
-        String expectedMessage = String.format(InterviewCommand.MESSAGE_SCHEDULE_SUCCESS,
-                firstPerson.getName(), yearAheadInterview);
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(firstPerson, editedPerson);
-
-        assertCommandSuccess(interviewCommand, model, expectedMessage, expectedModel);
+        assertScheduleSuccess(INDEX_FIRST_PERSON, "2027-10-28 09:00", FIXED_CLOCK);
     }
 
     @Test
     public void execute_upcomingInterviewForFinalStatus_warnsButSaves() {
+        replacePerson(model, INDEX_FIRST_PERSON, builder -> builder.withStatus(Status.REJECTED));
+
         // VALID_INTERVIEW_BOB is after the fixed date
-        assertFinalStatusInterview(VALID_INTERVIEW_BOB, true, false);
+        assertScheduleSuccess(INDEX_FIRST_PERSON, VALID_INTERVIEW_BOB, FIXED_CLOCK,
+                String.format(InterviewCommand.MESSAGE_FINAL_STATUS_WARNING, Status.REJECTED));
     }
 
     @Test
     public void execute_interviewTodayForFinalStatus_warnsButSaves() {
+        replacePerson(model, INDEX_FIRST_PERSON, builder -> builder.withStatus(Status.REJECTED));
+
         // earlier in the day than the fixed clock, but still today
-        assertFinalStatusInterview("2026-10-28 09:00", true, false);
+        assertScheduleSuccess(INDEX_FIRST_PERSON, "2026-10-28 09:00", FIXED_CLOCK,
+                String.format(InterviewCommand.MESSAGE_FINAL_STATUS_WARNING, Status.REJECTED));
     }
 
     @Test
     public void execute_pastInterviewForFinalStatus_noFinalStatusWarning() {
+        replacePerson(model, INDEX_FIRST_PERSON, builder -> builder.withStatus(Status.REJECTED));
+
         // recording an interview that already happened, the day before the fixed date
-        assertFinalStatusInterview("2026-10-27 09:00", false, true);
-    }
-
-    /**
-     * Schedules {@code interviewDateTime} for a rejected candidate and checks the result message,
-     * which has the final-status and past-date notes when expected.
-     */
-    private void assertFinalStatusInterview(String interviewDateTime, boolean isStatusNoteExpected,
-            boolean isPastNoteExpected) {
-        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person rejectedPerson = new PersonBuilder(firstPerson).withStatus(Status.REJECTED).build();
-        model.setPerson(firstPerson, rejectedPerson);
-
-        Person editedPerson = new PersonBuilder(rejectedPerson).withInterview(interviewDateTime).build();
-        InterviewCommand interviewCommand =
-                new InterviewCommand(INDEX_FIRST_PERSON, new Interview(interviewDateTime), FIXED_CLOCK);
-
-        String expectedMessage = String.format(InterviewCommand.MESSAGE_SCHEDULE_SUCCESS,
-                firstPerson.getName(), interviewDateTime);
-        if (isStatusNoteExpected) {
-            expectedMessage += "\n" + String.format(InterviewCommand.MESSAGE_FINAL_STATUS_WARNING,
-                    Status.REJECTED);
-        }
-        if (isPastNoteExpected) {
-            expectedMessage += "\n" + InterviewCommand.MESSAGE_PAST_WARNING;
-        }
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(rejectedPerson, editedPerson);
-
-        assertCommandSuccess(interviewCommand, model, expectedMessage, expectedModel);
+        assertScheduleSuccess(INDEX_FIRST_PERSON, "2026-10-27 09:00", FIXED_CLOCK,
+                InterviewCommand.MESSAGE_PAST_WARNING);
     }
 
     @Test
     public void execute_clearCandidateWithFinalStatus_noWarning() {
-        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person hiredPerson = new PersonBuilder(firstPerson).withStatus(Status.HIRED)
-                .withInterview(VALID_INTERVIEW_AMY).build();
-        model.setPerson(firstPerson, hiredPerson);
+        replacePerson(model, INDEX_FIRST_PERSON,
+                builder -> builder.withStatus(Status.HIRED).withInterview(VALID_INTERVIEW_AMY));
 
-        Person editedPerson = new PersonBuilder(hiredPerson).withInterview(Interview.NONE).build();
-        InterviewCommand interviewCommand =
-                new InterviewCommand(INDEX_FIRST_PERSON, Interview.NONE, FIXED_CLOCK);
-
-        String expectedMessage = String.format(InterviewCommand.MESSAGE_CLEAR_SUCCESS, firstPerson.getName());
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(hiredPerson, editedPerson);
-
-        assertCommandSuccess(interviewCommand, model, expectedMessage, expectedModel);
+        assertClearSuccess(INDEX_FIRST_PERSON);
     }
 
     @Test
     public void execute_sameTimeAsHiddenCandidates_namesThem() {
-        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person secondPerson = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
-        Person thirdPerson = model.getFilteredPersonList().get(INDEX_THIRD_PERSON.getZeroBased());
-        Person secondWithInterview = new PersonBuilder(secondPerson)
-                .withInterview(VALID_INTERVIEW_AMY).build();
-        Person thirdWithInterview = new PersonBuilder(thirdPerson).withInterview(VALID_INTERVIEW_AMY).build();
-        model.setPerson(secondPerson, secondWithInterview);
-        model.setPerson(thirdPerson, thirdWithInterview);
+        Person secondPerson = replacePerson(model, INDEX_SECOND_PERSON,
+                builder -> builder.withInterview(VALID_INTERVIEW_AMY));
+        Person thirdPerson = replacePerson(model, INDEX_THIRD_PERSON,
+                builder -> builder.withInterview(VALID_INTERVIEW_AMY));
         // Only the first candidate is shown, so the others are hidden by the filter.
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
 
-        Person editedPerson = new PersonBuilder(firstPerson).withInterview(VALID_INTERVIEW_AMY).build();
-        InterviewCommand interviewCommand =
-                new InterviewCommand(INDEX_FIRST_PERSON, new Interview(VALID_INTERVIEW_AMY),
-                        BEFORE_VALID_INTERVIEWS_CLOCK);
-
-        String expectedMessage = String.format(InterviewCommand.MESSAGE_SCHEDULE_SUCCESS,
-                firstPerson.getName(), VALID_INTERVIEW_AMY) + "\n"
-                + String.format(InterviewCommand.MESSAGE_SAME_TIME,
-                        secondPerson.getName() + ", " + thirdPerson.getName());
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(firstPerson, editedPerson);
-        showPersonAtIndex(expectedModel, INDEX_FIRST_PERSON);
-
-        assertCommandSuccess(interviewCommand, model, expectedMessage, expectedModel);
+        assertScheduleSuccess(INDEX_FIRST_PERSON, VALID_INTERVIEW_AMY, BEFORE_VALID_INTERVIEWS_CLOCK,
+                String.format(InterviewCommand.MESSAGE_SAME_TIME,
+                        secondPerson.getName() + ", " + thirdPerson.getName()));
     }
 
     @Test
     public void execute_moreThanTwoSameTimeCandidates_limitsAndTruncatesNames() {
-        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person secondPerson = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
-        Person thirdPerson = model.getFilteredPersonList().get(INDEX_THIRD_PERSON.getZeroBased());
-        Person fourthPerson = model.getFilteredPersonList().get(3);
         String longName = "A".repeat(40);
-        Person secondWithInterview = new PersonBuilder(secondPerson).withName(longName)
-                .withInterview(VALID_INTERVIEW_AMY).build();
-        Person thirdWithInterview = new PersonBuilder(thirdPerson).withInterview(VALID_INTERVIEW_AMY).build();
-        Person fourthWithInterview = new PersonBuilder(fourthPerson)
-                .withInterview(VALID_INTERVIEW_AMY).build();
-        model.setPerson(secondPerson, secondWithInterview);
-        model.setPerson(thirdPerson, thirdWithInterview);
-        model.setPerson(fourthPerson, fourthWithInterview);
-
-        Person editedPerson = new PersonBuilder(firstPerson).withInterview(VALID_INTERVIEW_AMY).build();
-        InterviewCommand interviewCommand =
-                new InterviewCommand(INDEX_FIRST_PERSON, new Interview(VALID_INTERVIEW_AMY),
-                        BEFORE_VALID_INTERVIEWS_CLOCK);
+        replacePerson(model, INDEX_SECOND_PERSON,
+                builder -> builder.withName(longName).withInterview(VALID_INTERVIEW_AMY));
+        Person thirdPerson = replacePerson(model, INDEX_THIRD_PERSON,
+                builder -> builder.withInterview(VALID_INTERVIEW_AMY));
+        replacePerson(model, INDEX_FOURTH_PERSON, builder -> builder.withInterview(VALID_INTERVIEW_AMY));
 
         String displayedNames = "A".repeat(29) + "…, " + thirdPerson.getName() + " (+1 others)";
-        String expectedMessage = String.format(InterviewCommand.MESSAGE_SCHEDULE_SUCCESS,
-                firstPerson.getName(), VALID_INTERVIEW_AMY) + "\n"
-                + String.format(InterviewCommand.MESSAGE_SAME_TIME, displayedNames);
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(firstPerson, editedPerson);
-
-        assertCommandSuccess(interviewCommand, model, expectedMessage, expectedModel);
+        assertScheduleSuccess(INDEX_FIRST_PERSON, VALID_INTERVIEW_AMY, BEFORE_VALID_INTERVIEWS_CLOCK,
+                String.format(InterviewCommand.MESSAGE_SAME_TIME, displayedNames));
     }
 
     @Test
     public void execute_pastInterviewWithSameTimeCandidate_showsBothWarnings() {
         String pastInterview = "2026-10-27 09:00";
-        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person secondPerson = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
-        Person secondWithInterview = new PersonBuilder(secondPerson).withInterview(pastInterview).build();
-        model.setPerson(secondPerson, secondWithInterview);
+        Person secondPerson = replacePerson(model, INDEX_SECOND_PERSON,
+                builder -> builder.withInterview(pastInterview));
 
-        Person editedPerson = new PersonBuilder(firstPerson).withInterview(pastInterview).build();
-        InterviewCommand interviewCommand =
-                new InterviewCommand(INDEX_FIRST_PERSON, new Interview(pastInterview), FIXED_CLOCK);
-
-        String expectedMessage = String.join("\n",
-                String.format(InterviewCommand.MESSAGE_SCHEDULE_SUCCESS, firstPerson.getName(),
-                        pastInterview),
+        assertScheduleSuccess(INDEX_FIRST_PERSON, pastInterview, FIXED_CLOCK,
                 InterviewCommand.MESSAGE_PAST_WARNING,
                 String.format(InterviewCommand.MESSAGE_SAME_TIME, secondPerson.getName()));
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(firstPerson, editedPerson);
-
-        assertCommandSuccess(interviewCommand, model, expectedMessage, expectedModel);
     }
 
     @Test
     public void execute_severalWarnings_eachOnItsOwnLine() {
         String farInterview = "2062-10-20 14:00";
-        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person secondPerson = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
-        Person withdrawnPerson = new PersonBuilder(firstPerson).withStatus(Status.WITHDRAWN).build();
-        Person secondWithInterview = new PersonBuilder(secondPerson).withInterview(farInterview).build();
-        model.setPerson(firstPerson, withdrawnPerson);
-        model.setPerson(secondPerson, secondWithInterview);
+        replacePerson(model, INDEX_FIRST_PERSON, builder -> builder.withStatus(Status.WITHDRAWN));
+        Person secondPerson = replacePerson(model, INDEX_SECOND_PERSON,
+                builder -> builder.withInterview(farInterview));
 
-        Person editedPerson = new PersonBuilder(withdrawnPerson).withInterview(farInterview).build();
-        InterviewCommand interviewCommand =
-                new InterviewCommand(INDEX_FIRST_PERSON, new Interview(farInterview), FIXED_CLOCK);
-
-        String expectedMessage = String.join("\n",
-                String.format(InterviewCommand.MESSAGE_SCHEDULE_SUCCESS, firstPerson.getName(), farInterview),
+        assertScheduleSuccess(INDEX_FIRST_PERSON, farInterview, FIXED_CLOCK,
                 String.format(InterviewCommand.MESSAGE_FINAL_STATUS_WARNING, Status.WITHDRAWN),
                 InterviewCommand.MESSAGE_FAR_FUTURE_WARNING,
                 String.format(InterviewCommand.MESSAGE_SAME_TIME, secondPerson.getName()));
+    }
 
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(withdrawnPerson, editedPerson);
+    /**
+     * Schedules {@code interviewDateTime} for the displayed candidate at {@code index}, with {@code clock}
+     * giving today's date, and checks that only their interview changes, the current filter is kept, and
+     * the success message is followed by {@code expectedWarnings}, one per line.
+     */
+    private void assertScheduleSuccess(Index index, String interviewDateTime, Clock clock,
+            String... expectedWarnings) {
+        Person personToEdit = model.getFilteredPersonList().get(index.getZeroBased());
+        Person editedPerson = new PersonBuilder(personToEdit).withInterview(interviewDateTime).build();
+        InterviewCommand interviewCommand =
+                new InterviewCommand(index, new Interview(interviewDateTime), clock);
 
+        List<String> expectedLines = new ArrayList<>();
+        expectedLines.add(String.format(InterviewCommand.MESSAGE_SCHEDULE_SUCCESS,
+                personToEdit.getName(), interviewDateTime));
+        expectedLines.addAll(List.of(expectedWarnings));
+        String expectedMessage = String.join("\n", expectedLines);
+
+        Model expectedModel = copyModelWithPersonReplaced(model, personToEdit, editedPerson);
+        assertCommandSuccess(interviewCommand, model, expectedMessage, expectedModel);
+    }
+
+    /**
+     * Clears the interview of the displayed candidate at {@code index}, and checks that only their interview
+     * changes and the result message is the clear success message with no warnings.
+     */
+    private void assertClearSuccess(Index index) {
+        Person personToEdit = model.getFilteredPersonList().get(index.getZeroBased());
+        Person editedPerson = new PersonBuilder(personToEdit).withInterview(Interview.NONE).build();
+        InterviewCommand interviewCommand = new InterviewCommand(index, Interview.NONE, FIXED_CLOCK);
+
+        String expectedMessage =
+                String.format(InterviewCommand.MESSAGE_CLEAR_SUCCESS, personToEdit.getName());
+
+        Model expectedModel = copyModelWithPersonReplaced(model, personToEdit, editedPerson);
         assertCommandSuccess(interviewCommand, model, expectedMessage, expectedModel);
     }
 
