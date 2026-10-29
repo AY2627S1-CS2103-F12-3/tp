@@ -71,10 +71,19 @@ public class AddCommand extends Command {
         // Saves the role's own spelling of the title, so each role is shown and stored in one way.
         Person personToAdd = toAdd.withRole(role.getTitle());
         model.addPerson(personToAdd);
-        String successMessage = String.format(MESSAGE_SUCCESS, Messages.format(personToAdd));
         logger.info("Added candidate " + personToAdd.getName());
-        String messageWithPhoneWarnings = PhoneChecks.appendPhoneWarnings(successMessage, model, personToAdd);
-        return new CommandResult(EmailChecks.appendEmailWarnings(messageWithPhoneWarnings, personToAdd.getEmail()));
+
+        String successMessage = String.format(MESSAGE_SUCCESS, Messages.format(personToAdd));
+        return new CommandResult(appendWarnings(successMessage, model, personToAdd));
+    }
+
+    /**
+     * Returns {@code successMessage} followed by any warnings about the phone and email of {@code addedPerson}.
+     * Unlike an edit, every field of a new candidate is newly entered, so both fields are always checked.
+     */
+    private static String appendWarnings(String successMessage, Model model, Person addedPerson) {
+        String messageWithPhoneWarnings = PhoneChecks.appendPhoneWarnings(successMessage, model, addedPerson);
+        return EmailChecks.appendEmailWarnings(messageWithPhoneWarnings, addedPerson.getEmail());
     }
 
     /**
