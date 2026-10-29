@@ -22,6 +22,8 @@ public class JsonSerializableAddressBookTest {
     private static final Path TYPICAL_PERSONS_FILE = TEST_DATA_FOLDER.resolve("typicalPersonsAddressBook.json");
     private static final Path INVALID_PERSON_FILE = TEST_DATA_FOLDER.resolve("invalidPersonAddressBook.json");
     private static final Path DUPLICATE_PERSON_FILE = TEST_DATA_FOLDER.resolve("duplicatePersonAddressBook.json");
+    private static final Path POSSIBLY_SAME_PHONE_FILE =
+            TEST_DATA_FOLDER.resolve("possiblySamePhoneAddressBook.json");
     private static final Path TYPICAL_ROLES_FILE = TEST_DATA_FOLDER.resolve("typicalRolesAddressBook.json");
     private static final Path INVALID_ROLE_FILE = TEST_DATA_FOLDER.resolve("invalidRoleAddressBook.json");
     private static final Path DUPLICATE_ROLE_FILE = TEST_DATA_FOLDER.resolve("duplicateRoleAddressBook.json");
@@ -53,6 +55,14 @@ public class JsonSerializableAddressBookTest {
                 JsonSerializableAddressBook.class).get();
         assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_DUPLICATE_PERSON,
                 dataFromFile::toModelType);
+    }
+
+    @Test
+    public void toModelType_possiblySamePhones_loadsBothPersons() throws Exception {
+        // add and edit only warn about these numbers, so a file containing both must still load
+        JsonSerializableAddressBook dataFromFile = JsonUtil.readJsonFile(POSSIBLY_SAME_PHONE_FILE,
+                JsonSerializableAddressBook.class).get();
+        assertEquals(2, dataFromFile.toModelType().getPersonList().size());
     }
 
     @Test

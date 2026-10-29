@@ -116,7 +116,16 @@ public class AddressBookParserTest {
     @Test
     public void parseCommand_help() throws Exception {
         assertTrue(parser.parseCommand(HelpCommand.COMMAND_WORD) instanceof HelpCommand);
-        assertTrue(parser.parseCommand(HelpCommand.COMMAND_WORD + " 3") instanceof HelpCommand);
+        assertTrue(parser.parseCommand(HelpCommand.COMMAND_WORD + " add") instanceof HelpCommand);
+        assertTrue(parser.parseCommand("HeLp AdD") instanceof HelpCommand);
+        assertThrows(ParseException.class, HelpCommand.MESSAGE_TOO_MANY_ARGUMENTS, () ->
+                parser.parseCommand("help list role"));
+    }
+
+    @Test
+    public void parseCommand_otherCommandCasing_remainsUnchanged() {
+        assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () -> parser.parseCommand("LIST"));
+        assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () -> parser.parseCommand("ADD"));
     }
 
     @Test
