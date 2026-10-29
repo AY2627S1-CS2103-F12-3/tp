@@ -25,6 +25,7 @@ public class NoteTest {
     @Test
     public void isEmpty() {
         assertTrue(new Note("").isEmpty()); // no text
+        assertTrue(Note.NONE.isEmpty()); // the constant for no note
         assertFalse(new Note("Strong Java skills").isEmpty()); // has text
     }
 

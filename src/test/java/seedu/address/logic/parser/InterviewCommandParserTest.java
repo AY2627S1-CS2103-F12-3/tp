@@ -1,10 +1,14 @@
 package seedu.address.logic.parser;
 
-import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_INTERVIEW;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailureWithReason;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
+import static seedu.address.logic.parser.InterviewCommandParser.MESSAGE_MISSING_INDEX;
+import static seedu.address.logic.parser.InterviewCommandParser.MESSAGE_MISSING_SPACE_BEFORE_PREFIX;
+import static seedu.address.logic.parser.InterviewCommandParser.MESSAGE_TEXT_AFTER_INDEX;
+import static seedu.address.logic.parser.ParserUtil.MESSAGE_INDEX_TOO_LARGE;
+import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import org.junit.jupiter.api.Test;
@@ -14,9 +18,6 @@ import seedu.address.logic.commands.InterviewCommand;
 import seedu.address.model.person.Interview;
 
 public class InterviewCommandParserTest {
-
-    private static final String MESSAGE_INVALID_FORMAT =
-            String.format(MESSAGE_INVALID_COMMAND_FORMAT, InterviewCommand.MESSAGE_USAGE);
 
     private InterviewCommandParser parser = new InterviewCommandParser();
 
@@ -51,16 +52,26 @@ public class InterviewCommandParserTest {
 
     @Test
     public void parse_invalidInterviewFormat_failure() {
-        assertParseFailure(parser, "1 d/2026-10-20 9:00", Interview.MESSAGE_INVALID_FORMAT); // single-digit hour
-        assertParseFailure(parser, "1 d/20/10/2026 14:00", Interview.MESSAGE_INVALID_FORMAT); // wrong separators
-        assertParseFailure(parser, "1 d/2026-10-20", Interview.MESSAGE_INVALID_FORMAT); // no time
+        // single-digit hour
+        assertParseFailure(parser, "1 d/2026-10-20 9:00", Interview.MESSAGE_INVALID_FORMAT);
+
+        // wrong separators
+        assertParseFailure(parser, "1 d/20/10/2026 14:00", Interview.MESSAGE_INVALID_FORMAT);
+
+        // no time
+        assertParseFailure(parser, "1 d/2026-10-20", Interview.MESSAGE_INVALID_FORMAT);
     }
 
     @Test
     public void parse_impossibleInterviewDateTime_failure() {
-        assertParseFailure(parser, "1 d/2026-02-30 14:00", Interview.MESSAGE_INVALID_DATE_TIME); // no such day
-        assertParseFailure(parser, "1 d/2026-02-29 14:00", Interview.MESSAGE_INVALID_DATE_TIME); // not a leap year
-        assertParseFailure(parser, "1 d/2026-10-20 24:00", Interview.MESSAGE_INVALID_DATE_TIME); // hour too large
+        // no such day
+        assertParseFailure(parser, "1 d/2026-02-30 14:00", Interview.MESSAGE_INVALID_DATE_TIME);
+
+        // not a leap year
+        assertParseFailure(parser, "1 d/2026-02-29 14:00", Interview.MESSAGE_INVALID_DATE_TIME);
+
+        // hour too large
+        assertParseFailure(parser, "1 d/2026-10-20 24:00", Interview.MESSAGE_INVALID_DATE_TIME);
     }
 
     @Test

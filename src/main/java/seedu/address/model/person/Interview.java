@@ -22,7 +22,9 @@ public class Interview {
     public static final String MESSAGE_INVALID_DATE_TIME =
             "Interview date and time should be a real date and a valid 24-hour time, e.g. 2026-10-20 14:00";
 
-    /** Zero-padded {@code YYYY-MM-DD HH:MM}, checked before parsing so format errors get their own message. */
+    /**
+     * Zero-padded {@code YYYY-MM-DD HH:MM}, checked before parsing so format errors get their own message.
+     */
     public static final String FORMAT_REGEX = "\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}";
 
     /** Represents a candidate with no interview scheduled. */
@@ -59,7 +61,8 @@ public class Interview {
     }
 
     /**
-     * Returns true if a given string has the format {@code YYYY-MM-DD HH:MM}, even if its values are impossible.
+     * Returns true if a given string has the format {@code YYYY-MM-DD HH:MM},
+     * even if its values are impossible.
      */
     public static boolean isValidFormat(String test) {
         return test.matches(FORMAT_REGEX);
@@ -84,6 +87,22 @@ public class Interview {
     }
 
     /**
+     * Returns a message describing why {@code test} is not a valid interview date and time,
+     * or an empty {@code Optional} if it is valid.
+     * A wrong format and an impossible date or time get different messages, so the user can tell what to fix.
+     */
+    public static Optional<String> findValidationError(String test) {
+        requireNonNull(test);
+        if (!isValidFormat(test)) {
+            return Optional.of(MESSAGE_INVALID_FORMAT);
+        }
+        if (!isValidDateTime(test)) {
+            return Optional.of(MESSAGE_INVALID_DATE_TIME);
+        }
+        return Optional.empty();
+    }
+
+    /**
      * Returns true if no interview is scheduled.
      */
     public boolean isEmpty() {
@@ -98,7 +117,8 @@ public class Interview {
     }
 
     /**
-     * Returns the interview in the format {@code YYYY-MM-DD HH:MM}, or an empty string if no interview is scheduled.
+     * Returns the interview in the format {@code YYYY-MM-DD HH:MM},
+     * or an empty string if no interview is scheduled.
      */
     @Override
     public String toString() {

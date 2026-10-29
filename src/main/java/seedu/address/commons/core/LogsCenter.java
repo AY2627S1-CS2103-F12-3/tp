@@ -5,13 +5,14 @@ import static java.util.Objects.requireNonNull;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
+
+import seedu.address.commons.util.FileUtil;
 
 /**
  * Configures and manages loggers and handlers, including their logging level.
@@ -34,10 +35,9 @@ public class LogsCenter {
     // This static block ensures essential loggers are created early
     static {
         try {
-            Path jarPath = Paths.get(LogsCenter.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-            Path jarDir = jarPath.getParent();
+            Path codeDir = FileUtil.getDir();
             //ReadFile() interprets any '%' in the directory as a pattern. Let's escape them as '%%'.
-            LOG_FILE_ABSOLUTE = jarDir.resolve(LOG_FILE).toString().replace("%", "%%");
+            LOG_FILE_ABSOLUTE = codeDir.resolve(LOG_FILE).toString().replace("%", "%%");
         } catch (URISyntaxException e) {
             throw new ExceptionInInitializerError(e);
         }

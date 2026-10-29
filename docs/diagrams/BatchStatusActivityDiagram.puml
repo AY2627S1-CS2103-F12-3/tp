@@ -18,7 +18,7 @@ endif
 
 :Get currently displayed candidates;
 :Resolve selected candidates;
-:Validate display, indices,\nand whole-batch role constraints;
+:Validate indices and\nwhole-batch role constraints;
 
 if ()
     :Throw CommandException;

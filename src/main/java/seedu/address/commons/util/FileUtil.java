@@ -1,8 +1,10 @@
 package seedu.address.commons.util;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Writes and reads files
@@ -49,6 +51,16 @@ public class FileUtil {
      */
     public static void writeToFile(Path file, String content) throws IOException {
         Files.write(file, content.getBytes(CHARSET));
+    }
+
+    /**
+     * Returns the directory used to store application files.
+     * If running from a JAR file, this is the directory containing the JAR.
+     * Otherwise, it is the current working directory.
+     */
+    public static Path getDir() throws URISyntaxException {
+        Path codeSource = Paths.get(FileUtil.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+        return Files.isRegularFile(codeSource) ? codeSource.getParent() : Paths.get("").toAbsolutePath();
     }
 
 }

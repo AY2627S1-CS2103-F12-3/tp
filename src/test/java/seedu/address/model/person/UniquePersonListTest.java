@@ -160,7 +160,8 @@ public class UniquePersonListTest {
         uniquePersonList.add(ALICE);
         uniquePersonList.add(BOB);
         Person aliceWithBobPhone = new PersonBuilder(ALICE).withPhone(BOB.getPhone().value).build();
-        assertThrows(DuplicatePersonException.class, () -> uniquePersonList.setPerson(ALICE, aliceWithBobPhone));
+        assertThrows(DuplicatePersonException.class, ()
+                -> uniquePersonList.setPerson(ALICE, aliceWithBobPhone));
     }
 
     @Test

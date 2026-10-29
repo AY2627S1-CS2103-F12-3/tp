@@ -118,7 +118,8 @@ public class AddressBookTest {
     @Test
     public void findRole_titleInDifferentCase_returnsRole() {
         addressBook.addRole(SOFTWARE_ENGINEER);
-        assertEquals(Optional.of(SOFTWARE_ENGINEER), addressBook.findRole(new RoleTitle("software engineer")));
+        assertEquals(Optional.of(SOFTWARE_ENGINEER),
+                addressBook.findRole(new RoleTitle("software engineer")));
     }
 
     @Test
