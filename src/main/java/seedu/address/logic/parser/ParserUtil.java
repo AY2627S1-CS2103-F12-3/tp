@@ -26,7 +26,12 @@ import seedu.address.model.tag.Tag;
  */
 public class ParserUtil {
 
-    public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+    public static final String MESSAGE_INVALID_INDEX = "Index must be a positive whole number, such as 1.";
+    public static final String MESSAGE_INDEX_TOO_LARGE = "Index %1$s is larger than any list. "
+            + "Use an index shown in the list.";
+
+    private static final String DIGITS_REGEX = "\\d+";
+    private static final String ZEROS_REGEX = "0+";
 
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be
@@ -35,10 +40,23 @@ public class ParserUtil {
      */
     public static Index parseIndex(String oneBasedIndex) throws ParseException {
         String trimmedIndex = oneBasedIndex.trim();
-        if (!StringUtil.isNonZeroUnsignedInteger(trimmedIndex)) {
-            throw new ParseException(MESSAGE_INVALID_INDEX);
+        if (StringUtil.isNonZeroUnsignedInteger(trimmedIndex)) {
+            return Index.fromOneBased(Integer.parseInt(trimmedIndex));
         }
-        return Index.fromOneBased(Integer.parseInt(trimmedIndex));
+
+        // A positive number that does not fit in an int is a valid index form, so say it is too large instead.
+        if (isTooLargeIndex(trimmedIndex)) {
+            throw new ParseException(String.format(MESSAGE_INDEX_TOO_LARGE, trimmedIndex));
+        }
+        throw new ParseException(MESSAGE_INVALID_INDEX);
+    }
+
+    /**
+     * Returns true if {@code index} is a positive whole number, assuming it has already failed
+     * {@link StringUtil#isNonZeroUnsignedInteger(String)}, so it can only be too large for an {@code int}.
+     */
+    private static boolean isTooLargeIndex(String index) {
+        return index.matches(DIGITS_REGEX) && !index.matches(ZEROS_REGEX);
     }
 
     /**

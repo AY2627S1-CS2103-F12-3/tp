@@ -421,8 +421,15 @@ Format: `interview INDEX [d/YYYY-MM-DD HH:MM]`
 * Past dates are accepted, so you can record interviews that have already happened.
 * A new interview replaces the candidate's existing interview. Each candidate has at most one interview.
 * To clear a candidate's interview, enter `interview INDEX` without `d/`. An empty `d/` is rejected, so a mistyped date never clears an interview by accident.
-* Clearing a candidate who has no interview, or entering the same date and time again, still succeeds and shows the usual result message. The candidate's details stay the same.
+* Clearing a candidate who has no interview, or entering the same date and time again, still succeeds. The candidate's details stay the same.
 * The interview is shown on the candidate's card. The candidate's note and other details are not changed, and the displayed list stays as it is, so a filtered list remains filtered.
+* If the index is missing, is not a positive whole number, is past the end of the displayed list, or is followed by extra text before `d/`, the error message says which of these happened, so you can tell what to correct.
+* An interview that might be a mistake is still saved, but the result message adds a line about it, in this order:
+  * The interview is today or later, but the candidate's status is already `HIRED`, `REJECTED` or `WITHDRAWN`, for example `Note: candidate is Rejected.` If they are back in the process, update their status with [`status`](#updating-a-candidate-s-status-status).
+  * The date is before today, which may mean the date was mistyped. Historical interviews are still saved.
+  * The date is more than a year from today, which may mean the year was mistyped. Today's date is taken from your computer.
+  * Other candidates have an interview at the same date and time. The line `Also at this time:` names up to two of them, including candidates hidden by the current filter. Longer names are shortened, and any remaining candidates are shown as a count, for example `(+3 others)`.
+* Sorting and filtering candidates by interview date are not supported yet, and are planned for a future version.
 
 Examples:
 *  `interview 1 d/2026-10-20 14:00` Schedules an interview for the 1st candidate on 20 October 2026 at 2pm.

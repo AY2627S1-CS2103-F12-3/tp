@@ -651,13 +651,21 @@ Strict resolving is needed because the default resolver silently adjusts `2026-0
 
 #### Scheduling or clearing an interview
 
-`InterviewCommandParser` tokenizes the arguments with the `d/` prefix. The preamble must be exactly one index. If `d/` is present, `ParserUtil#parseInterview` runs the two checks above and creates the `Interview`. If `d/` is left out, the parser uses `Interview.NONE`, so `interview 1` clears the first candidate's interview. An empty `d/` is rejected with the format error instead of clearing the interview, so a user who forgets to type the date does not lose the existing one.
+`InterviewCommandParser` tokenizes the arguments with the `d/` prefix. The preamble must be exactly one index. A missing index, an index joined to `d/` without a space, an index that is not a positive whole number, and extra text after the index each get their own error message, so the user can tell what to correct. If `d/` is present, `ParserUtil#parseInterview` runs the two checks above and creates the `Interview`. If `d/` is left out, the parser uses `Interview.NONE`, so `interview 1` clears the first candidate's interview. An empty `d/` is rejected with the format error instead of clearing the interview, so a user who forgets to type the date does not lose the existing one.
 
 The sequence diagram below shows how `interview 1 d/2026-10-20 14:00` is executed, including the two date and time checks and the branch that clears the interview when `d/` is left out.
 
 <puml src="diagrams/InterviewSequenceDiagram.puml" alt="Interactions for the interview 1 d/2026-10-20 14:00 command" />
 
 `InterviewCommand#execute` looks up the candidate in the displayed candidate list and replaces it with `Person#withInterview`, a copy that has the new interview. A candidate has only one interview, so scheduling another one replaces the previous interview, and `interview INDEX` replaces it with `Interview.NONE`. Unlike `note`, it does not reset the candidate filter, so a recruiter can schedule interviews for a filtered list by its displayed numbers. Clearing a candidate with no interview, or giving the same date and time again, succeeds without changing the data, as `note` does for notes.
+
+After saving a new interview, `InterviewCommand` checks whether it might be a mistake and adds a line to the result message for each of these cases, in this order:
+
+* The candidate's status is final (`HIRED`, `REJECTED` or `WITHDRAWN`), using `Status#isPending`, and the interview is today or later. This line comes first, as it suggests the interview may not be needed at all. A past interview is not checked, as recording one is how a recruiter keeps the history of a candidate who already has an outcome.
+* The date is before today, or more than a year after today. The interview is still saved so that historical interviews can be recorded, but the warning helps catch a mistyped year. Today's date comes from a `Clock`, which is the system clock in the app and a fixed clock in tests.
+* Other candidates in the whole address book, including those hidden by the filter, have an interview at the same date and time. The line `Also at this time:` shows at most two names, shortens names longer than 30 characters, and reports how many additional candidates share the slot.
+
+Clearing an interview is never checked.
 
 Other commands that rebuild a `Person`, such as `edit`, `note`, and `status`, copy the existing interview across, so they never change it.
 
@@ -684,6 +692,15 @@ Interviews are stored as the `interview` field of each candidate in the JSON dat
 * **Alternative 2:** A sentinel date, such as `0000-01-01 00:00`.
   * Pros: Every interview has a real `LocalDateTime`.
   * Cons: The sentinel could be shown or sorted as if it were a real interview, and a user could enter the same value.
+
+**Aspect: How unusual interviews are handled**
+
+* **Alternative 1 (current choice):** Save the interview and add a line to the result message.
+  * Pros: Each case can be legitimate, such as a panel interviewing two candidates at once, or recording an interview for a candidate who was later rejected. The recruiter is not blocked, but still sees a likely mistake.
+  * Cons: A recruiter who does not read the result message can miss the warning.
+* **Alternative 2:** Reject the interview.
+  * Pros: A mistyped year cannot be saved.
+  * Cons: Valid interviews would be refused, and the recruiter would need a way to override the check.
 
 ### \[Proposed\] Data archiving
 
@@ -877,6 +894,9 @@ Use case ends.
 * 4a. The candidate already has an interview recorded, and the interview is being rescheduled.
   * 4a1. RecruiterBuddy replaces the earlier date and time with the new ones.
   * Use case resumes at step 5.
+* 4b. The interview might be a mistake: it is before today or more than a year from today, the candidate already has a final outcome, or another candidate has an interview at the same date and time.
+  * 4b1. RecruiterBuddy records the interview, and points out each possible mistake when confirming it.
+  * Use case ends.
 
 #### UC05 — Save and Load Data
 
@@ -1683,8 +1703,49 @@ Always switch back with `list` or `list role` before using indices for that list
    1. Test case: `interview 1 d/`<br>
       Expected: Alex Yeoh's interview is not cleared. The error message shows the required format.
 
-   1. Other incorrect interview commands to try: `interview`, `interview 0 d/2026-10-20 14:00`, `interview x d/2026-10-20 14:00` (where x is larger than the list size), `interview 1 d/2026-10-20 14:00 d/2026-10-21 14:00`<br>
-      Expected: No interview is changed and an error message is shown.
+   1. Test case: `interview 1 d/2026-10-20 14:00 d/2026-10-21 14:00`<br>
+      Expected: No interview is changed. The error message names the repeated `d/` prefix.
+
+1. Rejecting incorrect indices
+
+   1. Prerequisites: Start with the sample data and run `list`, so 6 candidates are shown.
+
+   1. Test case: `interview`<br>
+      Expected: The error message says the candidate index is missing and shows the command format.
+
+   1. Test case: `interview 0 d/2026-10-20 14:00`<br>
+      Expected: The error message says the index must be a positive whole number. Try `-1` and `a` too.
+
+   1. Test case: `interview 7 d/2026-10-20 14:00`<br>
+      Expected: The error message says there is no candidate 7 and to use an index from 1 to 6.
+
+   1. Test case: `interview 99999999999 d/2026-10-20 14:00`<br>
+      Expected: The error message says the index is larger than any list.
+
+   1. Test case: `interview 1 2026-10-20 14:00`<br>
+      Expected: The error message quotes the unexpected text `2026-10-20 14:00` and says to put the date and time after `d/`.
+
+   1. Test case: `interview 1d/2026-10-20 14:00`<br>
+      Expected: The error message says to put a space between the index and `d/`.
+
+1. Warning about interviews that might be mistakes
+
+   1. Prerequisites: Start with the sample data and run `list`. Alex Yeoh has an interview on `2026-10-20 14:00`.
+
+   1. Test case: `interview 2 d/2026-10-20 14:00`<br>
+      Expected: Bernice Yu's interview is set, and the result message adds `Also at this time: Alex Yeoh.`
+
+   1. Test case: a date more than a year after today's date on your computer, e.g. `interview 2 d/2062-10-20 14:00`<br>
+      Expected: The interview is set, and the result message adds `Note: date is over a year ahead; check the year.`
+
+   1. Test case: `status 2 st/REJECTED`, then `interview 2 d/DATE 10:00`, where `DATE` is any date after today's date on your computer, e.g. `2027-01-15`<br>
+      Expected: The interview is set, and the result message adds `Note: candidate is Rejected.`
+
+   1. Test case: after the previous test case, `interview 2 d/2020-01-15 10:00`<br>
+      Expected: The past interview is set, and the result message adds `Note: interview is in the past; check the date.` It adds no line about Bernice Yu's status, because the interview already happened.
+
+   1. Test case: `interview 2`<br>
+      Expected: The interview is cleared, and no warning lines are added.
 
 1. Keeping the filter
 

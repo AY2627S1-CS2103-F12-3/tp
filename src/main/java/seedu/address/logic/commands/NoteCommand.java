@@ -28,7 +28,7 @@ public class NoteCommand extends Command {
             + "candidate list. "
             + "Everything after the index is saved as the note. Leave NOTE empty to clear the existing note.\n"
             + "Parameters: INDEX (must be a positive integer) [NOTE]\n"
-            + "Example: " + COMMAND_WORD + " 1 Interview 2026-10-20 14:00";
+            + "Example: " + COMMAND_WORD + " 1 Prefers hybrid work";
 
     public static final String MESSAGE_UPDATE_NOTE_SUCCESS = "Updated note of %1$s: %2$s";
     public static final String MESSAGE_CLEAR_NOTE_SUCCESS = "Cleared note of %1$s.";
