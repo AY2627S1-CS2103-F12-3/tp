@@ -108,9 +108,8 @@ Model --> InterviewCommand : lastShownList
 deactivate Model
 
 note right of InterviewCommand
-Rejected if the role list is shown
-or index is out of range; otherwise
-takes personToEdit at index.
+Rejected if the index is out of range;
+otherwise takes personToEdit at index.
 end note
 
 InterviewCommand -> PersonToEdit : withInterview(i)
