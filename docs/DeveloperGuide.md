@@ -133,6 +133,11 @@ utility dependencies are omitted here to keep the dispatch relationships readabl
 parser diagram above shows the shared utilities.
 
 ### Model component
+
+Address values are normalized at the model boundary: leading and trailing Unicode whitespace
+is removed, consecutive whitespace is collapsed to one space, and an address containing only
+Unicode whitespace (including U+2002 en spaces) is rejected.
+
 **API** : [`Model.java`](https://github.com/AY2627S1-CS2103-F12-3/tp/blob/master/src/main/java/seedu/address/model/Model.java)
 
 <puml src="diagrams/ModelClassDiagram.puml" width="600" alt="Partial model structure showing candidates and roles" />
