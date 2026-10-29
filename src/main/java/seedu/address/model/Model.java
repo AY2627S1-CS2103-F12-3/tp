@@ -19,19 +19,6 @@ public interface Model {
     Predicate<Role> PREDICATE_SHOW_ALL_ROLES = unused -> true;
 
     /**
-     * Returns true if the last successful logic result selected the role list.
-     */
-    default boolean isRoleListDisplayed() {
-        return false;
-    }
-
-    /**
-     * Records the view selected by a successfully completed logic result.
-     */
-    default void setRoleListDisplayed(boolean displayed) {
-    }
-
-    /**
      * Returns the user prefs.
      */
     ReadOnlyUserPrefs getUserPrefs();
@@ -51,6 +38,23 @@ public interface Model {
      */
     void setAddressBook(ReadOnlyAddressBook addressBook);
 
+    /** Records a snapshot before a mutating command is executed. */
+    void recordAddressBookState();
+
+    /** Clears redo history after a mutating command has executed successfully. */
+    default void commitAddressBookState() {
+        // Models that support history may override this method.
+    }
+
+    /** Restores the previous recorded address book state. */
+    boolean undoAddressBook();
+
+    /** Restores the next address book state after an undo. */
+    boolean redoAddressBook();
+
+    /** Removes the most recently recorded snapshot when command execution fails. */
+    void discardAddressBookState();
+
     /** Returns the AddressBook */
     ReadOnlyAddressBook getAddressBook();
 
@@ -58,6 +62,17 @@ public interface Model {
      * Returns true if a person with the same identity as {@code person} exists in the address book.
      */
     boolean hasPerson(Person person);
+
+    /**
+     * Returns a person in the address book with the same identity as {@code person}, if any.
+     */
+    Optional<Person> findSamePerson(Person person);
+
+    /**
+     * Returns a person in the address book, other than {@code excludedPerson}, with the same identity as
+     * {@code person}, if any.
+     */
+    Optional<Person> findSamePersonExcluding(Person person, Person excludedPerson);
 
     /**
      * Deletes the given person.
@@ -109,7 +124,7 @@ public interface Model {
     void deleteRole(Role role);
 
     /**
-     * Replaces {@code target} with {@code editedRole}.
+     * Replaces {@code target} with {@code editedRole}, updating every associated candidate's role title.
      */
     void setRole(Role target, Role editedRole);
 

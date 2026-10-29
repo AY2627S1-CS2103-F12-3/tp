@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_ROLE_DISPLAYED_INDEX;
-import static seedu.address.logic.Messages.MESSAGE_ROLE_LIST_NOT_DISPLAYED;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalRoles.PRODUCT_ANALYST;
@@ -32,7 +31,6 @@ public class CloseRoleCommandTest {
     @BeforeEach
     public void setUp() {
         model.addRole(SOFTWARE_ENGINEER);
-        model.setRoleListDisplayed(true);
     }
 
     @Test
@@ -74,8 +72,8 @@ public class CloseRoleCommandTest {
 
     @Test
     public void execute_eachPendingStatus_rejectsClosure() {
-        for (Status status : new Status[]{Status.PENDING_RESUME_SCREENING, Status.PENDING_RECRUITER_INTERVIEW,
-            Status.PENDING_OFFER_EXTENSION, Status.PENDING_OFFER_DECISION}) {
+        for (Status status : new Status[]{Status.RESUME, Status.INTERVIEW,
+            Status.OFFER, Status.DECISION}) {
             Person person = candidate("Pending Candidate", status);
             model.addPerson(person);
             model.updateFilteredPersonList(candidate -> false);
@@ -87,8 +85,8 @@ public class CloseRoleCommandTest {
 
     @Test
     public void execute_multiplePendingCandidates_reportsTotal() {
-        model.addPerson(candidate("First Candidate", Status.PENDING_OFFER_DECISION));
-        model.addPerson(candidate("Second Candidate", Status.PENDING_RESUME_SCREENING));
+        model.addPerson(candidate("First Candidate", Status.DECISION));
+        model.addPerson(candidate("Second Candidate", Status.RESUME));
         assertCommandFailure(command, model, String.format(CloseRoleCommand.MESSAGE_PENDING_CANDIDATES,
                 SOFTWARE_ENGINEER.getTitle(), 2));
     }
@@ -113,12 +111,6 @@ public class CloseRoleCommandTest {
         model.addPerson(new PersonBuilder().withRole("software engineer").build());
         assertCommandFailure(command, model, String.format(CloseRoleCommand.MESSAGE_PENDING_CANDIDATES,
                 SOFTWARE_ENGINEER.getTitle(), 1));
-    }
-
-    @Test
-    public void execute_candidateListDisplayed_rejectsClosure() {
-        model.setRoleListDisplayed(false);
-        assertCommandFailure(command, model, MESSAGE_ROLE_LIST_NOT_DISPLAYED);
     }
 
     @Test
@@ -161,7 +153,7 @@ public class CloseRoleCommandTest {
     }
 
     private static Person candidate(String name, Status status) {
-        return new PersonBuilder().withName(name).withStatus(status).build();
+        return new PersonBuilder().withNameAndDistinctContacts(name).withStatus(status).build();
     }
 
     private void assertSuccessfulClosure() throws Exception {
@@ -170,7 +162,5 @@ public class CloseRoleCommandTest {
         assertEquals(expectedRole, model.getFilteredRoleList().getFirst());
         assertEquals(String.format(CloseRoleCommand.MESSAGE_SUCCESS, SOFTWARE_ENGINEER.getTitle()),
                 result.getFeedbackToUser());
-        assertTrue(result.isShowRoleList());
-        assertTrue(model.isRoleListDisplayed());
     }
 }

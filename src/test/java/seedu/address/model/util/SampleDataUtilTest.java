@@ -1,9 +1,11 @@
 package seedu.address.model.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -18,6 +20,23 @@ public class SampleDataUtilTest {
         AddressBook sampleAddressBook = new AddressBook(SampleDataUtil.getSampleAddressBook());
         for (Person samplePerson : SampleDataUtil.getSamplePersons()) {
             assertTrue(sampleAddressBook.findRole(samplePerson.getRole()).isPresent());
+        }
+    }
+
+    @Test
+    public void getSamplePersons_withAndWithoutInterviews_showsBothCardStates() {
+        List<Person> samplePersons = Arrays.asList(SampleDataUtil.getSamplePersons());
+        assertTrue(samplePersons.stream().anyMatch(person -> !person.getInterview().isEmpty()));
+        assertTrue(samplePersons.stream().anyMatch(person -> person.getInterview().isEmpty()));
+    }
+
+    @Test
+    public void getSamplePersons_everyInterview_notRepeatedInNote() {
+        for (Person samplePerson : SampleDataUtil.getSamplePersons()) {
+            String interview = samplePerson.getInterview().toString();
+            if (!interview.isEmpty()) {
+                assertFalse(samplePerson.getNote().value.contains(interview));
+            }
         }
     }
 

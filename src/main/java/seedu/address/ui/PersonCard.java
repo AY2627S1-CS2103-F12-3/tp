@@ -7,6 +7,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import seedu.address.model.person.Interview;
 import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Status;
@@ -19,6 +20,8 @@ public class PersonCard extends UiPart<Region> {
     private static final String FXML = "PersonListCard.fxml";
     private static final String STATUS_STYLE_CLASS = "cell_status_label";
     private static final String ROLE_FORMAT = "Applying for: %1$s";
+    private static final String INTERVIEW_FORMAT = "Interview: %1$s";
+    private static final String NOTE_FORMAT = "Note: %1$s";
 
     /**
      * Note: Certain keywords such as "location" and "resources" are reserved keywords in JavaFX.
@@ -45,6 +48,8 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label email;
     @FXML
+    private Label interview;
+    @FXML
     private Label note;
     @FXML
     private FlowPane tags;
@@ -62,6 +67,7 @@ public class PersonCard extends UiPart<Region> {
         phone.setText(person.getPhone().value);
         address.setText(person.getAddress().value);
         email.setText(person.getEmail().value);
+        showInterview(person.getInterview());
         showNote(person.getNote());
         showStatus(person.getStatus());
         person.getTags().stream()
@@ -79,10 +85,23 @@ public class PersonCard extends UiPart<Region> {
     }
 
     /**
+     * Shows {@code personInterview} on the card, or hides the interview label if no interview is scheduled.
+     */
+    private void showInterview(Interview personInterview) {
+        interview.setText(String.format(INTERVIEW_FORMAT, personInterview));
+
+        // An unmanaged label takes up no space, so cards without interviews have no blank line.
+        boolean hasInterview = !personInterview.isEmpty();
+        interview.setVisible(hasInterview);
+        interview.setManaged(hasInterview);
+    }
+
+    /**
      * Shows {@code personNote} on the card, or hides the note label if the note is empty.
      */
     private void showNote(Note personNote) {
-        note.setText(personNote.value);
+        // The prefix stops a note such as a phone number being mistaken for the candidate's own details.
+        note.setText(String.format(NOTE_FORMAT, personNote.value));
 
         // An unmanaged label takes up no space, so cards without notes have no blank line.
         boolean hasNote = !personNote.isEmpty();

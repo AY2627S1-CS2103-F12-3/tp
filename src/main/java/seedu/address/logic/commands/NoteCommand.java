@@ -1,10 +1,11 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
-import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
 import java.util.List;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
@@ -16,6 +17,7 @@ import seedu.address.model.person.Person;
 /**
  * Replaces the note of a person identified using its displayed index from the address book.
  * An empty note clears the person's existing note.
+ * The current candidate filter is kept, so a recruiter can work through a filtered list by its numbers.
  */
 public class NoteCommand extends Command {
 
@@ -26,10 +28,21 @@ public class NoteCommand extends Command {
             + "candidate list. "
             + "Everything after the index is saved as the note. Leave NOTE empty to clear the existing note.\n"
             + "Parameters: INDEX (must be a positive integer) [NOTE]\n"
-            + "Example: " + COMMAND_WORD + " 1 Interview 2026-10-20 14:00";
+            + "Example: " + COMMAND_WORD + " 1 Prefers hybrid work";
 
-    public static final String MESSAGE_UPDATE_NOTE_SUCCESS = "Updated note of candidate: %1$s";
-    public static final String MESSAGE_CLEAR_NOTE_SUCCESS = "Cleared note of candidate: %1$s";
+    /*
+     * A new note is not repeated in the message, since the candidate's card already shows it. Replacing a note
+     * says so, so an existing note is never overwritten silently. Clearing suggests undo and shows the cleared
+     * note last, since the user cannot see it anywhere else and a long note cannot push the hint out of view.
+     */
+    public static final String MESSAGE_ADD_NOTE_SUCCESS = "Added note to %1$s.";
+    public static final String MESSAGE_REPLACE_NOTE_SUCCESS = "Replaced note of %1$s.";
+    public static final String MESSAGE_UNCHANGED_NOTE_SUCCESS = "Updated note of %1$s.";
+    public static final String MESSAGE_CLEAR_NOTE_SUCCESS =
+            "Cleared note of %1$s. Use undo to revert.\nPrevious note: %2$s";
+    public static final String MESSAGE_NO_NOTE_TO_CLEAR = "%1$s has no note to clear.";
+
+    private static final Logger logger = LogsCenter.getLogger(NoteCommand.class);
 
     private final Index index;
     private final Note note;
@@ -53,29 +66,43 @@ public class NoteCommand extends Command {
         requireNonNull(model);
         List<Person> lastShownList = model.getFilteredPersonList();
 
-        if (model.isRoleListDisplayed()) {
-            throw new CommandException(Messages.MESSAGE_PERSON_LIST_NOT_DISPLAYED);
-        }
         if (index.getZeroBased() >= lastShownList.size()) {
             throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
         }
 
         Person personToEdit = lastShownList.get(index.getZeroBased());
         Person editedPerson = new Person(personToEdit.getName(), personToEdit.getPhone(), personToEdit.getEmail(),
-                personToEdit.getAddress(), personToEdit.getRole(), note, personToEdit.getStatus(),
-                personToEdit.getTags());
+                personToEdit.getAddress(), personToEdit.getRole(), note, personToEdit.getInterview(),
+                personToEdit.getStatus(), personToEdit.getTags());
+        assert editedPerson.getNote().equals(note) : "Edited person should hold the new note";
 
         model.setPerson(personToEdit, editedPerson);
-        model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
-        return new CommandResult(generateSuccessMessage(editedPerson));
+        logger.info("Note of candidate at index " + index.getOneBased() + " ("
+                + editedPerson.getName() + ") " + (note.isEmpty() ? "cleared" : "updated"));
+        return new CommandResult(generateSuccessMessage(personToEdit.getNote(), editedPerson));
     }
 
     /**
-     * Returns the success message for {@code editedPerson}, stating whether the note was updated or cleared.
+     * Returns the success message for {@code editedPerson}, naming the candidate and saying whether the note
+     * was added, replaced, kept the same or cleared. Clearing a note also shows the cleared note.
+     *
+     * @param previousNote The note the candidate had before this command.
+     * @param editedPerson The candidate with the new note.
      */
-    private String generateSuccessMessage(Person editedPerson) {
-        String message = note.isEmpty() ? MESSAGE_CLEAR_NOTE_SUCCESS : MESSAGE_UPDATE_NOTE_SUCCESS;
-        return String.format(message, Messages.format(editedPerson));
+    private String generateSuccessMessage(Note previousNote, Person editedPerson) {
+        if (note.isEmpty()) {
+            return previousNote.isEmpty()
+                    ? String.format(MESSAGE_NO_NOTE_TO_CLEAR, editedPerson.getName())
+                    : String.format(MESSAGE_CLEAR_NOTE_SUCCESS, editedPerson.getName(), previousNote);
+        }
+
+        if (previousNote.isEmpty()) {
+            return String.format(MESSAGE_ADD_NOTE_SUCCESS, editedPerson.getName());
+        }
+        if (previousNote.equals(note)) {
+            return String.format(MESSAGE_UNCHANGED_NOTE_SUCCESS, editedPerson.getName());
+        }
+        return String.format(MESSAGE_REPLACE_NOTE_SUCCESS, editedPerson.getName());
     }
 
     @Override

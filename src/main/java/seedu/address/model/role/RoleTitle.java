@@ -13,7 +13,8 @@ public class RoleTitle {
     private static final int MAX_LENGTH = 100;
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Role title must be " + MIN_LENGTH + "–" + MAX_LENGTH + " characters and contain a letter.";
+            "Role title must be " + MIN_LENGTH + "–" + MAX_LENGTH + " characters and contain a letter.\n"
+            + "Use only letters, digits, spaces, or these symbols: ' & - / . + # ( ) ,";
 
     public final String value;
 
@@ -55,7 +56,12 @@ public class RoleTitle {
                 || codePoint == '&'
                 || codePoint == '-'
                 || codePoint == '/'
-                || codePoint == '.';
+                || codePoint == '.'
+                || codePoint == '+'
+                || codePoint == '#'
+                || codePoint == '('
+                || codePoint == ')'
+                || codePoint == ',';
     }
 
     @Override

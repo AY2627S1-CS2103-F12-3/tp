@@ -2,6 +2,7 @@ package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.parser.ParserUtil.MESSAGE_INDEX_TOO_LARGE;
 import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Interview;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Note;
 import seedu.address.model.person.Phone;
@@ -31,17 +33,20 @@ public class ParserUtilTest {
     private static final String INVALID_ROLE_TITLE = "1234";
     private static final String INVALID_EXPERIENCE_LEVEL = "Senior\nLevel";
     private static final String INVALID_STATUS = "ghosted";
+    private static final String INVALID_INTERVIEW_FORMAT = "20/10/2026 14:00";
+    private static final String INVALID_INTERVIEW_DATE_TIME = "2026-02-30 14:00";
 
     private static final String VALID_NAME = "Rachel Walker";
-    private static final String VALID_PHONE = "123456";
+    private static final String VALID_PHONE = "12345678";
     private static final String VALID_ADDRESS = "123 Main Street #0505";
+    private static final String VALID_INTERVIEW = "2026-10-20 14:00";
     private static final String VALID_NOTE = "Interview 2026-10-20 14:00, scored 8/10";
     private static final String VALID_EMAIL = "rachel@example.com";
     private static final String VALID_TAG_1 = "friend";
     private static final String VALID_TAG_2 = "neighbour";
     private static final String VALID_ROLE_TITLE = "Software Engineer";
     private static final String VALID_EXPERIENCE_LEVEL = "2 years";
-    private static final String VALID_STATUS_STRING = "PENDING_RECRUITER_INTERVIEW";
+    private static final String VALID_STATUS_STRING = "INTERVIEW";
     private static final Status VALID_STATUS = Status.valueOf(VALID_STATUS_STRING);
 
     private static final String WHITESPACE = " \t\r\n";
@@ -54,13 +59,22 @@ public class ParserUtilTest {
 
     @Test
     public void parseIndex_invalidInput_throwsParseException() {
-        assertThrows(ParseException.class, () -> ParserUtil.parseIndex("10 a"));
+        assertThrows(ParseException.class, MESSAGE_INVALID_INDEX, () -> ParserUtil.parseIndex("10 a"));
+        assertThrows(ParseException.class, MESSAGE_INVALID_INDEX, () -> ParserUtil.parseIndex(""));
+        assertThrows(ParseException.class, MESSAGE_INVALID_INDEX, () -> ParserUtil.parseIndex("a"));
+        assertThrows(ParseException.class, MESSAGE_INVALID_INDEX, () -> ParserUtil.parseIndex("0"));
+        assertThrows(ParseException.class, MESSAGE_INVALID_INDEX, () -> ParserUtil.parseIndex("-1"));
+        assertThrows(ParseException.class, MESSAGE_INVALID_INDEX, () -> ParserUtil.parseIndex("+1"));
     }
 
     @Test
-    public void parseIndex_outOfRangeInput_throwsParseException() {
-        assertThrows(ParseException.class, MESSAGE_INVALID_INDEX, ()
-            -> ParserUtil.parseIndex(Long.toString(Integer.MAX_VALUE + 1)));
+    public void parseIndex_tooLargeInput_throwsParseException() {
+        String tooLargeIndex = Long.toString(Integer.MAX_VALUE + 1L);
+        assertThrows(ParseException.class, String.format(MESSAGE_INDEX_TOO_LARGE, tooLargeIndex), ()
+            -> ParserUtil.parseIndex(tooLargeIndex));
+
+        // zeros are not a positive number, however many there are
+        assertThrows(ParseException.class, MESSAGE_INVALID_INDEX, () -> ParserUtil.parseIndex("000000000000"));
     }
 
     @Test
@@ -119,6 +133,12 @@ public class ParserUtilTest {
     }
 
     @Test
+    public void parsePhone_validValueWithSeparators_returnsPhoneWithoutSeparators() throws Exception {
+        Phone parsedPhone = ParserUtil.parsePhone(WHITESPACE + "+65 9123-4567" + WHITESPACE);
+        assertEquals("+6591234567", parsedPhone.value);
+    }
+
+    @Test
     public void parseAddress_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> ParserUtil.parseAddress((String) null));
     }
@@ -160,6 +180,35 @@ public class ParserUtilTest {
     @Test
     public void parseNote_whitespaceOnly_returnsEmptyNote() {
         assertEquals(new Note(""), ParserUtil.parseNote(WHITESPACE));
+    }
+
+    @Test
+    public void parseInterview_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseInterview(null));
+    }
+
+    @Test
+    public void parseInterview_invalidFormat_throwsParseException() {
+        assertThrows(ParseException.class, Interview.MESSAGE_INVALID_FORMAT, () ->
+                ParserUtil.parseInterview(INVALID_INTERVIEW_FORMAT));
+    }
+
+    @Test
+    public void parseInterview_whitespaceOnly_throwsParseException() {
+        assertThrows(ParseException.class, Interview.MESSAGE_INVALID_FORMAT, () ->
+                ParserUtil.parseInterview(WHITESPACE));
+    }
+
+    @Test
+    public void parseInterview_impossibleDateTime_throwsParseException() {
+        assertThrows(ParseException.class, Interview.MESSAGE_INVALID_DATE_TIME, () ->
+                ParserUtil.parseInterview(INVALID_INTERVIEW_DATE_TIME));
+    }
+
+    @Test
+    public void parseInterview_validValueWithWhitespace_returnsTrimmedInterview() throws Exception {
+        String interviewWithWhitespace = WHITESPACE + VALID_INTERVIEW + WHITESPACE;
+        assertEquals(new Interview(VALID_INTERVIEW), ParserUtil.parseInterview(interviewWithWhitespace));
     }
 
     @Test
@@ -294,5 +343,13 @@ public class ParserUtilTest {
         Set<Tag> expectedTagSet = Set.of(new Tag(VALID_TAG_1), new Tag(VALID_TAG_2));
 
         assertEquals(expectedTagSet, actualTagSet);
+    }
+
+    @Test
+    public void parseTags_namesDifferOnlyInCase_returnsOneTag() throws Exception {
+        Set<Tag> tags = ParserUtil.parseTags(List.of("Referral", "referral"));
+
+        assertEquals(1, tags.size());
+        assertEquals(Set.of(new Tag("Referral")), tags);
     }
 }

@@ -1,0 +1,52 @@
+@startuml
+skin rose
+skinparam ActivityFontSize 14
+skinparam ArrowFontSize 12
+start
+:Recruitment-data loading fails;
+:Check source is a regular file
+without following symbolic links;
+if () then ([source check succeeds])
+    :Select sibling FILE.bak;
+    :Capture timestamp once;
+    repeat
+        :Attempt to move original to selected path
+        without replacing an existing destination;
+    backward :Select next sibling backup name:
+    FILE.bak.TIMESTAMP on first collision,
+    then FILE.bak.TIMESTAMP-1, -2, ...;
+    repeat while () is ([name collision]) not ([else])
+else ([check failed])
+    :Record source-check failure;
+endif
+
+if () then ([backup created])
+    :Remember backup path;
+    :Original bytes are preserved
+    at the backup path;
+    :Attempt to create valid empty data
+    at original path using CREATE_NEW;
+    if () then ([replacement created])
+        :Initialize empty model,
+        logic and UI manager;
+        :Show recovery warning with backup and data paths
+        and manual restoration instructions;
+        :Open command window with
+        empty candidate and role lists;
+        stop
+    else ([creation failed])
+        :Show fatal error with backup path
+        and replacement failure reason;
+        :Shut down after dismissal
+        without opening commands;
+        stop
+    endif
+else ([source-check or move failure])
+    :Original remains at its source path;
+    :Show fatal error with original path
+    and backup failure reason;
+    :Shut down after dismissal
+    without opening commands;
+    stop
+endif
+@enduml

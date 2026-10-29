@@ -10,6 +10,7 @@ import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -54,6 +55,35 @@ public class UniquePersonListTest {
     public void add_duplicatePerson_throwsDuplicatePersonException() {
         uniquePersonList.add(ALICE);
         assertThrows(DuplicatePersonException.class, () -> uniquePersonList.add(ALICE));
+    }
+
+    @Test
+    public void findSamePerson_personWithSameEmail_returnsExistingPerson() {
+        uniquePersonList.add(ALICE);
+        Person bobWithAliceEmail = new PersonBuilder(BOB).withEmail(ALICE.getEmail().value).build();
+        assertEquals(Optional.of(ALICE), uniquePersonList.findSamePerson(bobWithAliceEmail));
+    }
+
+    @Test
+    public void findSamePerson_personWithSameNameOnly_returnsEmpty() {
+        uniquePersonList.add(ALICE);
+        Person bobWithAliceName = new PersonBuilder(BOB).withName(ALICE.getName().fullName).build();
+        assertEquals(Optional.empty(), uniquePersonList.findSamePerson(bobWithAliceName));
+    }
+
+    @Test
+    public void findSamePersonExcluding_onlyExcludedPersonMatches_returnsEmpty() {
+        uniquePersonList.add(ALICE);
+        Person editedAlice = new PersonBuilder(ALICE).withPhone(BOB.getPhone().value).build();
+        assertEquals(Optional.empty(), uniquePersonList.findSamePersonExcluding(editedAlice, ALICE));
+    }
+
+    @Test
+    public void findSamePersonExcluding_otherPersonMatches_returnsOtherPerson() {
+        uniquePersonList.add(ALICE);
+        uniquePersonList.add(BOB);
+        Person aliceWithBobPhone = new PersonBuilder(ALICE).withPhone(BOB.getPhone().value).build();
+        assertEquals(Optional.of(BOB), uniquePersonList.findSamePersonExcluding(aliceWithBobPhone, ALICE));
     }
 
     @Test
@@ -123,6 +153,14 @@ public class UniquePersonListTest {
         uniquePersonList.remove(ALICE);
         UniquePersonList expectedUniquePersonList = new UniquePersonList();
         assertEquals(expectedUniquePersonList, uniquePersonList);
+    }
+
+    @Test
+    public void setPerson_editedPersonKeepsEmailButTakesOtherPhone_throwsDuplicatePersonException() {
+        uniquePersonList.add(ALICE);
+        uniquePersonList.add(BOB);
+        Person aliceWithBobPhone = new PersonBuilder(ALICE).withPhone(BOB.getPhone().value).build();
+        assertThrows(DuplicatePersonException.class, () -> uniquePersonList.setPerson(ALICE, aliceWithBobPhone));
     }
 
     @Test

@@ -4,11 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
-import static seedu.address.logic.Messages.MESSAGE_PERSON_LIST_NOT_DISPLAYED;
-import static seedu.address.logic.Messages.MESSAGE_ROLE_LIST_NOT_DISPLAYED;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
+import static seedu.address.logic.commands.CommandTestUtil.HELP_TOPICS;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.ROLE_DESC_AMY;
@@ -19,19 +18,24 @@ import static seedu.address.testutil.TypicalRoles.SOFTWARE_ENGINEER;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.AddRoleCommand;
 import seedu.address.logic.commands.CloseRoleCommand;
+import seedu.address.logic.commands.CommandGuide;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.DeleteRoleCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.RedoCommand;
 import seedu.address.logic.commands.StatusCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -84,6 +88,133 @@ public class LogicManagerTest {
     public void execute_validCommand_success() throws Exception {
         String listCommand = ListCommand.COMMAND_WORD;
         assertCommandSuccess(listCommand, ListCommand.MESSAGE_SUCCESS, model);
+    }
+
+    @Test
+    public void execute_help_preservesRecruitmentDataFileAndFilters() throws Exception {
+        GuiSettings guiSettings = new GuiSettings(1000, 700, 10, 20);
+        logic.setGuiSettings(guiSettings);
+        model.addRole(SOFTWARE_ENGINEER);
+        model.addPerson(AMY);
+        model.updateFilteredPersonList(person -> false);
+        model.updateFilteredRoleList(role -> false);
+        addressBookStorage.saveAddressBook(model.getAddressBook());
+        String saved = Files.readString(addressBookStorage.getAddressBookFilePath());
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+
+        List<String> topics = new ArrayList<>(HELP_TOPICS);
+        topics.add("");
+        for (String topic : topics) {
+            CommandResult result = logic.execute("help " + topic);
+            String expected = topic.isEmpty() ? CommandGuide.getOverview() : CommandGuide.findHelp(topic).orElseThrow();
+            assertEquals(expected, result.getFeedbackToUser());
+            assertTrue(result.isShowHelp());
+            assertFalse(result.isExit());
+            assertEquals(expectedModel.getAddressBook(), model.getAddressBook());
+            assertTrue(model.getFilteredPersonList().isEmpty());
+            assertTrue(model.getFilteredRoleList().isEmpty());
+            assertEquals(List.of(AMY), logic.getPersonList());
+            assertEquals(guiSettings, logic.getGuiSettings());
+            assertEquals(saved, Files.readString(addressBookStorage.getAddressBookFilePath()));
+        }
+    }
+
+    @Test
+    public void execute_help_unavailableStorageIsNotUsed() throws Exception {
+        StorageManager unavailableStorage = new StorageManager(addressBookStorage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"))) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) {
+                throw new AssertionError("Viewing help must not save recruitment data");
+            }
+        };
+        Logic readOnlyLogic = new LogicManager(model, unavailableStorage);
+
+        assertEquals(CommandGuide.getOverview(), readOnlyLogic.execute("HELP").getFeedbackToUser());
+        assertEquals(CommandGuide.findHelp("role").orElseThrow(),
+                readOnlyLogic.execute("HELP ROLE").getFeedbackToUser());
+        assertFalse(Files.exists(addressBookStorage.getAddressBookFilePath()));
+    }
+
+    @Test
+    public void execute_help_preservesUndoAndRedoHistory() throws Exception {
+        logic.execute("role add r/Software Engineer x/2 years");
+        logic.execute("help");
+        logic.execute("help clear");
+        logic.execute("help undo");
+        logic.execute("undo");
+        assertTrue(model.getAddressBook().getRoleList().isEmpty());
+
+        logic.execute("help");
+        logic.execute("help redo");
+        logic.execute("help exit");
+        logic.execute("redo");
+        assertEquals(List.of(SOFTWARE_ENGINEER), model.getAddressBook().getRoleList());
+    }
+
+    @Test
+    public void execute_invalidHelp_preservesSavedDataFiltersAndRedo() throws Exception {
+        logic.execute("role add r/Software Engineer x/2 years");
+        logic.execute("undo");
+        model.updateFilteredPersonList(person -> false);
+        model.updateFilteredRoleList(role -> false);
+        String saved = Files.readString(addressBookStorage.getAddressBookFilePath());
+
+        assertThrows(CommandException.class,
+                "No help is available for “NotACommand”. Use help to view all commands.", () ->
+                        logic.execute("help NotACommand"));
+        assertThrows(ParseException.class, "Help accepts at most one command name.", () ->
+                logic.execute("help list role"));
+        assertEquals(saved, Files.readString(addressBookStorage.getAddressBookFilePath()));
+        assertTrue(model.getAddressBook().getRoleList().isEmpty());
+        assertTrue(model.getFilteredPersonList().isEmpty());
+        assertTrue(model.getFilteredRoleList().isEmpty());
+
+        logic.execute("redo");
+        assertEquals(List.of(SOFTWARE_ENGINEER), model.getAddressBook().getRoleList());
+    }
+
+    @Test
+    public void execute_undoRedoRestoresAndPersistsHistory() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
+        String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
+                + EMAIL_DESC_AMY + ADDRESS_DESC_AMY + ROLE_DESC_AMY;
+
+        logic.execute(addCommand);
+        assertEquals(1, model.getAddressBook().getPersonList().size());
+
+        logic.execute("list");
+        logic.execute("undo");
+        assertEquals(0, model.getAddressBook().getPersonList().size());
+        assertEquals(0, addressBookStorage.readAddressBook().orElseThrow().getPersonList().size());
+
+        logic.execute("redo");
+        assertEquals(1, model.getAddressBook().getPersonList().size());
+    }
+
+    @Test
+    public void execute_newChangeAfterUndo_clearsRedoHistory() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
+        String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
+                + EMAIL_DESC_AMY + ADDRESS_DESC_AMY + ROLE_DESC_AMY;
+        logic.execute(addCommand);
+        logic.execute("undo");
+        logic.execute(addCommand);
+        logic.execute("redo");
+        assertEquals(RedoCommand.MESSAGE_EMPTY, logic.execute("redo").getFeedbackToUser());
+    }
+
+    @Test
+    public void execute_failedChangeAfterUndo_preservesRedoHistory() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
+        String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
+                + EMAIL_DESC_AMY + ADDRESS_DESC_AMY + ROLE_DESC_AMY;
+        logic.execute(addCommand);
+        logic.execute("undo");
+
+        assertCommandException("delete 9", MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        logic.execute("redo");
+        assertEquals(1, model.getAddressBook().getPersonList().size());
     }
 
     @Test
@@ -175,17 +306,56 @@ public class LogicManagerTest {
     @Test
     public void execute_secondHire_rejectsChangeAndPreservesSavedData() throws Exception {
         model.addRole(SOFTWARE_ENGINEER);
-        Person first = new PersonBuilder().withName("First Candidate").build();
-        Person second = new PersonBuilder().withName("Second Candidate").build();
+        Person first = new PersonBuilder().withNameAndDistinctContacts("First Candidate").build();
+        Person second = new PersonBuilder().withNameAndDistinctContacts("Second Candidate").build();
         model.addPerson(first);
         model.addPerson(second);
-        logic.execute("status 1 HIRED");
+        logic.execute("status 1 st/HIRED");
         ReadOnlyAddressBook saved = addressBookStorage.readAddressBook().orElseThrow();
         assertEquals(Status.HIRED, saved.getPersonList().getFirst().getStatus());
         assertEquals(List.of(SOFTWARE_ENGINEER), saved.getRoleList());
 
         assertThrows(CommandException.class, String.format(StatusCommand.MESSAGE_ROLE_ALREADY_HAS_HIRED_CANDIDATE,
-                SOFTWARE_ENGINEER.getTitle()), () -> logic.execute("status 2 HIRED"));
+                SOFTWARE_ENGINEER.getTitle()), () -> logic.execute("status 2 st/HIRED"));
+        assertEquals(saved, model.getAddressBook());
+        assertEquals(saved, addressBookStorage.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_batchStatus_persistsAllSelectedCandidates() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
+        Person first = new PersonBuilder().withNameAndDistinctContacts("First Candidate").build();
+        Person second = new PersonBuilder().withNameAndDistinctContacts("Second Candidate").build();
+        Person unselected = new PersonBuilder().withNameAndDistinctContacts("Unselected Candidate").build();
+        model.addPerson(first);
+        model.addPerson(second);
+        model.addPerson(unselected);
+
+        logic.execute("status 2 1 2 st/REJECTED");
+
+        ReadOnlyAddressBook saved = addressBookStorage.readAddressBook().orElseThrow();
+        assertEquals(List.of(new PersonBuilder(first).withStatus(Status.REJECTED).build(),
+                new PersonBuilder(second).withStatus(Status.REJECTED).build(), unselected), saved.getPersonList());
+        assertEquals(List.of(SOFTWARE_ENGINEER), saved.getRoleList());
+        assertEquals(saved, model.getAddressBook());
+    }
+
+    @Test
+    public void execute_invalidBatchStatus_preservesModelAndSavedData() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
+        model.addPerson(new PersonBuilder().withNameAndDistinctContacts("First Candidate").build());
+        model.addPerson(new PersonBuilder().withNameAndDistinctContacts("Second Candidate").build());
+        logic.execute("list");
+        ReadOnlyAddressBook saved = addressBookStorage.readAddressBook().orElseThrow();
+
+        String expectedMessage = String.format(StatusCommand.MESSAGE_CANDIDATES_HIRED_SAME_ROLE,
+                SOFTWARE_ENGINEER.getTitle());
+        assertThrows(CommandException.class, expectedMessage, () -> logic.execute("status 1 2 st/HIRED"));
+        assertEquals(saved, model.getAddressBook());
+        assertEquals(saved, addressBookStorage.readAddressBook().orElseThrow());
+
+        assertThrows(CommandException.class, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, () ->
+                logic.execute("status 1 99 st/REJECTED"));
         assertEquals(saved, model.getAddressBook());
         assertEquals(saved, addressBookStorage.readAddressBook().orElseThrow());
     }
@@ -193,10 +363,10 @@ public class LogicManagerTest {
     @Test
     public void execute_roleLifecycle_preservesHistoryUntilExplicitDeletion() throws Exception {
         model.addRole(SOFTWARE_ENGINEER);
-        model.addPerson(new PersonBuilder().withName("First Candidate").build());
-        model.addPerson(new PersonBuilder().withName("Second Candidate").build());
-        logic.execute("status 1 HIRED");
-        logic.execute("status 2 REJECTED");
+        model.addPerson(new PersonBuilder().withNameAndDistinctContacts("First Candidate").build());
+        model.addPerson(new PersonBuilder().withNameAndDistinctContacts("Second Candidate").build());
+        logic.execute("status 1 st/HIRED");
+        logic.execute("status 2 st/REJECTED");
         logic.execute("list role");
         logic.execute("role close 1");
 
@@ -219,95 +389,6 @@ public class LogicManagerTest {
     }
 
     @Test
-    public void execute_addCandidateAfterRoleList_rejectsRoleIndicesAndAllowsCandidateIndices() throws Exception {
-        model.addRole(SOFTWARE_ENGINEER);
-        model.addRole(PRODUCT_ANALYST);
-        assertViewAfterCommand("list role", true);
-        assertViewAfterCommand("add n/Test Candidate p/91234567 e/test@example.com"
-                + " a/Clementi r/Product Analyst", false);
-        assertEquals(1, model.getFilteredPersonList().size());
-
-        ReadOnlyAddressBook saved = addressBookStorage.readAddressBook().orElseThrow();
-        for (String command : new String[]{"role close 1", "role delete 1"}) {
-            assertThrows(CommandException.class, MESSAGE_ROLE_LIST_NOT_DISPLAYED, () -> logic.execute(command));
-            assertEquals(saved, model.getAddressBook());
-            assertEquals(saved, addressBookStorage.readAddressBook().orElseThrow());
-            assertFalse(model.isRoleListDisplayed());
-        }
-        logic.execute("status 1 REJECTED");
-        assertEquals(Status.REJECTED, model.getFilteredPersonList().getFirst().getStatus());
-        logic.execute("delete 1");
-        assertTrue(model.getAddressBook().getPersonList().isEmpty());
-    }
-
-    @Test
-    public void execute_candidateIndexCommandAfterRoleList_rejectsEvenWithCandidatesInModel() throws Exception {
-        model.addRole(SOFTWARE_ENGINEER);
-        model.addPerson(new PersonBuilder().build());
-        assertViewAfterCommand("list role", true);
-        assertEquals(1, model.getFilteredPersonList().size());
-
-        ReadOnlyAddressBook saved = addressBookStorage.readAddressBook().orElseThrow();
-        for (String command : new String[]{"delete 1", "edit 1 n/Changed Name", "note 1 Updated", "status 1 HIRED"}) {
-            assertThrows(CommandException.class, MESSAGE_PERSON_LIST_NOT_DISPLAYED, () -> logic.execute(command));
-            assertEquals(saved, model.getAddressBook());
-            assertTrue(model.isRoleListDisplayed());
-        }
-    }
-
-    @Test
-    public void execute_nonRoleResultsAfterRoleList_keepViewAndGuardInSync() throws Exception {
-        model.addRole(SOFTWARE_ENGINEER);
-        model.addPerson(new PersonBuilder().build());
-        for (String command : new String[]{"list", "find Amy", "help", "role add r/New Role x/Senior", "clear"}) {
-            assertViewAfterCommand("list role", true);
-            assertViewAfterCommand(command, false);
-            assertThrows(CommandException.class, MESSAGE_ROLE_LIST_NOT_DISPLAYED, () ->
-                    logic.execute("role delete 1"));
-        }
-    }
-
-    @Test
-    public void execute_successfulRoleCommands_keepRoleView() throws Exception {
-        model.addRole(SOFTWARE_ENGINEER);
-        assertViewAfterCommand("list role", true);
-        assertViewAfterCommand("role close 1", true);
-        assertViewAfterCommand("role delete 1", true);
-        assertTrue(model.getAddressBook().getRoleList().isEmpty());
-    }
-
-    @Test
-    public void execute_failedCommands_preserveRoleView() throws Exception {
-        model.addRole(SOFTWARE_ENGINEER);
-        assertViewAfterCommand("list role", true);
-        assertThrows(ParseException.class, () -> logic.execute("role close invalid"));
-        assertTrue(model.isRoleListDisplayed());
-        assertThrows(CommandException.class, () -> logic.execute("role close 2"));
-        assertTrue(model.isRoleListDisplayed());
-        assertViewAfterCommand("role close 1", true);
-    }
-
-    @Test
-    public void execute_saveFailure_preservesPreviousView() throws Exception {
-        model.addRole(SOFTWARE_ENGINEER);
-        assertViewAfterCommand("list role", true);
-        JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(temporaryFolder.resolve("failure.json")) {
-            @Override
-            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
-                throw DUMMY_IO_EXCEPTION;
-            }
-        };
-        logic = new LogicManager(model, new StorageManager(failingStorage,
-                new JsonUserPrefsStorage(temporaryFolder.resolve("failure-prefs.json"))));
-        assertThrows(CommandException.class, () -> logic.execute("list"));
-        assertTrue(model.isRoleListDisplayed());
-
-        model.setRoleListDisplayed(false);
-        assertThrows(CommandException.class, () -> logic.execute("list role"));
-        assertFalse(model.isRoleListDisplayed());
-    }
-
-    @Test
     public void execute_pendingStatusAfterClosure_keepsRecordsAndSavedDataUnchanged() throws Exception {
         model.addRole(SOFTWARE_ENGINEER);
         model.addPerson(new PersonBuilder().withStatus(Status.REJECTED).withTags("referral").build());
@@ -317,14 +398,13 @@ public class LogicManagerTest {
         ReadOnlyAddressBook saved = addressBookStorage.readAddressBook().orElseThrow();
         Person candidate = saved.getPersonList().getFirst();
 
-        for (Status pending : new Status[]{Status.PENDING_RESUME_SCREENING, Status.PENDING_RECRUITER_INTERVIEW,
-            Status.PENDING_OFFER_EXTENSION, Status.PENDING_OFFER_DECISION}) {
+        for (Status pending : new Status[]{Status.RESUME, Status.INTERVIEW,
+            Status.OFFER, Status.DECISION}) {
             assertThrows(CommandException.class, String.format(StatusCommand.MESSAGE_PENDING_STATUS_FOR_CLOSED_ROLE,
-                    candidate.getName(), candidate.getRole()), () -> logic.execute("status 1 " + pending.name()));
+                    candidate.getName(), candidate.getRole()), () -> logic.execute("status 1 st/" + pending.name()));
             assertEquals(saved, model.getAddressBook());
             assertEquals(saved, addressBookStorage.readAddressBook().orElseThrow());
             assertEquals(List.of(candidate), model.getFilteredPersonList());
-            assertFalse(model.isRoleListDisplayed());
         }
     }
 
@@ -332,9 +412,9 @@ public class LogicManagerTest {
     public void execute_pendingCorrectionForOpenRole_persistsAndPreventsClosure() throws Exception {
         model.addRole(SOFTWARE_ENGINEER);
         model.addPerson(new PersonBuilder().withStatus(Status.HIRED).build());
-        logic.execute("status 1 PENDING_OFFER_DECISION");
+        logic.execute("status 1 st/DECISION");
         ReadOnlyAddressBook saved = addressBookStorage.readAddressBook().orElseThrow();
-        assertEquals(Status.PENDING_OFFER_DECISION, saved.getPersonList().getFirst().getStatus());
+        assertEquals(Status.DECISION, saved.getPersonList().getFirst().getStatus());
         assertEquals(RoleStatus.OPEN, saved.getRoleList().getFirst().getStatus());
         logic.execute("list role");
         assertThrows(CommandException.class, String.format(CloseRoleCommand.MESSAGE_PENDING_CANDIDATES,
@@ -362,12 +442,6 @@ public class LogicManagerTest {
     @Test
     public void getFilteredRoleList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> logic.getFilteredRoleList().remove(0));
-    }
-
-    private void assertViewAfterCommand(String command, boolean showRoles) throws Exception {
-        CommandResult result = logic.execute(command);
-        assertEquals(showRoles, result.isShowRoleList());
-        assertEquals(showRoles, model.isRoleListDisplayed());
     }
 
     /**

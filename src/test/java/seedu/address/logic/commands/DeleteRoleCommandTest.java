@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_ROLE_DISPLAYED_INDEX;
-import static seedu.address.logic.Messages.MESSAGE_ROLE_LIST_NOT_DISPLAYED;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalRoles.CLOSED_DESIGNER;
@@ -30,7 +29,6 @@ public class DeleteRoleCommandTest {
     @BeforeEach
     public void setUp() {
         model.addRole(SOFTWARE_ENGINEER);
-        model.setRoleListDisplayed(true);
     }
 
     @Test
@@ -50,8 +48,6 @@ public class DeleteRoleCommandTest {
         assertTrue(model.getAddressBook().getRoleList().isEmpty());
         assertEquals(String.format(DeleteRoleCommand.MESSAGE_SUCCESS, SOFTWARE_ENGINEER.getTitle()),
                 result.getFeedbackToUser());
-        assertTrue(result.isShowRoleList());
-        assertTrue(model.isRoleListDisplayed());
     }
 
     @Test
@@ -84,8 +80,10 @@ public class DeleteRoleCommandTest {
 
     @Test
     public void execute_multipleCandidatesWithDifferentTitleCase_reportsTotal() {
-        model.addPerson(new PersonBuilder().withName("First Candidate").withRole("software engineer").build());
-        model.addPerson(new PersonBuilder().withName("Second Candidate").withStatus(Status.HIRED).build());
+        model.addPerson(new PersonBuilder().withNameAndDistinctContacts("First Candidate")
+                .withRole("software engineer").build());
+        model.addPerson(new PersonBuilder().withNameAndDistinctContacts("Second Candidate")
+                .withStatus(Status.HIRED).build());
         assertCommandFailure(command, model, String.format(DeleteRoleCommand.MESSAGE_ASSOCIATED_CANDIDATES,
                 SOFTWARE_ENGINEER.getTitle(), 2));
     }
@@ -107,12 +105,6 @@ public class DeleteRoleCommandTest {
         command.execute(model);
         assertEquals(List.of(SOFTWARE_ENGINEER), model.getAddressBook().getRoleList());
         assertTrue(model.getFilteredRoleList().isEmpty());
-    }
-
-    @Test
-    public void execute_candidateListDisplayed_rejectsDeletion() {
-        model.setRoleListDisplayed(false);
-        assertCommandFailure(command, model, MESSAGE_ROLE_LIST_NOT_DISPLAYED);
     }
 
     @Test

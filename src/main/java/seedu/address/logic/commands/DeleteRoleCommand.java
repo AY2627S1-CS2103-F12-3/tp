@@ -2,10 +2,11 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_ROLE_DISPLAYED_INDEX;
-import static seedu.address.logic.Messages.MESSAGE_ROLE_LIST_NOT_DISPLAYED;
 
 import java.util.List;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -20,13 +21,15 @@ public class DeleteRoleCommand extends Command {
 
     public static final String COMMAND_WORD = "delete";
     public static final String MESSAGE_USAGE = RoleCommandParser.COMMAND_WORD + " " + COMMAND_WORD
-            + ": Permanently deletes a displayed role with no candidates.\n"
+            + ": Deletes a displayed role with no candidates.\n"
             + "Parameters: INDEX (must be a positive integer)\n"
             + "Example: " + RoleCommandParser.COMMAND_WORD + " " + COMMAND_WORD + " 1";
     public static final String MESSAGE_SUCCESS = "Deleted role: %1$s.";
     public static final String MESSAGE_ASSOCIATED_CANDIDATES =
             "Cannot delete role: %1$s. It has %2$d associated candidate(s).";
     public static final String MESSAGE_EXTRA_TEXT = "The role delete command takes only a role index.";
+
+    private static final Logger logger = LogsCenter.getLogger(DeleteRoleCommand.class);
 
     private final Index targetIndex;
 
@@ -40,9 +43,6 @@ public class DeleteRoleCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        if (!model.isRoleListDisplayed()) {
-            throw new CommandException(MESSAGE_ROLE_LIST_NOT_DISPLAYED);
-        }
         List<Role> displayedRoles = model.getFilteredRoleList();
         if (targetIndex.getZeroBased() >= displayedRoles.size()) {
             throw new CommandException(MESSAGE_INVALID_ROLE_DISPLAYED_INDEX);
@@ -52,10 +52,12 @@ public class DeleteRoleCommand extends Command {
                 .filter(person -> role.getTitle().isSameTitle(person.getRole()))
                 .count();
         if (candidateCount > 0) {
+            logger.fine("Rejected role deletion: " + candidateCount + " associated candidate(s).");
             throw new CommandException(String.format(MESSAGE_ASSOCIATED_CANDIDATES, role.getTitle(), candidateCount));
         }
         model.deleteRole(role);
-        return new CommandResult(String.format(MESSAGE_SUCCESS, role.getTitle()), false, false, true);
+        logger.info("Deleted role in memory at displayed index " + targetIndex.getOneBased() + ".");
+        return new CommandResult(String.format(MESSAGE_SUCCESS, role.getTitle()), false, false);
     }
 
     @Override

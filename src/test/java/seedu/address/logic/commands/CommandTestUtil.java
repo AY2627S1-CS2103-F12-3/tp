@@ -28,10 +28,13 @@ import seedu.address.testutil.EditPersonDescriptorBuilder;
  */
 public class CommandTestUtil {
 
+    public static final List<String> HELP_TOPICS = List.of("add", "edit", "delete", "note", "interview", "status",
+            "find", "list", "role", "clear", "undo", "redo", "exit", "help");
+
     public static final String VALID_NAME_AMY = "Amy Bee";
     public static final String VALID_NAME_BOB = "Bob Choo";
-    public static final String VALID_PHONE_AMY = "11111111";
-    public static final String VALID_PHONE_BOB = "22222222";
+    public static final String VALID_PHONE_AMY = "81111111";
+    public static final String VALID_PHONE_BOB = "92222222";
     public static final String VALID_EMAIL_AMY = "amy@example.com";
     public static final String VALID_EMAIL_BOB = "bob@example.com";
     public static final String VALID_ADDRESS_AMY = "Block 312, Amy Street 1";
@@ -40,11 +43,13 @@ public class CommandTestUtil {
     public static final String VALID_ROLE_BOB = "Product Analyst";
     public static final String VALID_NOTE_AMY = "Prefers morning interviews";
     public static final String VALID_NOTE_BOB = "Referred by Alice";
+    public static final String VALID_INTERVIEW_AMY = "2026-10-20 14:00";
+    public static final String VALID_INTERVIEW_BOB = "2026-11-03 09:30";
     public static final String VALID_TAG_HUSBAND = "husband";
     public static final String VALID_TAG_FRIEND = "friend";
-    public static final String VALID_STATUS_1_STRING = "PENDING_RECRUITER_INTERVIEW";
+    public static final String VALID_STATUS_1_STRING = "INTERVIEW";
     public static final Status VALID_STATUS_1 = Status.valueOf(VALID_STATUS_1_STRING);
-    public static final String VALID_STATUS_2_STRING = "PENDING_OFFER_EXTENSION";
+    public static final String VALID_STATUS_2_STRING = "OFFER";
     public static final Status VALID_STATUS_2 = Status.valueOf(VALID_STATUS_2_STRING);
 
     public static final String NAME_DESC_AMY = " " + PREFIX_NAME + VALID_NAME_AMY;

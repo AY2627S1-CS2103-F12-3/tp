@@ -3,6 +3,8 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -25,7 +27,8 @@ public class ModelManager implements Model {
     private final UserPrefs userPrefs;
     private final FilteredList<Person> filteredPersons;
     private final FilteredList<Role> filteredRoles;
-    private boolean roleListDisplayed;
+    private final Deque<AddressBook> undoStack = new ArrayDeque<>();
+    private final Deque<AddressBook> redoStack = new ArrayDeque<>();
 
     /**
      * Initializes a ModelManager with the given addressBook and userPrefs.
@@ -71,6 +74,43 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public void recordAddressBookState() {
+        undoStack.push(new AddressBook(addressBook));
+    }
+
+    @Override
+    public void commitAddressBookState() {
+        redoStack.clear();
+    }
+
+    @Override
+    public boolean undoAddressBook() {
+        if (undoStack.isEmpty()) {
+            return false;
+        }
+        redoStack.push(new AddressBook(addressBook));
+        setAddressBook(undoStack.pop());
+        return true;
+    }
+
+    @Override
+    public boolean redoAddressBook() {
+        if (redoStack.isEmpty()) {
+            return false;
+        }
+        undoStack.push(new AddressBook(addressBook));
+        setAddressBook(redoStack.pop());
+        return true;
+    }
+
+    @Override
+    public void discardAddressBookState() {
+        if (!undoStack.isEmpty()) {
+            undoStack.pop();
+        }
+    }
+
+    @Override
     public ReadOnlyAddressBook getAddressBook() {
         return addressBook;
     }
@@ -79,6 +119,18 @@ public class ModelManager implements Model {
     public boolean hasPerson(Person person) {
         requireNonNull(person);
         return addressBook.hasPerson(person);
+    }
+
+    @Override
+    public Optional<Person> findSamePerson(Person person) {
+        requireNonNull(person);
+        return addressBook.findSamePerson(person);
+    }
+
+    @Override
+    public Optional<Person> findSamePersonExcluding(Person person, Person excludedPerson) {
+        requireAllNonNull(person, excludedPerson);
+        return addressBook.findSamePersonExcluding(person, excludedPerson);
     }
 
     @Override
@@ -114,16 +166,6 @@ public class ModelManager implements Model {
     public void updateFilteredPersonList(Predicate<Person> predicate) {
         requireNonNull(predicate);
         filteredPersons.setPredicate(predicate);
-    }
-
-    @Override
-    public boolean isRoleListDisplayed() {
-        return roleListDisplayed;
-    }
-
-    @Override
-    public void setRoleListDisplayed(boolean displayed) {
-        roleListDisplayed = displayed;
     }
 
     //=========== Filtered Role List Accessors ===============================================================

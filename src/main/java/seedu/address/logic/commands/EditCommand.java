@@ -5,6 +5,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ROLE_TITLE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
@@ -14,7 +15,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.CollectionUtil;
 import seedu.address.commons.util.ToStringBuilder;
@@ -27,6 +30,8 @@ import seedu.address.model.person.Name;
 import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.role.Role;
+import seedu.address.model.role.RoleTitle;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -44,6 +49,7 @@ public class EditCommand extends Command {
             + "[" + PREFIX_PHONE + "PHONE] "
             + "[" + PREFIX_EMAIL + "EMAIL] "
             + "[" + PREFIX_ADDRESS + "ADDRESS] "
+            + "[" + PREFIX_ROLE_TITLE + "ROLE_TITLE] "
             + "[" + PREFIX_TAG + "TAG]...\n"
             + "Example: " + COMMAND_WORD + " 1 "
             + PREFIX_PHONE + "91234567 "
@@ -51,8 +57,12 @@ public class EditCommand extends Command {
 
     public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited candidate: %1$s";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
-    public static final String MESSAGE_ROLE_NOT_EDITABLE = "A candidate's role cannot be edited.";
-    public static final String MESSAGE_DUPLICATE_PERSON = "This candidate already exists in RecruiterBuddy.";
+    public static final String MESSAGE_ROLE_NOT_FOUND =
+            "No role named “%1$s” exists. Add the role first, then edit the candidate.";
+    public static final String MESSAGE_ROLE_CLOSED =
+            "The role “%1$s” is closed, so candidates cannot be moved to it.";
+
+    private static final Logger logger = LogsCenter.getLogger(EditCommand.class);
 
     private final Index index;
     private final EditPersonDescriptor editPersonDescriptor;
@@ -74,30 +84,101 @@ public class EditCommand extends Command {
         requireNonNull(model);
         List<Person> lastShownList = model.getFilteredPersonList();
 
-        if (model.isRoleListDisplayed()) {
-            throw new CommandException(Messages.MESSAGE_PERSON_LIST_NOT_DISPLAYED);
-        }
         if (index.getZeroBased() >= lastShownList.size()) {
             throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
         }
 
         Person personToEdit = lastShownList.get(index.getZeroBased());
-        Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor);
+        RoleTitle updatedRole = resolveRole(model, personToEdit);
+        Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor, updatedRole);
+        verifyNotDuplicate(model, personToEdit, editedPerson);
 
-        if (!personToEdit.isSamePerson(editedPerson) && model.hasPerson(editedPerson)) {
-            throw new CommandException(MESSAGE_DUPLICATE_PERSON);
+        boolean isRoleTransfer = isRoleChanged(personToEdit, updatedRole);
+        if (isRoleTransfer) {
+            CandidateRoleChecks.verifyHiringAllowed(model, personToEdit, updatedRole, editedPerson.getStatus());
         }
 
         model.setPerson(personToEdit, editedPerson);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
-        return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)));
+        if (isRoleTransfer) {
+            logger.info("Updated candidate role in memory at displayed index " + index.getOneBased() + ".");
+        }
+        String successMessage = String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        return new CommandResult(appendWarningsForChangedFields(successMessage, model, personToEdit, editedPerson));
+    }
+
+    /**
+     * Checks that no candidate other than {@code personToEdit} has the same email or phone number as
+     * {@code editedPerson}. The candidate being edited is excluded, so keeping their own email or phone
+     * is not a duplicate.
+     *
+     * @throws CommandException if such a candidate exists, with a message naming them and the shared field.
+     */
+    private static void verifyNotDuplicate(Model model, Person personToEdit, Person editedPerson)
+            throws CommandException {
+        Optional<Person> existingPerson = model.findSamePersonExcluding(editedPerson, personToEdit);
+        if (existingPerson.isPresent()) {
+            String message = Messages.getErrorMessageForDuplicatePerson(editedPerson, existingPerson.get());
+            logger.info("Rejected edit of candidate " + personToEdit.getName() + ": " + message);
+            throw new CommandException(message);
+        }
+    }
+
+    /**
+     * Returns {@code successMessage} followed by any warnings about the phone and email of {@code editedPerson}.
+     * Only a newly entered phone or email is checked, since warnings about a saved value were already shown
+     * when it was saved, and repeating them on every edit would hide new warnings.
+     */
+    private static String appendWarningsForChangedFields(String successMessage, Model model, Person personToEdit,
+            Person editedPerson) {
+        String resultMessage = successMessage;
+
+        boolean isPhoneChanged = !editedPerson.getPhone().equals(personToEdit.getPhone());
+        if (isPhoneChanged) {
+            resultMessage = PhoneChecks.appendPhoneWarnings(resultMessage, model, editedPerson);
+        }
+
+        // Emails are compared ignoring case, so changing only the case of an email is not a new email.
+        boolean isEmailChanged = !editedPerson.getEmail().isSameEmail(personToEdit.getEmail());
+        if (isEmailChanged) {
+            resultMessage = EmailChecks.appendEmailWarnings(resultMessage, editedPerson.getEmail());
+        }
+        return resultMessage;
+    }
+
+    /**
+     * Returns the destination role's canonical title, or the unchanged role when no role is specified.
+     *
+     * @throws CommandException if the requested role does not exist or a transfer targets a closed role.
+     */
+    private RoleTitle resolveRole(Model model, Person personToEdit) throws CommandException {
+        if (editPersonDescriptor.getRole().isEmpty()) {
+            return personToEdit.getRole();
+        }
+        RoleTitle requestedRole = editPersonDescriptor.getRole().get();
+        Role destination = model.findRole(requestedRole)
+                .orElseThrow(() -> new CommandException(String.format(MESSAGE_ROLE_NOT_FOUND, requestedRole)));
+        assert destination.getTitle().isSameTitle(requestedRole) : "Role lookup must match the request";
+        if (isRoleChanged(personToEdit, destination.getTitle()) && destination.isClosed()) {
+            logger.fine("Rejected candidate role transfer: destination role is closed.");
+            throw new CommandException(String.format(MESSAGE_ROLE_CLOSED, destination.getTitle()));
+        }
+        return destination.getTitle();
+    }
+
+    /**
+     * Returns true if {@code newRole} identifies a different role from the candidate's current role.
+     */
+    private static boolean isRoleChanged(Person personToEdit, RoleTitle newRole) {
+        return !personToEdit.getRole().isSameTitle(newRole);
     }
 
     /**
      * Creates and returns a {@code Person} with the details of {@code personToEdit}
      * edited with {@code editPersonDescriptor}.
      */
-    private static Person createEditedPerson(Person personToEdit, EditPersonDescriptor editPersonDescriptor) {
+    private static Person createEditedPerson(Person personToEdit, EditPersonDescriptor editPersonDescriptor,
+            RoleTitle updatedRole) {
         assert personToEdit != null;
 
         Name updatedName = editPersonDescriptor.getName().orElse(personToEdit.getName());
@@ -107,8 +188,8 @@ public class EditCommand extends Command {
         Note note = personToEdit.getNote();
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
 
-        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, personToEdit.getRole(), note,
-                personToEdit.getStatus(), updatedTags);
+        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedRole, note,
+                personToEdit.getInterview(), personToEdit.getStatus(), updatedTags);
     }
 
     @Override
@@ -143,6 +224,7 @@ public class EditCommand extends Command {
         private Phone phone;
         private Email email;
         private Address address;
+        private RoleTitle role;
         private Set<Tag> tags;
 
         public EditPersonDescriptor() {}
@@ -156,6 +238,7 @@ public class EditCommand extends Command {
             setPhone(toCopy.phone);
             setEmail(toCopy.email);
             setAddress(toCopy.address);
+            setRole(toCopy.role);
             setTags(toCopy.tags);
         }
 
@@ -163,7 +246,7 @@ public class EditCommand extends Command {
          * Returns true if at least one field is edited.
          */
         public boolean isAnyFieldEdited() {
-            return CollectionUtil.isAnyNonNull(name, phone, email, address, tags);
+            return CollectionUtil.isAnyNonNull(name, phone, email, address, role, tags);
         }
 
         public void setName(Name name) {
@@ -198,6 +281,14 @@ public class EditCommand extends Command {
             return Optional.ofNullable(address);
         }
 
+        public void setRole(RoleTitle role) {
+            this.role = role;
+        }
+
+        public Optional<RoleTitle> getRole() {
+            return Optional.ofNullable(role);
+        }
+
         /**
          * Sets {@code tags} to this object's {@code tags}.
          * A defensive copy of {@code tags} is used internally.
@@ -230,6 +321,7 @@ public class EditCommand extends Command {
                     && Objects.equals(phone, otherEditPersonDescriptor.phone)
                     && Objects.equals(email, otherEditPersonDescriptor.email)
                     && Objects.equals(address, otherEditPersonDescriptor.address)
+                    && Objects.equals(role, otherEditPersonDescriptor.role)
                     && Objects.equals(tags, otherEditPersonDescriptor.tags);
         }
 
@@ -240,6 +332,7 @@ public class EditCommand extends Command {
                     .add("phone", phone)
                     .add("email", email)
                     .add("address", address)
+                    .add("role", role)
                     .add("tags", tags)
                     .toString();
         }

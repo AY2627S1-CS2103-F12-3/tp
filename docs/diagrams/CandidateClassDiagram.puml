@@ -1,0 +1,70 @@
+@startuml
+!include style.puml
+skinparam arrowThickness 1.1
+skinparam arrowColor MODEL_COLOR
+skinparam classBackgroundColor MODEL_COLOR
+skinparam classAttributeIconSize 0
+
+Class Person {
+    +withInterview(i: Interview): Person
+}
+Class Name
+Class Phone
+Class Email
+Class Address
+Class Note
+Class Tag
+Class RoleTitle
+Class Interview {
+    {static} +NONE: Interview
+    -dateTime: LocalDateTime [0..1]
+}
+Enum Status <<enumeration>> {
+    RESUME
+    INTERVIEW
+    OFFER
+    DECISION
+    HIRED
+    REJECTED
+    WITHDRAWN
+}
+
+show Person methods
+show Interview fields
+show Status fields
+
+Person *--> "1" Name
+Person *--> "1" Phone
+Person *--> "1" Email
+Person *--> "1" Address
+Person *--> "1" Note
+Person *--> "*" Tag
+Person -right-> "1" RoleTitle : applies for
+Person -left-> "1" Interview
+Person --> "1" Status
+
+Name -[hidden]right-> Phone
+Phone -[hidden]right-> Email
+Email -[hidden]right-> Address
+Address -[hidden]right-> Note
+Note -[hidden]right-> Tag
+
+note right of RoleTitle
+Same class as a Role's title,
+matched without case sensitivity.
+end note
+
+note top of Person
+Two candidates are the same person
+if they share an email (ignoring case)
+or a phone number.
+end note
+
+note bottom of Interview
+NONE (no interview) is shared
+by every candidate without one,
+and is the only Interview whose
+dateTime is null.
+end note
+
+@enduml

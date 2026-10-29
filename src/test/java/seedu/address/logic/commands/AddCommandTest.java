@@ -38,14 +38,36 @@ public class AddCommandTest {
 
     @Test
     public void execute_personAcceptedByModel_addSuccessful() throws Exception {
+        assertAddSuccess(new PersonBuilder().build());
+    }
+
+    @Test
+    public void execute_emailWithDotlessDomain_addsPersonWithWarning() throws Exception {
+        assertAddSuccess(new PersonBuilder().withEmail("amy@gmailcom").build(),
+                String.format(Messages.MESSAGE_DOTLESS_EMAIL_DOMAIN, "gmailcom"));
+    }
+
+    @Test
+    public void execute_emailWithUncommonSymbolsAndDotlessDomain_addsPersonWithBothWarnings() throws Exception {
+        assertAddSuccess(new PersonBuilder().withEmail("amy#lee@gmailcom").build(),
+                String.format(Messages.MESSAGE_UNCOMMON_EMAIL_SYMBOLS, "#"),
+                String.format(Messages.MESSAGE_DOTLESS_EMAIL_DOMAIN, "gmailcom"));
+    }
+
+    /**
+     * Adds {@code person} to a model with an open Software Engineer role, and checks that the person is added
+     * and that the result message ends with {@code expectedWarnings}, one per line.
+     */
+    private void assertAddSuccess(Person person, String... expectedWarnings) throws Exception {
         ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded(SOFTWARE_ENGINEER);
-        Person validPerson = new PersonBuilder().build();
 
-        CommandResult commandResult = new AddCommand(validPerson).execute(modelStub);
+        CommandResult commandResult = new AddCommand(person).execute(modelStub);
 
-        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validPerson)),
-                commandResult.getFeedbackToUser());
-        assertEquals(List.of(validPerson), modelStub.personsAdded);
+        List<String> expectedLines = new ArrayList<>();
+        expectedLines.add(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(person)));
+        expectedLines.addAll(List.of(expectedWarnings));
+        assertEquals(String.join("\n", expectedLines), commandResult.getFeedbackToUser());
+        assertEquals(List.of(person), modelStub.personsAdded);
     }
 
     @Test
@@ -87,7 +109,8 @@ public class AddCommandTest {
         AddCommand addCommand = new AddCommand(validPerson);
         ModelStub modelStub = new ModelStubWithPerson(validPerson);
 
-        assertThrows(CommandException.class, AddCommand.MESSAGE_DUPLICATE_PERSON, () -> addCommand.execute(modelStub));
+        String expectedMessage = String.format(Messages.MESSAGE_DUPLICATE_EMAIL, validPerson.getName());
+        assertThrows(CommandException.class, expectedMessage, () -> addCommand.execute(modelStub));
     }
 
     @Test
@@ -126,6 +149,26 @@ public class AddCommandTest {
      */
     private class ModelStub implements Model {
         @Override
+        public void recordAddressBookState() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public boolean undoAddressBook() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public boolean redoAddressBook() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void discardAddressBookState() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
         public ReadOnlyUserPrefs getUserPrefs() {
             throw new AssertionError("This method should not be called.");
         }
@@ -157,6 +200,16 @@ public class AddCommandTest {
 
         @Override
         public boolean hasPerson(Person person) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public Optional<Person> findSamePerson(Person person) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public Optional<Person> findSamePersonExcluding(Person person, Person excludedPerson) {
             throw new AssertionError("This method should not be called.");
         }
 
@@ -228,9 +281,9 @@ public class AddCommandTest {
         }
 
         @Override
-        public boolean hasPerson(Person person) {
+        public Optional<Person> findSamePerson(Person person) {
             requireNonNull(person);
-            return this.person.isSamePerson(person);
+            return Optional.of(this.person).filter(person::isSamePerson);
         }
     }
 
@@ -254,9 +307,9 @@ public class AddCommandTest {
         }
 
         @Override
-        public boolean hasPerson(Person person) {
+        public Optional<Person> findSamePerson(Person person) {
             requireNonNull(person);
-            return personsAdded.stream().anyMatch(person::isSamePerson);
+            return personsAdded.stream().filter(person::isSamePerson).findFirst();
         }
 
         @Override
