@@ -27,6 +27,7 @@ public class ModelManager implements Model {
     private final UserPrefs userPrefs;
     private final FilteredList<Person> filteredPersons;
     private final FilteredList<Role> filteredRoles;
+    private Predicate<Person> personPredicate = PREDICATE_SHOW_ALL_PERSONS;
     private final Deque<AddressBook> undoStack = new ArrayDeque<>();
     private final Deque<AddressBook> redoStack = new ArrayDeque<>();
 
@@ -71,6 +72,7 @@ public class ModelManager implements Model {
     @Override
     public void setAddressBook(ReadOnlyAddressBook addressBook) {
         this.addressBook.resetData(addressBook);
+        refreshFilteredPersonList();
     }
 
     @Override
@@ -165,7 +167,14 @@ public class ModelManager implements Model {
     @Override
     public void updateFilteredPersonList(Predicate<Person> predicate) {
         requireNonNull(predicate);
+        personPredicate = predicate;
         filteredPersons.setPredicate(predicate);
+    }
+
+    /** Re-evaluates the retained candidate filter after address-book data changes. */
+    private void refreshFilteredPersonList() {
+        filteredPersons.setPredicate(null);
+        filteredPersons.setPredicate(personPredicate);
     }
 
     //=========== Filtered Role List Accessors ===============================================================
@@ -186,17 +195,20 @@ public class ModelManager implements Model {
     public void addRole(Role role) {
         addressBook.addRole(role);
         updateFilteredRoleList(PREDICATE_SHOW_ALL_ROLES);
+        refreshFilteredPersonList();
     }
 
     @Override
     public void setRole(Role target, Role editedRole) {
         requireAllNonNull(target, editedRole);
         addressBook.setRole(target, editedRole);
+        refreshFilteredPersonList();
     }
 
     @Override
     public void deleteRole(Role role) {
         addressBook.removeRole(role);
+        refreshFilteredPersonList();
     }
 
     @Override
