@@ -78,7 +78,7 @@ public class NameContainsKeywordsPredicate implements Predicate<Person> {
 
     private boolean roleMatches(Person person, Role role) {
         boolean titleMatches = roleKeywords.isEmpty() || roleKeywords.stream()
-                .allMatch(keyword -> StringUtil.containsWordIgnoreCase(role.getTitle().value, keyword));
+                .anyMatch(keyword -> StringUtil.containsWordIgnoreCase(role.getTitle().value, keyword));
         boolean statusMatches = roleStatuses.isEmpty() || roleStatuses.contains(role.getStatus());
         boolean assignedRoleMatches = person.getRole().isSameTitle(role.getTitle());
         return titleMatches && statusMatches && assignedRoleMatches;

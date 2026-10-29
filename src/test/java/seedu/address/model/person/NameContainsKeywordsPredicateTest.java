@@ -170,6 +170,15 @@ public class NameContainsKeywordsPredicateTest {
     }
 
     @Test
+    public void test_roleFilters_anyKeywordMatches() {
+        Role role = new RoleBuilder().withTitle("Software Engineer").withStatus(RoleStatus.OPEN).build();
+        Person person = new PersonBuilder().withRole("Software Engineer").build();
+
+        assertTrue(new NameContainsKeywordsPredicate(List.of(), List.of("Software", "Test"),
+                Set.of(), List.of(role)).test(person));
+    }
+
+    @Test
     public void test_roleFilters_usesAssignedRole() {
         Role openRole = new RoleBuilder().withTitle("Software Engineer").withStatus(RoleStatus.OPEN).build();
         Person person = new PersonBuilder().withName("Alice").withRole("Designer")
