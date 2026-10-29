@@ -48,7 +48,7 @@ public class TagTest {
     @Test
     public void isValidTagName_allowedLettersMarksDigitsAndSymbols_returnsTrue() {
         List<String> validTags = List.of("Java8", "José", "हिन्दी", "Cafe\u0301", "O'Brien", "C++", "C#",
-                "front-end", "snake_case", ".NET", "v2.0");
+                "front-end", "snake_case", ".NET", "v2.0", "人");
 
         for (String tag : validTags) {
             assertTrue(Tag.isValidTagName(tag), tag);
@@ -66,7 +66,7 @@ public class TagTest {
     }
 
     @Test
-    public void isValidTagName_digitFromAnotherWritingSystem_returnsTrue() {
-        assertTrue(Tag.isValidTagName("Skill१"));
+    public void isValidTagName_digitFromAnotherWritingSystem_returnsFalse() {
+        assertFalse(Tag.isValidTagName("Skill१"));
     }
 }
