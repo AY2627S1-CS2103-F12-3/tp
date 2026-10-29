@@ -76,8 +76,9 @@ public class NoteCommand extends Command {
         assert editedPerson.getNote().equals(note) : "Edited person should hold the new note";
 
         model.setPerson(personToEdit, editedPerson);
-        logger.info("Note of candidate at index " + index.getOneBased() + " ("
-                + editedPerson.getName() + ") " + (note.isEmpty() ? "cleared" : "updated"));
+        String noteChange = note.isEmpty() ? "cleared" : "updated";
+        logger.info(String.format("Note of candidate at index %d (%s) %s",
+                index.getOneBased(), editedPerson.getName(), noteChange));
         return new CommandResult(generateSuccessMessage(personToEdit.getNote(), editedPerson));
     }
 

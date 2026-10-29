@@ -87,6 +87,22 @@ public class Interview {
     }
 
     /**
+     * Returns a message describing why {@code test} is not a valid interview date and time,
+     * or an empty {@code Optional} if it is valid.
+     * A wrong format and an impossible date or time get different messages, so the user can tell what to fix.
+     */
+    public static Optional<String> findValidationError(String test) {
+        requireNonNull(test);
+        if (!isValidFormat(test)) {
+            return Optional.of(MESSAGE_INVALID_FORMAT);
+        }
+        if (!isValidDateTime(test)) {
+            return Optional.of(MESSAGE_INVALID_DATE_TIME);
+        }
+        return Optional.empty();
+    }
+
+    /**
      * Returns true if no interview is scheduled.
      */
     public boolean isEmpty() {

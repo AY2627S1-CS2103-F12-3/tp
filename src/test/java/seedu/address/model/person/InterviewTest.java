@@ -71,6 +71,26 @@ public class InterviewTest {
     }
 
     @Test
+    public void findValidationError() {
+        // null interview
+        assertThrows(NullPointerException.class, () -> Interview.findValidationError(null));
+
+        // wrong format -> format message
+        assertEquals(Optional.of(Interview.MESSAGE_INVALID_FORMAT), Interview.findValidationError(""));
+        assertEquals(Optional.of(Interview.MESSAGE_INVALID_FORMAT),
+                Interview.findValidationError("2026-10-20 9:00"));
+
+        // right format but impossible values -> date and time message
+        assertEquals(Optional.of(Interview.MESSAGE_INVALID_DATE_TIME),
+                Interview.findValidationError("2026-02-30 14:00"));
+        assertEquals(Optional.of(Interview.MESSAGE_INVALID_DATE_TIME),
+                Interview.findValidationError("2026-10-20 24:00"));
+
+        // valid interview -> no error
+        assertEquals(Optional.empty(), Interview.findValidationError("2026-10-20 14:00"));
+    }
+
+    @Test
     public void isEmpty() {
         assertTrue(Interview.NONE.isEmpty());
         assertFalse(new Interview("2026-10-20 14:00").isEmpty());

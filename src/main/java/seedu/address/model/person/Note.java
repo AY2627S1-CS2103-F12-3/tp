@@ -9,6 +9,9 @@ import static java.util.Objects.requireNonNull;
  */
 public class Note {
 
+    /** Represents a person with no note. */
+    public static final Note NONE = new Note("");
+
     public final String value;
 
     /**

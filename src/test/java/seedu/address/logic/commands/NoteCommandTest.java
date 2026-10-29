@@ -108,12 +108,12 @@ public class NoteCommandTest {
                 new NoteCommand(INDEX_FIRST_PERSON, new Note(VALID_NOTE_BOB)).execute(model);
         assertEquals("Replaced note of " + firstName + ".", replaceResult.getFeedbackToUser());
 
-        CommandResult clearResult = new NoteCommand(INDEX_FIRST_PERSON, new Note("")).execute(model);
+        CommandResult clearResult = new NoteCommand(INDEX_FIRST_PERSON, Note.NONE).execute(model);
         assertEquals("Cleared note of " + firstName + ". Use undo to revert.\nPrevious note: "
                 + VALID_NOTE_BOB,
                 clearResult.getFeedbackToUser());
 
-        CommandResult clearAgainResult = new NoteCommand(INDEX_FIRST_PERSON, new Note("")).execute(model);
+        CommandResult clearAgainResult = new NoteCommand(INDEX_FIRST_PERSON, Note.NONE).execute(model);
         assertEquals(firstName + " has no note to clear.", clearAgainResult.getFeedbackToUser());
     }
 

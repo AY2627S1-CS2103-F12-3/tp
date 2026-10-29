@@ -157,7 +157,7 @@ class JsonAdaptedPerson {
      * Notes are optional, so a missing note (e.g., in a file saved before notes existed) means no note.
      */
     private Note toModelNote() {
-        return (note == null) ? new Note("") : new Note(note);
+        return (note == null) ? Note.NONE : new Note(note);
     }
 
     private Set<Tag> toModelTags() throws IllegalValueException {
@@ -180,11 +180,9 @@ class JsonAdaptedPerson {
         if (interview == null || interview.isEmpty()) {
             return Interview.NONE;
         }
-        if (!Interview.isValidFormat(interview)) {
-            throw new IllegalValueException(Interview.MESSAGE_INVALID_FORMAT);
-        }
-        if (!Interview.isValidDateTime(interview)) {
-            throw new IllegalValueException(Interview.MESSAGE_INVALID_DATE_TIME);
+        Optional<String> interviewError = Interview.findValidationError(interview);
+        if (interviewError.isPresent()) {
+            throw new IllegalValueException(interviewError.get());
         }
         return new Interview(interview);
     }

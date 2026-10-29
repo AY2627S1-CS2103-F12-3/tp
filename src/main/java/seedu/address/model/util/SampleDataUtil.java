@@ -49,17 +49,17 @@ public class SampleDataUtil {
                         + "and can start in December after serving one month of notice."),
                 Interview.NONE, Person.DEFAULT_STATUS, getTagSet("colleagues", "friends")),
             new Person(new Name("Charlotte Oliveiro"), new Phone("93210283"), new Email("charlotte@example.com"),
-                new Address("Blk 11 Ang Mo Kio Street 74, #11-04"), DATA_ANALYST, new Note(""),
+                new Address("Blk 11 Ang Mo Kio Street 74, #11-04"), DATA_ANALYST, Note.NONE,
                 new Interview("2026-10-23 10:00"), Person.DEFAULT_STATUS, getTagSet("neighbours")),
             new Person(new Name("David Li"), new Phone("91031282"), new Email("lidavid@example.com"),
-                new Address("Blk 436 Serangoon Gardens Street 26, #16-43"), DATA_ANALYST, new Note(""),
+                new Address("Blk 436 Serangoon Gardens Street 26, #16-43"), DATA_ANALYST, Note.NONE,
                 Interview.NONE, Person.DEFAULT_STATUS, getTagSet("family")),
             new Person(new Name("Irfan Ibrahim"), new Phone("92492021"), new Email("irfan@example.com"),
                 new Address("Blk 47 Tampines Street 20, #17-35"), PRODUCT_MANAGER,
                 new Note("Expects a salary of about 5k per month"),
                 new Interview("2026-10-12 16:30"), Person.DEFAULT_STATUS, getTagSet("classmates")),
             new Person(new Name("Roy Balakrishnan"), new Phone("92624417"), new Email("royb@example.com"),
-                new Address("Blk 45 Aljunied Street 85, #11-31"), PRODUCT_MANAGER, new Note(""),
+                new Address("Blk 45 Aljunied Street 85, #11-31"), PRODUCT_MANAGER, Note.NONE,
                 Interview.NONE, Person.DEFAULT_STATUS, getTagSet("colleagues"))
         };
     }

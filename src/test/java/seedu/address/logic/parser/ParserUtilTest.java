@@ -180,7 +180,7 @@ public class ParserUtilTest {
 
     @Test
     public void parseNote_whitespaceOnly_returnsEmptyNote() {
-        assertEquals(new Note(""), ParserUtil.parseNote(WHITESPACE));
+        assertEquals(Note.NONE, ParserUtil.parseNote(WHITESPACE));
     }
 
     @Test

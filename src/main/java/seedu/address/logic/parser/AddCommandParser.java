@@ -50,10 +50,10 @@ public class AddCommandParser implements Parser<AddCommand> {
         Email email = ParserUtil.parseEmail(argMultimap.getValue(PREFIX_EMAIL).get());
         Address address = ParserUtil.parseAddress(argMultimap.getValue(PREFIX_ADDRESS).get());
         RoleTitle role = ParserUtil.parseRoleTitle(argMultimap.getValue(PREFIX_ROLE_TITLE).get());
-        Note note = new Note("");
         Set<Tag> tagList = ParserUtil.parseTags(argMultimap.getAllValues(PREFIX_TAG));
 
-        Person person = new Person(name, phone, email, address, role, note, Interview.NONE,
+        // A new candidate starts with no note and no interview; these are set by their own commands.
+        Person person = new Person(name, phone, email, address, role, Note.NONE, Interview.NONE,
                 Person.DEFAULT_STATUS, tagList);
 
         return new AddCommand(person);

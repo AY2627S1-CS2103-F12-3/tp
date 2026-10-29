@@ -144,11 +144,9 @@ public class ParserUtil {
     public static Interview parseInterview(String interview) throws ParseException {
         requireNonNull(interview);
         String trimmedInterview = interview.trim();
-        if (!Interview.isValidFormat(trimmedInterview)) {
-            throw new ParseException(Interview.MESSAGE_INVALID_FORMAT);
-        }
-        if (!Interview.isValidDateTime(trimmedInterview)) {
-            throw new ParseException(Interview.MESSAGE_INVALID_DATE_TIME);
+        Optional<String> validationError = Interview.findValidationError(trimmedInterview);
+        if (validationError.isPresent()) {
+            throw new ParseException(validationError.get());
         }
         return new Interview(trimmedInterview);
     }
