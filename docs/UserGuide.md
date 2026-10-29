@@ -93,6 +93,11 @@ Adds a candidate who is applying for a role.
 
 Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
 
+Address text may contain slash sequences such as `/p` and `/t`. They remain part of the
+address when attached to other text, for example `12/p/t Tower`. A command prefix is
+recognized only when it starts at a whitespace-delimited token, so a standalone `p/` or
+`t/` token inside an address starts the phone or tag field instead of remaining address text.
+
 * `NAME`:
   * Is 1 to 100 characters long.
   * Starts with a letter, which can be from any language, such as `José` or `山田太郎`.
