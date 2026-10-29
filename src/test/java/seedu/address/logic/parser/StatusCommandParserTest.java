@@ -28,6 +28,12 @@ public class StatusCommandParserTest {
 
     private StatusCommandParser parser = new StatusCommandParser();
 
+    private static String expectedIndexReason(String index) {
+        return index.equals("2147483648")
+                ? String.format(ParserUtil.MESSAGE_INDEX_TOO_LARGE, index)
+                : ParserUtil.MESSAGE_INVALID_INDEX;
+    }
+
     @Test
     public void parse_validArgs_returnsStatusCommand() {
         for (Status status : Status.values()) {
@@ -89,9 +95,9 @@ public class StatusCommandParserTest {
     public void parse_invalidIndex_failure() {
         for (String invalidIndex : new String[]{"a", "0", "-1", "1.5", "2147483648", "1,2"}) {
             assertParseFailureWithReason(parser, invalidIndex + " st/" + VALID_STATUS_1_STRING, MESSAGE_INVALID_FORMAT,
-                    ParserUtil.MESSAGE_INVALID_INDEX);
+                    expectedIndexReason(invalidIndex));
             assertParseFailureWithReason(parser, "1 " + invalidIndex + " 2 st/" + VALID_STATUS_1_STRING,
-                    MESSAGE_INVALID_FORMAT, ParserUtil.MESSAGE_INVALID_INDEX);
+                    MESSAGE_INVALID_FORMAT, expectedIndexReason(invalidIndex));
         }
         assertParseFailureWithReason(parser, "1 2 a st/" + VALID_STATUS_1_STRING, MESSAGE_INVALID_FORMAT,
                 ParserUtil.MESSAGE_INVALID_INDEX);

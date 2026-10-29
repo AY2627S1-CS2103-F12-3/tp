@@ -14,6 +14,12 @@ import seedu.address.logic.commands.CloseRoleCommand;
 public class CloseRoleCommandParserTest {
     private final CloseRoleCommandParser parser = new CloseRoleCommandParser();
 
+    private static String expectedIndexReason(String index) {
+        return index.equals("2147483648")
+                ? String.format(ParserUtil.MESSAGE_INDEX_TOO_LARGE, index)
+                : ParserUtil.MESSAGE_INVALID_INDEX;
+    }
+
     @Test
     public void parse_validIndex_success() {
         assertParseSuccess(parser, " 1 ", new CloseRoleCommand(Index.fromOneBased(1)));
@@ -24,7 +30,7 @@ public class CloseRoleCommandParserTest {
     public void parse_invalidIndex_failure() {
         for (String input : new String[]{"", " ", "0", "-1", "one", "1.5", "2147483648"}) {
             assertParseFailureWithReason(parser, input, MESSAGE_INVALID_ROLE_DISPLAYED_INDEX,
-                    ParserUtil.MESSAGE_INVALID_INDEX);
+                    expectedIndexReason(input));
         }
     }
 
