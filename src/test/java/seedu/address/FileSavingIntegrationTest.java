@@ -40,6 +40,30 @@ public class FileSavingIntegrationTest {
     }
 
     @Test
+    public void saveAndReload_classDirectory_usesWorkingDirectory() throws Exception {
+        assertDevelopmentSaveAndReload("working");
+    }
+
+    @Test
+    public void saveAndReload_classDirectoryWithSpecialWorkingPath_preservesLiteralPath() throws Exception {
+        assertDevelopmentSaveAndReload("working space # %g %u %%");
+    }
+
+    @Test
+    public void init_corruptDevelopmentData_recoversInWorkingDirectory() throws Exception {
+        Path classes = copyApplicationClasses();
+        Path workingDirectory = Files.createDirectory(testFolder.resolve("working"));
+        assertRecovery(developmentClassPath(classes), workingDirectory, workingDirectory, classes.getParent());
+    }
+
+    @Test
+    public void init_corruptJarData_recoversBesideJar() throws Exception {
+        Path jar = copyJar("application");
+        Path workingDirectory = Files.createDirectory(testFolder.resolve("working"));
+        assertRecovery(jar.toString(), workingDirectory, jar.getParent(), workingDirectory);
+    }
+
+    @Test
     public void init_logFileCannotBeOpened_continuesWithoutFileLogging() throws Exception {
         Path jar = copyJar("application");
         // A directory at the log filename forces an IOException even with elevated filesystem permissions.
@@ -85,6 +109,71 @@ public class FileSavingIntegrationTest {
     private Path copyJar(String directoryName) throws Exception {
         Path directory = Files.createDirectory(testFolder.resolve(directoryName));
         return Files.copy(Path.of(System.getProperty("test.appJar")), directory.resolve("addressbook.jar"));
+    }
+
+    private void assertDevelopmentSaveAndReload(String directoryName) throws Exception {
+        Path classes = copyApplicationClasses();
+        Path workingDirectory = Files.createDirectory(testFolder.resolve(directoryName));
+        Path decoyData = classes.getParent().resolve("data/addressbook.json");
+        Path decoyPrefs = classes.getParent().resolve("preferences.json");
+        Files.createDirectories(decoyData.getParent());
+        Files.writeString(decoyData, "{}");
+        Files.writeString(decoyPrefs, "{}");
+
+        runDriver(developmentClassPath(classes), workingDirectory, "write", workingDirectory);
+        assertTrue(Files.isRegularFile(workingDirectory.resolve("data/addressbook.json")));
+        assertTrue(Files.isRegularFile(workingDirectory.resolve("preferences.json")));
+        assertTrue(Files.readString(workingDirectory.resolve("addressbook.log.0"))
+                .contains("File-saving integration test marker"));
+        runDriver(developmentClassPath(classes), workingDirectory, "read", workingDirectory);
+
+        assertEquals("{}", Files.readString(decoyData));
+        assertEquals("{}", Files.readString(decoyPrefs));
+        assertFalse(Files.exists(classes.getParent().resolve("addressbook.log.0")));
+        assertFalse(Files.exists(classes.resolve("data")));
+        assertFalse(Files.exists(classes.resolve("preferences.json")));
+    }
+
+    private void assertRecovery(String appClassPath, Path workingDirectory, Path expectedDirectory,
+            Path decoyDirectory) throws Exception {
+        Path data = expectedDirectory.resolve("data/addressbook.json");
+        Files.createDirectories(data.getParent());
+        Files.writeString(data, "{broken recruitment data");
+        Path decoyData = decoyDirectory.resolve("data/addressbook.json");
+        Files.createDirectories(decoyData.getParent());
+        Files.writeString(decoyData, "{unrelated data");
+
+        runDriver(appClassPath, workingDirectory, "recover", expectedDirectory);
+        runDriver(appClassPath, workingDirectory, "recover", expectedDirectory);
+
+        assertEquals("{broken recruitment data", Files.readString(data.resolveSibling("addressbook.json.bak")));
+        assertEquals("{unrelated data", Files.readString(decoyData));
+        assertFalse(Files.exists(decoyData.resolveSibling("addressbook.json.bak")));
+        try (Stream<Path> files = Files.list(data.getParent())) {
+            assertEquals(1, files.filter(path -> path.getFileName().toString()
+                    .startsWith("addressbook.json.bak")).count(), "Restart must not create another backup");
+        }
+    }
+
+    private Path copyApplicationClasses() throws Exception {
+        Path source = Path.of(MainApp.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+        Path classes = Files.createDirectories(testFolder.resolve("development space # %g/classes"));
+        try (Stream<Path> paths = Files.walk(source)) {
+            for (Path path : paths.toList()) {
+                Path destination = classes.resolve(source.relativize(path));
+                if (Files.isDirectory(path)) {
+                    Files.createDirectories(destination);
+                } else {
+                    Files.copy(path, destination);
+                }
+            }
+        }
+        return classes;
+    }
+
+    private String developmentClassPath(Path classes) {
+        // Load production classes from a directory, with the JAR supplying third-party dependencies.
+        return classes + File.pathSeparator + Path.of(System.getProperty("test.appJar")).toAbsolutePath();
     }
 
     private String runDriver(String appClassPath, Path workingDirectory, String mode, Path expectedDirectory)
