@@ -482,6 +482,7 @@ Finds candidates whose names contain any of the given keywords.
 Format: `find [KEYWORD ...] [r/ ROLE ...] [st/ STATUS ...]`
 
 `r/` filters by role title and `st/` filters by role status (`OPEN` or `CLOSED`).
+With no filters, `find` shows all candidates, like `list`.
 For example, `find r/Software Engineer st/OPEN` shows candidates in open Software
 Engineer roles. The displayed feedback identifies the filter used.
 

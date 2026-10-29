@@ -75,9 +75,9 @@ public class NameContainsKeywordsPredicateTest {
 
     @Test
     public void test_nameDoesNotContainKeywords_returnsFalse() {
-        // Zero keywords
+        // An empty filter matches every person, as used by bare find.
         NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of());
-        assertFalse(predicate.test(new PersonBuilder().withName("Alice").build()));
+        assertTrue(predicate.test(new PersonBuilder().withName("Alice").build()));
 
         // Non-matching keyword
         predicate = new NameContainsKeywordsPredicate(List.of("Carol"));
@@ -88,6 +88,12 @@ public class NameContainsKeywordsPredicateTest {
                 List.of("12345678", "alice@email.com", "Main", "Street"));
         assertFalse(predicate.test(new PersonBuilder().withName("Alice").withPhone("12345678")
                 .withEmail("alice@email.com").withAddress("Main Street").build()));
+    }
+
+    @Test
+    public void test_noFilters_matchesAllPersons() {
+        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of());
+        assertTrue(predicate.test(new PersonBuilder().withName("Alice").build()));
     }
 
     @Test
