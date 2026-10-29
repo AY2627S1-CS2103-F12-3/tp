@@ -36,9 +36,9 @@ public class Messages {
     public static final String MESSAGE_DUPLICATE_PHONE =
             "This phone number is already used by the candidate %1$s.";
     public static final String MESSAGE_POSSIBLE_DUPLICATE_PHONE =
-            "Note: this phone number may belong to other candidate(s): %1$s";
+            "Warning: this phone number may belong to other candidate(s): %1$s";
     public static final String MESSAGE_UNUSUAL_PHONE =
-            "Note: this doesn't look like a Singapore number. If overseas, add its country code, e.g. +60.";
+            "Warning: this doesn't look like a Singapore number. If overseas, add its country code, e.g. +60.";
     public static final String MESSAGE_DUPLICATE_FIELDS =
                 "Multiple values specified for the following single-valued field(s): ";
     public static final String MESSAGE_UNCOMMON_EMAIL_SYMBOLS =

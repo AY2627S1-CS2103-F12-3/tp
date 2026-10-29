@@ -122,15 +122,15 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
   Spaces and hyphens are ignored and removed when the number is saved, so `+65 9123-4567` is shown as `+6591234567`.
 
   A number without a country code is treated as a Singapore number. If it does not look like one (8 digits
-  starting with 3, 6, 8 or 9), such as `12345678`, the candidate is still added, and the result includes a note
+  starting with 3, 6, 8 or 9), such as `12345678`, the candidate is still added, and the result includes a warning
   reminding you to include the country code for an overseas number, such as `+60 12-345 6789`.
 * `EMAIL`:
   * Looks like `name@example.com`.
   * Before the `@`, can contain letters, digits and dots, plus:
     * common symbols `_` `-` `+` `'`, such as in `o'brien@example.com`, which are accepted as usual.
-    * less common symbols `` ! # $ % & * / = ? ^ ` { | } ~ ``, such as in `john#doe@example.com`. These are also accepted, but RecruiterBuddy warns that the email may be a typo. If the symbol is intended, you can ignore the warning.
+    * less common symbols `` ! # $ % & * / = ? ^ ` { | } ~ ``, such as in `john#doe@example.com`. These are also accepted, but the result includes a warning that the email may be a typo. If the symbol is intended, you can ignore the warning.
   * A dot cannot come first, last, or twice in a row before the `@`.
-  * If the part after the `@` has no dot, such as in `john@gmailcom`, the email is also accepted with a warning that it may be a typo.
+  * If the part after the `@` has no dot, such as in `john@gmailcom`, the email is also accepted, with a warning that it may be a typo.
   * Emails with spaces inside them or with quotation marks, such as `"john doe"@example.com`, and emails with non-English letters, such as `josé@example.com`, are not supported.
   * If the email is not valid, the error message names the problem, such as `Email cannot contain “,” before the @.`
 * `ROLE` must be the title of an existing role that is `OPEN`. Use [`role add`](#adding-a-role-role-add) to create the role first.
@@ -140,7 +140,7 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
   * Phone numbers are compared as saved, so `9123 4567` and `91234567` are the same number and cannot both be used.
   * A number that only differs from another candidate's by a `+` or the Singapore country code `65`, such as
     `+65 9123 4567`, `6591234567` and `91234567`, is still accepted, since it may be a different number.
-    The result includes a note naming every candidate whose number may be the same, so you can check.
+    The result includes a warning naming every candidate whose number may be the same, so you can check.
   * Overseas numbers written with and without their country code, such as `+60 12-345 6789` and
     `012-345 6789`, are not recognised as possibly the same number.
 * Candidates may share a name, as long as their emails and phone numbers are different.
@@ -445,7 +445,7 @@ Format: `interview INDEX [d/YYYY-MM-DD HH:MM]`
 * The interview is shown on the candidate's card. The candidate's note and other details are not changed, and the displayed list stays as it is, so a filtered list remains filtered.
 * If the index is missing, is not a positive whole number, is past the end of the displayed list, or is followed by extra text before `d/`, the error message says which of these happened, so you can tell what to correct.
 * An interview that might be a mistake is still saved, but the result message adds a line about it, in this order:
-  * The interview is today or later, but the candidate's status is already `HIRED`, `REJECTED` or `WITHDRAWN`, for example `Note: candidate is Rejected.` If they are back in the process, update their status with [`status`](#updating-a-candidate-s-status-status).
+  * The interview is today or later, but the candidate's status is already `HIRED`, `REJECTED` or `WITHDRAWN`, for example `Warning: candidate is Rejected.` If they are back in the process, update their status with [`status`](#updating-a-candidate-s-status-status).
   * The date is before today, which may mean the date was mistyped. Historical interviews are still saved.
   * The date is more than a year from today, which may mean the year was mistyped. Today's date is taken from your computer.
   * Other candidates have an interview at the same date and time. The line `Also at this time:` names up to two of them, including candidates hidden by the current filter. Longer names are shortened, and any remaining candidates are shown as a count, for example `(+3 others)`.
@@ -579,7 +579,7 @@ When editing candidates, roles and their associations:
   the same constraints as `role add`; role status must be exactly `OPEN` or `CLOSED` in uppercase.
 * Do not repeat role titles, even with different capitalisation or experience levels.
 * No two candidates may share an email (ignoring case) or a phone number, following the same rules as in
-  [`add`](#adding-a-candidate-add). Numbers that `add` accepts with a note, such as `+6591234567` and
+  [`add`](#adding-a-candidate-add). Numbers that `add` accepts with a warning, such as `+6591234567` and
   `91234567`, load normally.
 * Each candidate's `role` field must name an existing role, ignoring case. It may name a closed role,
   because closing preserves candidates. On loading, the role's stored capitalisation is used for

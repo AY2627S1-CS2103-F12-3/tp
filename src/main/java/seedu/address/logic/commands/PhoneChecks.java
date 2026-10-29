@@ -14,7 +14,7 @@ import seedu.address.model.person.Person;
 
 /**
  * Finds phone number problems that are worth a warning but should not block a candidate change.
- * Exact duplicates are rejected elsewhere; these checks only add notes to a successful command's message.
+ * Exact duplicates are rejected elsewhere; these checks only add warnings to a successful command's message.
  */
 final class PhoneChecks {
 
@@ -24,7 +24,7 @@ final class PhoneChecks {
     }
 
     /**
-     * Returns {@code message} followed by a note for each phone number problem of {@code candidate},
+     * Returns {@code message} followed by a warning for each phone number problem of {@code candidate},
      * one per line, or {@code message} unchanged if there is none.
      * Call this after {@code candidate} is stored in {@code model}, so that an edited candidate is not compared
      * with their own previous number. The stored candidate itself is never reported, since only numbers that are

@@ -12,7 +12,7 @@ import seedu.address.model.person.Email;
 
 /**
  * Finds email problems that are worth a warning but should not block a candidate change.
- * Invalid emails are rejected elsewhere; these checks only add notes to a successful command's message.
+ * Invalid emails are rejected elsewhere; these checks only add warnings to a successful command's message.
  */
 final class EmailChecks {
 
@@ -22,7 +22,7 @@ final class EmailChecks {
     }
 
     /**
-     * Returns {@code message} followed by a note for each likely typo in {@code email}, one per line,
+     * Returns {@code message} followed by a warning for each likely typo in {@code email}, one per line,
      * or {@code message} unchanged if there is none.
      * The likely typos are symbols that email providers do not issue, and a domain without a dot.
      * Both are valid, so the email is still saved.
