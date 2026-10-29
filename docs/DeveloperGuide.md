@@ -148,8 +148,9 @@ A candidate (`Person`) is immutable and always has exactly one of each field exc
   are not compared, as different candidates can share a name.
 * The candidate's role is a `RoleTitle`, the same class that names a `Role`.
 * An empty `Note` means the candidate has no note.
-* `Interview.NONE` means the candidate has no interview. It is shared by every such candidate, so the
-  association to `Interview` is not a composition. See [Candidate interviews](#candidate-interviews).
+* `Interview.NONE` means the candidate has no interview, and is the only `Interview` without a date
+  and time. It is shared by every such candidate, so the association to `Interview` is not a
+  composition. See [Candidate interviews](#candidate-interviews).
 * A new candidate's `Status` is `RESUME`.
 
 The `Model` component,
