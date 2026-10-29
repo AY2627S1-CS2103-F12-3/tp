@@ -5,9 +5,7 @@ skinparam arrowColor MODEL_COLOR
 skinparam classBackgroundColor MODEL_COLOR
 skinparam classAttributeIconSize 0
 
-Class Person {
-    +withInterview(i: Interview): Person
-}
+Class Person
 Class Name
 Class Phone
 Class Email
@@ -29,7 +27,6 @@ Enum Status <<enumeration>> {
     WITHDRAWN
 }
 
-show Person methods
 show Interview fields
 show Status fields
 
@@ -49,22 +46,9 @@ Email -[hidden]right-> Address
 Address -[hidden]right-> Note
 Note -[hidden]right-> Tag
 
-note right of RoleTitle
-Same class as a Role's title,
-matched without case sensitivity.
-end note
-
-note top of Person
-Two candidates are the same person
-if they share an email (ignoring case)
-or a phone number.
-end note
-
 note bottom of Interview
-NONE (no interview) is shared
-by every candidate without one,
-and is the only Interview whose
-dateTime is null.
+Only Interview.NONE
+has no dateTime.
 end note
 
 @enduml
