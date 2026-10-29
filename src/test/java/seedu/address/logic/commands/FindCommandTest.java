@@ -94,7 +94,7 @@ public class FindCommandTest {
                 List.of("Alice"), List.of("Software"), java.util.Set.of(RoleStatus.OPEN), List.of());
         CommandResult result = new FindCommand(predicate).execute(roleModel);
         assertEquals(1, roleModel.getFilteredPersonList().size());
-        assertTrue(result.getFeedbackToUser().contains("List filter:"));
+        assertTrue(result.getFeedbackToUser().contains("List filter: Name: Alice; Role: Software; Role status: OPEN"));
     }
 
     /**

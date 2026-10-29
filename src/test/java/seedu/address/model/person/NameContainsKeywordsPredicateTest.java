@@ -106,6 +106,19 @@ public class NameContainsKeywordsPredicateTest {
     }
 
     @Test
+    public void getFilterDescription_listsEachFilterCombination() {
+        assertEquals("Name: Alice, Bob",
+                new NameContainsKeywordsPredicate(List.of("Alice", "Bob"))
+                        .getFilterDescription());
+        assertEquals("Role: Software Engineer",
+                new NameContainsKeywordsPredicate(List.of(), List.of("Software", "Engineer"), Set.of(), List.of())
+                        .getFilterDescription());
+        assertEquals("Role status: CLOSED, OPEN",
+                new NameContainsKeywordsPredicate(List.of(), List.of(), Set.of(RoleStatus.OPEN, RoleStatus.CLOSED),
+                        List.of()).getFilterDescription());
+    }
+
+    @Test
     public void test_roleFilters_matchRoleAndStatusAndTag() {
         Role openRole = new RoleBuilder().withTitle("Software Engineer").withStatus(RoleStatus.OPEN).build();
         Person person = new PersonBuilder().withName("Alice").withTags("SoftwareEngineer").build();

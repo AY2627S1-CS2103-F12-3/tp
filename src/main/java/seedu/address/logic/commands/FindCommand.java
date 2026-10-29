@@ -45,7 +45,8 @@ public class FindCommand extends Command {
         model.updateFilteredPersonList(predicate.withRoles(model.getAddressBook().getRoleList()));
         String message = String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW,
                 model.getFilteredPersonList().size());
-        return new CommandResult(message + (predicate.hasRoleFilters() ? " List filter: " + predicate : ""));
+        return new CommandResult(message + (predicate.hasRoleFilters()
+                ? " List filter: " + predicate.getFilterDescription() : ""));
     }
 
     @Override
