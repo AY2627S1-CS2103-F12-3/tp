@@ -5,10 +5,22 @@ skinparam arrowColor MODEL_COLOR
 skinparam classBackgroundColor MODEL_COLOR
 skinparam classAttributeIconSize 0
 skinparam classAttributeFontColor #FFFFFF
-skinparam nodesep 45
+skinparam nodesep 60
 skinparam ranksep 70
 
-Class Person
+'A wide Person box spreads out the arrows that leave it.
+<style>
+classDiagram {
+    class {
+        .wide {
+            MinimumWidth 300
+        }
+    }
+}
+</style>
+
+Class Person <<wide>>
+hide <<wide>> stereotype
 Class Name
 Class Phone
 Class Email
