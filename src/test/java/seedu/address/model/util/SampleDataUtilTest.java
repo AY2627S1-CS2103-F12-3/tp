@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.person.Person;
+import seedu.address.model.role.Role;
 
 public class SampleDataUtilTest {
 
@@ -20,6 +21,20 @@ public class SampleDataUtilTest {
         AddressBook sampleAddressBook = new AddressBook(SampleDataUtil.getSampleAddressBook());
         for (Person samplePerson : SampleDataUtil.getSamplePersons()) {
             assertTrue(sampleAddressBook.findRole(samplePerson.getRole()).isPresent());
+        }
+    }
+
+    @Test
+    public void getSamplePersons_closedRoleCandidates_haveFinalStatus() {
+        // The status command rejects a pending status for a candidate of a closed role.
+        AddressBook sampleAddressBook = new AddressBook(SampleDataUtil.getSampleAddressBook());
+        for (Person samplePerson : SampleDataUtil.getSamplePersons()) {
+            boolean isRoleClosed = sampleAddressBook.findRole(samplePerson.getRole())
+                    .filter(Role::isClosed)
+                    .isPresent();
+            if (isRoleClosed) {
+                assertFalse(samplePerson.getStatus().isPending());
+            }
         }
     }
 
