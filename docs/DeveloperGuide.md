@@ -522,9 +522,45 @@ Assertions check programmer assumptions rather than user input. `CandidateRoleCh
 
 `RoleWorkflowDiagnosticsTest` checks operation logs and their levels, guards against logging candidate details, and verifies unchanged state after refusal. Focused contract tests inject programmer errors before mutation, while the existing role, transfer, integration and persistence tests exercise valid paths. See the [testing guide](Testing.md#assertions-and-role-workflow-diagnostics) for assertion-enabled and assertion-disabled checks. Command formats, success/error messages, UI behavior and the storage schema are unchanged.
 
-### \[Proposed\] Undo/redo feature
+### Undo/redo feature
 
-#### Proposed Implementation
+Undo and redo are implemented in `ModelManager` using two in-memory stacks of complete
+`AddressBook` snapshots: `undoStack` and `redoStack`. The history is session-scoped and
+is not persisted in `addressbook.json`; restarting the application clears both stacks.
+
+#### Implementation
+
+`Command#isUndoable()` identifies commands that can change address-book data. In
+`LogicManager#execute(String)`, an undoable command first calls
+`Model#recordAddressBookState()`, which pushes a defensive copy onto the undo stack.
+After successful execution, `Model#commitAddressBookState()` clears the redo stack. If
+execution fails with a `CommandException` or runtime exception,
+`Model#discardAddressBookState()` removes the snapshot so the failed command does not
+consume undo history.
+
+`UndoCommand` calls `Model#undoAddressBook()`. If a snapshot exists, the current state is
+copied to the redo stack and the latest undo snapshot is restored. If none exists, the
+address book is unchanged and the user sees `There is no change to undo.`
+
+`RedoCommand` performs the inverse operation through `Model#redoAddressBook()`. If no
+redo snapshot exists, the address book is unchanged and the user sees
+`There is no change to redo.` A new successful undoable command after an undo clears redo
+history. Successful undo and redo operations are saved through the normal storage step,
+but the history itself remains in memory only. Read-only commands such as `list`, `find`
+and `help` do not affect either stack.
+
+The implementation stores complete address-book snapshots rather than requiring each
+mutating command to implement its own inverse operation. This centralises the feature and
+makes new mutating commands undoable through the `Command#isUndoable()` contract, at the
+cost of higher memory usage for large address books.
+
+#### Historical AB3 placeholder (obsolete)
+
+The material below is retained only as historical reference and does not describe the
+current implementation. Do not use its `VersionedAddressBook`, state-pointer, method,
+message, example, or diagram descriptions when maintaining the feature.
+
+#### Proposed Implementation (obsolete)
 
 The proposed undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as an `addressBookStateList` and `currentStatePointer`. Additionally, it implements the following operations:
 
