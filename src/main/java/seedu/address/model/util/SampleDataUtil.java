@@ -52,7 +52,7 @@ public class SampleDataUtil {
                 new Address("Blk 30 Geylang Street 29, #06-40"), SOFTWARE_ENGINEER,
                 new Note("Strong in Spring Boot and REST APIs, available to start immediately"),
                 new Interview("2026-10-20 14:00"), Status.INTERVIEW, getTagSet("referral")),
-                new Person(new Name("Bernice Yu"), new Phone("99272758"), new Email("berniceyu@example.com"),
+            new Person(new Name("Bernice Yu"), new Phone("99272758"), new Email("berniceyu@example.com"),
                 new Address("Blk 30 Lorong 3 Serangoon Gardens, #07-18"), SOFTWARE_ENGINEER,
                 new Note("Referred by Alex Yeoh. Strong Java and SQL skills, prefers hybrid work "
                         + "and can start in December after serving one month of notice."),
