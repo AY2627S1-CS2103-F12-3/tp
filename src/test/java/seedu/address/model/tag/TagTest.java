@@ -1,5 +1,7 @@
 package seedu.address.model.tag;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import org.junit.jupiter.api.Test;
@@ -21,6 +23,22 @@ public class TagTest {
     public void isValidTagName() {
         // null tag name
         assertThrows(NullPointerException.class, () -> Tag.isValidTagName(null));
+    }
+
+    @Test
+    public void equals_namesDifferOnlyInCase_returnsTrue() {
+        assertEquals(new Tag("Referral"), new Tag("referral"));
+        assertEquals(new Tag("mini"), new Tag("MINI"));
+    }
+
+    @Test
+    public void equals_differentNames_returnsFalse() {
+        assertNotEquals(new Tag("Referral"), new Tag("Referral2"));
+    }
+
+    @Test
+    public void hashCode_namesDifferOnlyInCase_returnsSameHashCode() {
+        assertEquals(new Tag("Referral").hashCode(), new Tag("referral").hashCode());
     }
 
 }

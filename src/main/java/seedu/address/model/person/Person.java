@@ -143,6 +143,15 @@ public class Person {
     }
 
     /**
+     * Returns true if both persons' phone numbers may be the same number written in different ways,
+     * such as {@code +6591234567} and {@code 91234567}, without being exactly the same.
+     */
+    public boolean hasPossiblySamePhone(Person otherPerson) {
+        requireNonNull(otherPerson);
+        return phone.isPossiblySameNumber(otherPerson.phone);
+    }
+
+    /**
      * Returns true if both persons have the same identity and data fields.
      * This defines a stronger notion of equality between two persons.
      */
