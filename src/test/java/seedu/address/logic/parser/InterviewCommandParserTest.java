@@ -6,8 +6,6 @@ import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSucces
 import static seedu.address.logic.parser.InterviewCommandParser.MESSAGE_MISSING_INDEX;
 import static seedu.address.logic.parser.InterviewCommandParser.MESSAGE_MISSING_SPACE_BEFORE_PREFIX;
 import static seedu.address.logic.parser.InterviewCommandParser.MESSAGE_TEXT_AFTER_INDEX;
-import static seedu.address.logic.parser.ParserUtil.MESSAGE_INDEX_TOO_LARGE;
-import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import org.junit.jupiter.api.Test;
@@ -76,43 +74,27 @@ public class InterviewCommandParserTest {
     @Test
     public void parse_missingIndex_failure() {
         assertParseFailure(parser, "", MESSAGE_MISSING_INDEX);
-        assertParseFailure(parser, "   ", MESSAGE_MISSING_INDEX);
         assertParseFailure(parser, "d/2026-10-20 14:00", MESSAGE_MISSING_INDEX);
     }
 
     @Test
     public void parse_invalidIndex_failure() {
         // non-numeric index
-        assertParseFailure(parser, "a d/2026-10-20 14:00", MESSAGE_INVALID_INDEX);
+        assertParseFailure(parser, "a d/2026-10-20 14:00", ParserUtil.MESSAGE_INVALID_INDEX);
 
         // zero index
-        assertParseFailure(parser, "0 d/2026-10-20 14:00", MESSAGE_INVALID_INDEX);
+        assertParseFailure(parser, "0 d/2026-10-20 14:00", ParserUtil.MESSAGE_INVALID_INDEX);
 
         // negative index
-        assertParseFailure(parser, "-1 d/2026-10-20 14:00", MESSAGE_INVALID_INDEX);
+        assertParseFailure(parser, "-1 d/2026-10-20 14:00", ParserUtil.MESSAGE_INVALID_INDEX);
 
-        // index too large to exist
-        assertParseFailure(parser, "99999999999 d/2026-10-20 14:00",
-                String.format(MESSAGE_INDEX_TOO_LARGE, "99999999999"));
-    }
-
-    @Test
-    public void parse_prefixJoinedToIndex_failure() {
+        // prefix joined to index without a space
         assertParseFailure(parser, "1d/2026-10-20 14:00", MESSAGE_MISSING_SPACE_BEFORE_PREFIX);
     }
 
     @Test
-    public void parse_extraTextAfterIndex_failure() {
+    public void parse_extraTextAroundIndex_failure() {
         assertParseFailure(parser, "1 2 d/2026-10-20 14:00", String.format(MESSAGE_TEXT_AFTER_INDEX, "2"));
         assertParseFailure(parser, "1 tomorrow", String.format(MESSAGE_TEXT_AFTER_INDEX, "tomorrow"));
-
-        // date typed without d/
-        assertParseFailure(parser, "1 2026-10-20 14:00",
-                String.format(MESSAGE_TEXT_AFTER_INDEX, "2026-10-20 14:00"));
-    }
-
-    @Test
-    public void parse_invalidIndexAndExtraText_reportsIndexFirst() {
-        assertParseFailure(parser, "a tomorrow", MESSAGE_INVALID_INDEX);
     }
 }

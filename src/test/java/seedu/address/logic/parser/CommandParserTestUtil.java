@@ -36,4 +36,17 @@ public class CommandParserTestUtil {
             assertEquals(expectedMessage, pe.getMessage());
         }
     }
+
+    /**
+     * Asserts that a parser rejects the input with an invalid-format message and an explicit reason.
+     */
+    public static void assertParseFailureWithReason(Parser<? extends Command> parser, String userInput,
+            String expectedMessage, String expectedReason) {
+        try {
+            parser.parse(userInput);
+            throw new AssertionError("The expected ParseException was not thrown.");
+        } catch (ParseException pe) {
+            assertEquals(expectedMessage + "\nReason: " + expectedReason, pe.getMessage());
+        }
+    }
 }

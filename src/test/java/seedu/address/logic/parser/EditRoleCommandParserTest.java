@@ -3,6 +3,7 @@ package seedu.address.logic.parser;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_ROLE_DISPLAYED_INDEX;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
+import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailureWithReason;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.address.testutil.Assert.assertThrows;
 
@@ -21,6 +22,12 @@ public class EditRoleCommandParserTest {
             String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditRoleCommand.MESSAGE_USAGE);
 
     private final EditRoleCommandParser parser = new EditRoleCommandParser();
+
+    private static String expectedIndexReason(String index) {
+        return index.equals("2147483648")
+                ? String.format(ParserUtil.MESSAGE_INDEX_TOO_LARGE, index)
+                : ParserUtil.MESSAGE_INVALID_INDEX;
+    }
 
     @Test
     public void parse_nullArgument_throwsNullPointerException() {
@@ -60,7 +67,8 @@ public class EditRoleCommandParserTest {
     @Test
     public void parse_invalidIndex_failure() {
         for (String index : new String[] {"", "0", "-1", "abc", "1.5", "2147483648"}) {
-            assertParseFailure(parser, " " + index + " x/Senior", MESSAGE_INVALID_ROLE_DISPLAYED_INDEX);
+            assertParseFailureWithReason(parser, " " + index + " x/Senior", MESSAGE_INVALID_ROLE_DISPLAYED_INDEX,
+                    expectedIndexReason(index));
         }
     }
 
