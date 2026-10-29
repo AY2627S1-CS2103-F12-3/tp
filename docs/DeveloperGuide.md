@@ -1767,7 +1767,7 @@ Candidates list shows Alice at index 1 and Ben at index 2, both `Resume`.
 
 1. Rejecting incorrect indices
 
-   1. Prerequisites: Start with the sample data and run `list`, so 6 candidates are shown.
+   1. Prerequisites: Start with the sample data and run `list`, so 8 candidates are shown.
 
    1. Test case: `interview`<br>
       Expected: The error message says the candidate index is missing and shows the command format.
@@ -1775,8 +1775,8 @@ Candidates list shows Alice at index 1 and Ben at index 2, both `Resume`.
    1. Test case: `interview 0 d/2026-10-20 14:00`<br>
       Expected: The error message says the index must be a positive whole number. Try `-1` and `a` too.
 
-   1. Test case: `interview 7 d/2026-10-20 14:00`<br>
-      Expected: The error message says there is no candidate 7 and to use an index from 1 to 6.
+   1. Test case: `interview 9 d/2026-10-20 14:00`<br>
+      Expected: The error message says there is no candidate 9 and to use an index from 1 to 8.
 
    1. Test case: `interview 99999999999 d/2026-10-20 14:00`<br>
       Expected: The error message says the index is larger than any list.
