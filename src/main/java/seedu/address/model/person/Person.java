@@ -86,6 +86,13 @@ public class Person {
     }
 
     /**
+     * Returns a copy of this candidate with {@code newNote} as its note.
+     */
+    public Person withNote(Note newNote) {
+        return new Person(name, phone, email, address, role, newNote, interview, status, tags);
+    }
+
+    /**
      * Returns this candidate's interview, which is {@link Interview#NONE} if no interview is scheduled.
      */
     public Interview getInterview() {
@@ -140,6 +147,15 @@ public class Person {
     public boolean hasSamePhone(Person otherPerson) {
         requireNonNull(otherPerson);
         return phone.equals(otherPerson.phone);
+    }
+
+    /**
+     * Returns true if both persons' phone numbers may be the same number written in different ways,
+     * such as {@code +6591234567} and {@code 91234567}, without being exactly the same.
+     */
+    public boolean hasPossiblySamePhone(Person otherPerson) {
+        requireNonNull(otherPerson);
+        return phone.isPossiblySameNumber(otherPerson.phone);
     }
 
     /**

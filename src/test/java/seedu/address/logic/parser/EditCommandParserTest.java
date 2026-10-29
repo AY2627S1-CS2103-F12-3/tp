@@ -30,6 +30,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ROLE_TITLE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
+import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailureWithReason;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
@@ -62,35 +63,41 @@ public class EditCommandParserTest {
     @Test
     public void parse_missingParts_failure() {
         // no index specified
-        assertParseFailure(parser, VALID_NAME_AMY, MESSAGE_INVALID_FORMAT);
+        assertParseFailureWithReason(parser, VALID_NAME_AMY, MESSAGE_INVALID_FORMAT,
+                ParserUtil.MESSAGE_INVALID_INDEX);
 
         // no field specified
         assertParseFailure(parser, "1", EditCommand.MESSAGE_NOT_EDITED);
 
         // no index and no field specified
-        assertParseFailure(parser, "", MESSAGE_INVALID_FORMAT);
+        assertParseFailureWithReason(parser, "", MESSAGE_INVALID_FORMAT, ParserUtil.MESSAGE_INVALID_INDEX);
     }
 
     @Test
     public void parse_invalidPreamble_failure() {
         // negative index
-        assertParseFailure(parser, "-5" + NAME_DESC_AMY, MESSAGE_INVALID_FORMAT);
+        assertParseFailureWithReason(parser, "-5" + NAME_DESC_AMY, MESSAGE_INVALID_FORMAT,
+                ParserUtil.MESSAGE_INVALID_INDEX);
 
         // zero index
-        assertParseFailure(parser, "0" + NAME_DESC_AMY, MESSAGE_INVALID_FORMAT);
+        assertParseFailureWithReason(parser, "0" + NAME_DESC_AMY, MESSAGE_INVALID_FORMAT,
+                ParserUtil.MESSAGE_INVALID_INDEX);
 
         // invalid arguments being parsed as preamble
-        assertParseFailure(parser, "1 some random string", MESSAGE_INVALID_FORMAT);
+        assertParseFailureWithReason(parser, "1 some random string", MESSAGE_INVALID_FORMAT,
+                ParserUtil.MESSAGE_INVALID_INDEX);
 
         // invalid prefix being parsed as preamble
-        assertParseFailure(parser, "1 i/ string", MESSAGE_INVALID_FORMAT);
+        assertParseFailureWithReason(parser, "1 i/ string", MESSAGE_INVALID_FORMAT,
+                ParserUtil.MESSAGE_INVALID_INDEX);
     }
 
     @Test
     public void parse_invalidValue_failure() {
         assertParseFailure(parser, "1" + INVALID_NAME_DESC, Name.MESSAGE_CONSTRAINTS); // invalid name
         assertParseFailure(parser, "1" + INVALID_PHONE_DESC, Phone.MESSAGE_CONSTRAINTS); // invalid phone
-        assertParseFailure(parser, "1" + INVALID_EMAIL_DESC, Email.MESSAGE_CONSTRAINTS); // invalid email
+        assertParseFailure(parser, "1" + INVALID_EMAIL_DESC, Email.MESSAGE_MISSING_AT); // invalid email
+        assertParseFailure(parser, "1 e/bob..choo@example.com", Email.MESSAGE_LOCAL_PART_DOTS); // doubled dot
         assertParseFailure(parser, "1" + INVALID_ADDRESS_DESC, Address.MESSAGE_CONSTRAINTS); // invalid address
         assertParseFailure(parser, "1" + INVALID_TAG_DESC, Tag.MESSAGE_CONSTRAINTS); // invalid tag
 
@@ -234,6 +241,15 @@ public class EditCommandParserTest {
 
         assertParseFailure(parser, userInput,
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS));
+    }
+
+    @Test
+    public void parse_tagWithNewlyAllowedSymbols_success() {
+        Index targetIndex = INDEX_FIRST_PERSON;
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withTags(".NET").build();
+
+        assertParseSuccess(parser, targetIndex.getOneBased() + " " + PREFIX_TAG + ".NET",
+                new EditCommand(targetIndex, descriptor));
     }
 
     @Test

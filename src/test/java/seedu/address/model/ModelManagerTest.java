@@ -121,6 +121,7 @@ public class ModelManagerTest {
                 .withRole(SOFTWARE_ENGINEER)
                 .withPerson(candidate)
                 .build(), new UserPrefs());
+
         Predicate<Person> softwareEngineerFilter = person -> modelManager.findRole(person.getRole())
                 .map(role -> !role.isClosed())
                 .orElse(false);
@@ -138,13 +139,18 @@ public class ModelManagerTest {
     public void undoAndRedo_refreshRetainedPersonFilter() {
         Person candidate = ALICE.withRole(SOFTWARE_ENGINEER.getTitle());
         modelManager = new ModelManager(new AddressBookBuilder()
-                .withRole(SOFTWARE_ENGINEER).withPerson(candidate).build(), new UserPrefs());
+                .withRole(SOFTWARE_ENGINEER)
+                .withPerson(candidate)
+                .build(), new UserPrefs());
+
         Predicate<Person> openRoleFilter = person -> modelManager.findRole(person.getRole())
-                .map(role -> !role.isClosed()).orElse(false);
+                .map(role -> !role.isClosed())
+                .orElse(false);
         modelManager.updateFilteredPersonList(openRoleFilter);
         assertEquals(List.of(candidate), modelManager.getFilteredPersonList());
 
         modelManager.recordAddressBookState();
+
         Role closedRole = new Role(SOFTWARE_ENGINEER.getTitle(),
                 SOFTWARE_ENGINEER.getExperienceLevel(), RoleStatus.CLOSED);
         modelManager.setRole(SOFTWARE_ENGINEER, closedRole);
@@ -153,10 +159,11 @@ public class ModelManagerTest {
 
         assertTrue(modelManager.undoAddressBook());
         assertEquals(List.of(candidate), modelManager.getFilteredPersonList());
+
         assertTrue(modelManager.redoAddressBook());
         assertTrue(modelManager.getFilteredPersonList().isEmpty());
     }
-
+  
     @Test
     public void equals() {
         AddressBook addressBook = new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build();

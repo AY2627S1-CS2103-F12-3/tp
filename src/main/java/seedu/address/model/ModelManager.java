@@ -171,7 +171,7 @@ public class ModelManager implements Model {
         filteredPersons.setPredicate(predicate);
     }
 
-    /** Re-evaluates the retained candidate filter after role data changes. */
+    /** Re-evaluates the retained candidate filter after address-book data changes. */
     private void refreshFilteredPersonList() {
         filteredPersons.setPredicate(null);
         filteredPersons.setPredicate(personPredicate);

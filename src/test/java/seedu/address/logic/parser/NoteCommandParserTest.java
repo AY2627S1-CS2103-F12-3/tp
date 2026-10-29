@@ -2,6 +2,7 @@ package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
+import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailureWithReason;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
@@ -35,8 +36,8 @@ public class NoteCommandParserTest {
 
     @Test
     public void parse_indexOnly_emptyNote() {
-        assertParseSuccess(parser, "1", new NoteCommand(INDEX_FIRST_PERSON, new Note("")));
-        assertParseSuccess(parser, " 1   ", new NoteCommand(INDEX_FIRST_PERSON, new Note("")));
+        assertParseSuccess(parser, "1", new NoteCommand(INDEX_FIRST_PERSON, Note.NONE));
+        assertParseSuccess(parser, " 1   ", new NoteCommand(INDEX_FIRST_PERSON, Note.NONE));
     }
 
     @Test
@@ -48,15 +49,19 @@ public class NoteCommandParserTest {
     @Test
     public void parse_invalidIndex_failure() {
         // non-numeric index
-        assertParseFailure(parser, "a Call back", MESSAGE_INVALID_FORMAT);
+        assertParseFailureWithReason(parser, "a Call back", MESSAGE_INVALID_FORMAT,
+                ParserUtil.MESSAGE_INVALID_INDEX);
 
         // note joined to index without a space
-        assertParseFailure(parser, "1Call back", MESSAGE_INVALID_FORMAT);
+        assertParseFailureWithReason(parser, "1Call back", MESSAGE_INVALID_FORMAT,
+                ParserUtil.MESSAGE_INVALID_INDEX);
 
         // zero index
-        assertParseFailure(parser, "0 Call back", MESSAGE_INVALID_FORMAT);
+        assertParseFailureWithReason(parser, "0 Call back", MESSAGE_INVALID_FORMAT,
+                ParserUtil.MESSAGE_INVALID_INDEX);
 
         // negative index
-        assertParseFailure(parser, "-1 Call back", MESSAGE_INVALID_FORMAT);
+        assertParseFailureWithReason(parser, "-1 Call back", MESSAGE_INVALID_FORMAT,
+                ParserUtil.MESSAGE_INVALID_INDEX);
     }
 }

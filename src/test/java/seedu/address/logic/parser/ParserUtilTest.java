@@ -2,11 +2,13 @@ package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.parser.ParserUtil.MESSAGE_INDEX_TOO_LARGE;
 import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -28,7 +30,7 @@ public class ParserUtilTest {
     private static final String INVALID_PHONE = "+651234";
     private static final String INVALID_ADDRESS = " ";
     private static final String INVALID_EMAIL = "example.com";
-    private static final String INVALID_TAG = "#friend";
+    private static final String INVALID_TAG = "#friend!";
     private static final String INVALID_ROLE_TITLE = "1234";
     private static final String INVALID_EXPERIENCE_LEVEL = "Senior\nLevel";
     private static final String INVALID_STATUS = "ghosted";
@@ -58,13 +60,23 @@ public class ParserUtilTest {
 
     @Test
     public void parseIndex_invalidInput_throwsParseException() {
-        assertThrows(ParseException.class, () -> ParserUtil.parseIndex("10 a"));
+        assertThrows(ParseException.class, MESSAGE_INVALID_INDEX, () -> ParserUtil.parseIndex("10 a"));
+        assertThrows(ParseException.class, MESSAGE_INVALID_INDEX, () -> ParserUtil.parseIndex(""));
+        assertThrows(ParseException.class, MESSAGE_INVALID_INDEX, () -> ParserUtil.parseIndex("a"));
+        assertThrows(ParseException.class, MESSAGE_INVALID_INDEX, () -> ParserUtil.parseIndex("0"));
+        assertThrows(ParseException.class, MESSAGE_INVALID_INDEX, () -> ParserUtil.parseIndex("-1"));
+        assertThrows(ParseException.class, MESSAGE_INVALID_INDEX, () -> ParserUtil.parseIndex("+1"));
     }
 
     @Test
-    public void parseIndex_outOfRangeInput_throwsParseException() {
+    public void parseIndex_tooLargeInput_throwsParseException() {
+        String tooLargeIndex = Long.toString(Integer.MAX_VALUE + 1L);
+        assertThrows(ParseException.class, String.format(MESSAGE_INDEX_TOO_LARGE, tooLargeIndex), ()
+            -> ParserUtil.parseIndex(tooLargeIndex));
+
+        // zeros are not a positive number, however many there are
         assertThrows(ParseException.class, MESSAGE_INVALID_INDEX, ()
-            -> ParserUtil.parseIndex(Long.toString(Integer.MAX_VALUE + 1)));
+                -> ParserUtil.parseIndex("000000000000"));
     }
 
     @Test
@@ -152,6 +164,11 @@ public class ParserUtilTest {
     }
 
     @Test
+    public void parseAddress_internalRepeatedSpaces_areCollapsed() throws Exception {
+        assertEquals(new Address("Blk 7"), ParserUtil.parseAddress("  Blk  7  "));
+    }
+
+    @Test
     public void parseNote_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> ParserUtil.parseNote(null));
     }
@@ -169,7 +186,7 @@ public class ParserUtilTest {
 
     @Test
     public void parseNote_whitespaceOnly_returnsEmptyNote() {
-        assertEquals(new Note(""), ParserUtil.parseNote(WHITESPACE));
+        assertEquals(Note.NONE, ParserUtil.parseNote(WHITESPACE));
     }
 
     @Test
@@ -283,6 +300,12 @@ public class ParserUtilTest {
     }
 
     @Test
+    public void parseTag_newlyAllowedSymbols_returnsTag() throws Exception {
+        assertEquals(new Tag("C++"), ParserUtil.parseTag("C++"));
+        assertEquals(new Tag(".NET"), ParserUtil.parseTag(".NET"));
+    }
+
+    @Test
     public void parseStatus_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> ParserUtil.parseStatus(null));
     }
@@ -305,6 +328,17 @@ public class ParserUtilTest {
     @Test
     public void parseStatus_validValueWithWhitespace_returnsStatus() throws Exception {
         assertEquals(VALID_STATUS, ParserUtil.parseStatus(WHITESPACE + VALID_STATUS_STRING + WHITESPACE));
+    }
+
+    @Test
+    public void parseStatus_validInterviewValueWithTurkishLocale_returnsStatus() throws Exception {
+        Locale originalLocale = Locale.getDefault();
+        try {
+            Locale.setDefault(new Locale("tr", "TR"));
+            assertEquals(Status.INTERVIEW, ParserUtil.parseStatus("interview"));
+        } finally {
+            Locale.setDefault(originalLocale);
+        }
     }
 
     @Test
@@ -333,5 +367,12 @@ public class ParserUtilTest {
         Set<Tag> expectedTagSet = Set.of(new Tag(VALID_TAG_1), new Tag(VALID_TAG_2));
 
         assertEquals(expectedTagSet, actualTagSet);
+    }
+
+    @Test
+    public void parseTags_namesDifferOnlyInCase_returnsOneTag() throws Exception {
+        Set<Tag> tags = ParserUtil.parseTags(List.of("Referral", "referral"));
+
+        assertEquals(Set.of(new Tag("Referral")), tags);
     }
 }

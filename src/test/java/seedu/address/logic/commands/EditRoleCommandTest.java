@@ -67,7 +67,8 @@ public class EditRoleCommandTest {
             roleModel.addRole(original);
             roleModel.addRole(PRODUCT_ANALYST);
             for (Status status : Status.values()) {
-                Person candidate = new PersonBuilder().withNameAndDistinctContacts("Candidate " + status.ordinal())
+                Person candidate = new PersonBuilder()
+                        .withNameAndDistinctContacts("Candidate " + status.ordinal())
                         .withPhone("9123456" + status.ordinal())
                         .withEmail("candidate" + status.ordinal() + "@example.com")
                         .withRole(original.getTitle().value.toLowerCase(Locale.ROOT))
@@ -106,7 +107,8 @@ public class EditRoleCommandTest {
             roleModel.addRole(PRODUCT_ANALYST);
             for (Status status : Status.values()) {
                 if (!original.isClosed() || !status.isPending()) {
-                    roleModel.addPerson(new PersonBuilder().withNameAndDistinctContacts("Candidate " + status.ordinal())
+                    roleModel.addPerson(new PersonBuilder()
+                            .withNameAndDistinctContacts("Candidate " + status.ordinal())
                             .withRole(original.getTitle().value.toLowerCase(Locale.ROOT)).withStatus(status)
                             .withNote("Keep interview details").withTags("referral").build());
                 }

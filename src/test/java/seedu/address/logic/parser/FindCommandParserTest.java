@@ -1,8 +1,8 @@
 package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
+import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailureWithReason;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 
 import java.util.List;
@@ -19,8 +19,8 @@ public class FindCommandParserTest {
     private FindCommandParser parser = new FindCommandParser();
 
     @Test
-    public void parse_emptyArg_throwsParseException() {
-        assertParseFailure(parser, "     ", String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
+    public void parse_emptyArg_returnsFindCommand() {
+        assertParseSuccess(parser, "     ", new FindCommand(new NameContainsKeywordsPredicate(List.of())));
     }
 
     @Test
@@ -57,7 +57,9 @@ public class FindCommandParserTest {
 
     @Test
     public void parse_invalidStatus_throwsParseException() {
-        assertParseFailure(parser, "Alice st/INVALID", "Invalid role status. Use one of: [OPEN, CLOSED].");
+        assertParseFailureWithReason(parser, "Alice st/INVALID",
+                "Invalid role status. Use one of: [OPEN, CLOSED].",
+                "No enum constant seedu.address.model.role.RoleStatus.INVALID");
         assertParseFailure(parser, "Alice st/   ", "Invalid role status. Use one of: [OPEN, CLOSED].");
     }
 

@@ -8,6 +8,8 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_NOTE_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NOTE_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
+import static seedu.address.logic.commands.CommandTestUtil.copyModelWithPersonReplaced;
+import static seedu.address.logic.commands.CommandTestUtil.replacePerson;
 import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
@@ -17,7 +19,6 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
-import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
@@ -35,120 +36,59 @@ public class NoteCommandTest {
 
     @Test
     public void execute_noteUnfilteredList_success() {
-        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person editedPerson = new PersonBuilder(firstPerson).withNote(VALID_NOTE_AMY).build();
-        NoteCommand noteCommand = new NoteCommand(INDEX_FIRST_PERSON, new Note(VALID_NOTE_AMY));
-
-        String expectedMessage = String.format(NoteCommand.MESSAGE_UPDATE_NOTE_SUCCESS,
-                editedPerson.getName(), VALID_NOTE_AMY);
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(firstPerson, editedPerson);
-
-        assertCommandSuccess(noteCommand, model, expectedMessage, expectedModel);
+        assertNoteSuccess(INDEX_FIRST_PERSON, VALID_NOTE_AMY, NoteCommand.MESSAGE_ADD_NOTE_SUCCESS);
     }
 
     @Test
     public void execute_personWithNote_noteReplaced() {
-        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person personWithNote = new PersonBuilder(firstPerson).withNote(VALID_NOTE_BOB).build();
-        model.setPerson(firstPerson, personWithNote);
+        replacePerson(model, INDEX_FIRST_PERSON, builder -> builder.withNote(VALID_NOTE_BOB));
 
-        Person editedPerson = new PersonBuilder(personWithNote).withNote(VALID_NOTE_AMY).build();
-        NoteCommand noteCommand = new NoteCommand(INDEX_FIRST_PERSON, new Note(VALID_NOTE_AMY));
+        assertNoteSuccess(INDEX_FIRST_PERSON, VALID_NOTE_AMY, NoteCommand.MESSAGE_REPLACE_NOTE_SUCCESS);
+    }
 
-        String expectedMessage = String.format(NoteCommand.MESSAGE_UPDATE_NOTE_SUCCESS,
-                editedPerson.getName(), VALID_NOTE_AMY);
+    @Test
+    public void execute_sameNote_unchangedMessage() {
+        replacePerson(model, INDEX_FIRST_PERSON, builder -> builder.withNote(VALID_NOTE_AMY));
 
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(personWithNote, editedPerson);
-
-        assertCommandSuccess(noteCommand, model, expectedMessage, expectedModel);
+        // Nothing is lost, so the message does not say the note was replaced.
+        assertNoteSuccess(INDEX_FIRST_PERSON, VALID_NOTE_AMY, NoteCommand.MESSAGE_UNCHANGED_NOTE_SUCCESS);
     }
 
     @Test
     public void execute_personWithStatus_statusPreserved() {
-        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person hiredPerson = new PersonBuilder(firstPerson).withStatus(Status.HIRED).build();
-        model.setPerson(firstPerson, hiredPerson);
+        replacePerson(model, INDEX_FIRST_PERSON, builder -> builder.withStatus(Status.HIRED));
 
-        Person editedPerson = new PersonBuilder(hiredPerson).withNote(VALID_NOTE_AMY).build();
-        NoteCommand noteCommand = new NoteCommand(INDEX_FIRST_PERSON, new Note(VALID_NOTE_AMY));
-
-        String expectedMessage = String.format(NoteCommand.MESSAGE_UPDATE_NOTE_SUCCESS,
-                editedPerson.getName(), VALID_NOTE_AMY);
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(hiredPerson, editedPerson);
-
-        assertCommandSuccess(noteCommand, model, expectedMessage, expectedModel);
+        assertNoteSuccess(INDEX_FIRST_PERSON, VALID_NOTE_AMY, NoteCommand.MESSAGE_ADD_NOTE_SUCCESS);
     }
 
     @Test
     public void execute_personWithInterview_interviewPreserved() {
-        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person personWithInterview = new PersonBuilder(firstPerson).withInterview(VALID_INTERVIEW_BOB).build();
-        model.setPerson(firstPerson, personWithInterview);
+        replacePerson(model, INDEX_FIRST_PERSON, builder -> builder.withInterview(VALID_INTERVIEW_BOB));
 
-        Person editedPerson = new PersonBuilder(personWithInterview).withNote(VALID_NOTE_AMY).build();
-        NoteCommand noteCommand = new NoteCommand(INDEX_FIRST_PERSON, new Note(VALID_NOTE_AMY));
-
-        String expectedMessage = String.format(NoteCommand.MESSAGE_UPDATE_NOTE_SUCCESS,
-                editedPerson.getName(), VALID_NOTE_AMY);
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(personWithInterview, editedPerson);
-
-        assertCommandSuccess(noteCommand, model, expectedMessage, expectedModel);
+        assertNoteSuccess(INDEX_FIRST_PERSON, VALID_NOTE_AMY, NoteCommand.MESSAGE_ADD_NOTE_SUCCESS);
     }
 
     @Test
     public void execute_emptyNote_noteCleared() {
-        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person personWithNote = new PersonBuilder(firstPerson).withNote(VALID_NOTE_BOB).build();
-        model.setPerson(firstPerson, personWithNote);
+        replacePerson(model, INDEX_FIRST_PERSON, builder -> builder.withNote(VALID_NOTE_BOB));
 
-        Person editedPerson = new PersonBuilder(personWithNote).withNote("").build();
-        NoteCommand noteCommand = new NoteCommand(INDEX_FIRST_PERSON, new Note(""));
-
-        String expectedMessage = String.format(NoteCommand.MESSAGE_CLEAR_NOTE_SUCCESS,
-                editedPerson.getName());
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(personWithNote, editedPerson);
-
-        assertCommandSuccess(noteCommand, model, expectedMessage, expectedModel);
+        assertNoteSuccess(INDEX_FIRST_PERSON, "", NoteCommand.MESSAGE_CLEAR_NOTE_SUCCESS);
     }
 
     @Test
-    public void execute_emptyNoteOnPersonWithoutNote_clearedMessage() {
+    public void execute_emptyNoteOnPersonWithoutNote_noNoteToClearMessage() {
         Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         assertTrue(firstPerson.getNote().isEmpty());
-        NoteCommand noteCommand = new NoteCommand(INDEX_FIRST_PERSON, new Note(""));
 
-        String expectedMessage = String.format(NoteCommand.MESSAGE_CLEAR_NOTE_SUCCESS,
-                firstPerson.getName());
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-
-        assertCommandSuccess(noteCommand, model, expectedMessage, expectedModel);
+        assertNoteSuccess(INDEX_FIRST_PERSON, "", NoteCommand.MESSAGE_NO_NOTE_TO_CLEAR);
     }
 
     @Test
-    public void execute_noteFilteredList_success() {
+    public void execute_noteFilteredList_successAndFilterKept() {
         showPersonAtIndex(model, INDEX_SECOND_PERSON);
 
-        Person secondPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person editedPerson = new PersonBuilder(secondPerson).withNote(VALID_NOTE_AMY).build();
-        NoteCommand noteCommand = new NoteCommand(INDEX_FIRST_PERSON, new Note(VALID_NOTE_AMY));
-
-        String expectedMessage = String.format(NoteCommand.MESSAGE_UPDATE_NOTE_SUCCESS,
-                editedPerson.getName(), VALID_NOTE_AMY);
-
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(secondPerson, editedPerson);
-
-        assertCommandSuccess(noteCommand, model, expectedMessage, expectedModel);
+        assertNoteSuccess(INDEX_FIRST_PERSON, VALID_NOTE_AMY, NoteCommand.MESSAGE_ADD_NOTE_SUCCESS);
+        assertEquals(1, model.getFilteredPersonList().size());
     }
 
     @Test
@@ -156,19 +96,35 @@ public class NoteCommandTest {
         Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         String firstName = firstPerson.getName().toString();
 
-        CommandResult updateResult = new NoteCommand(INDEX_FIRST_PERSON, new Note(VALID_NOTE_AMY)).execute(model);
-        assertEquals("Updated note of " + firstName + ": " + VALID_NOTE_AMY, updateResult.getFeedbackToUser());
+        CommandResult addResult =
+                new NoteCommand(INDEX_FIRST_PERSON, new Note(VALID_NOTE_AMY)).execute(model);
+        assertEquals("Added note to " + firstName + ".", addResult.getFeedbackToUser());
 
-        CommandResult clearResult = new NoteCommand(INDEX_FIRST_PERSON, new Note("")).execute(model);
-        assertEquals("Cleared note of " + firstName + ".", clearResult.getFeedbackToUser());
+        CommandResult sameResult =
+                new NoteCommand(INDEX_FIRST_PERSON, new Note(VALID_NOTE_AMY)).execute(model);
+        assertEquals("Updated note of " + firstName + ".", sameResult.getFeedbackToUser());
+
+        CommandResult replaceResult =
+                new NoteCommand(INDEX_FIRST_PERSON, new Note(VALID_NOTE_BOB)).execute(model);
+        assertEquals("Replaced note of " + firstName + ".", replaceResult.getFeedbackToUser());
+
+        CommandResult clearResult = new NoteCommand(INDEX_FIRST_PERSON, Note.NONE).execute(model);
+        assertEquals("Cleared note of " + firstName + ". Use undo to revert.\nPrevious note: "
+                + VALID_NOTE_BOB,
+                clearResult.getFeedbackToUser());
+
+        CommandResult clearAgainResult = new NoteCommand(INDEX_FIRST_PERSON, Note.NONE).execute(model);
+        assertEquals(firstName + " has no note to clear.", clearAgainResult.getFeedbackToUser());
     }
 
     @Test
     public void execute_invalidIndexUnfilteredList_failure() {
-        Index outOfBoundIndex = Index.fromOneBased(model.getFilteredPersonList().size() + 1);
+        int listSize = model.getFilteredPersonList().size();
+        Index outOfBoundIndex = Index.fromOneBased(listSize + 1);
         NoteCommand noteCommand = new NoteCommand(outOfBoundIndex, new Note(VALID_NOTE_AMY));
 
-        assertCommandFailure(noteCommand, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        assertCommandFailure(noteCommand, model,
+                String.format(Messages.MESSAGE_PERSON_INDEX_OUT_OF_RANGE, listSize + 1, listSize));
     }
 
     @Test
@@ -181,7 +137,15 @@ public class NoteCommandTest {
 
         NoteCommand noteCommand = new NoteCommand(outOfBoundIndex, new Note(VALID_NOTE_AMY));
 
-        assertCommandFailure(noteCommand, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        assertCommandFailure(noteCommand, model, String.format(Messages.MESSAGE_PERSON_INDEX_OUT_OF_RANGE, 2, 1));
+    }
+
+    @Test
+    public void execute_emptyDisplayedList_failure() {
+        model.updateFilteredPersonList(person -> false);
+        NoteCommand noteCommand = new NoteCommand(INDEX_FIRST_PERSON, new Note(VALID_NOTE_AMY));
+
+        assertCommandFailure(noteCommand, model, String.format(Messages.MESSAGE_PERSON_INDEX_EMPTY_LIST, 1));
     }
 
     @Test
@@ -214,5 +178,23 @@ public class NoteCommandTest {
         String expected = NoteCommand.class.getCanonicalName() + "{index=" + INDEX_FIRST_PERSON
                 + ", note=" + note + "}";
         assertEquals(expected, noteCommand.toString());
+    }
+
+    /**
+     * Sets the note of the displayed candidate at {@code index} to {@code newNote}, and checks that only
+     * their note changes, the current filter is kept, and the result message follows
+     * {@code expectedMessageFormat}.
+     * Like the messages in {@code NoteCommand}, the format takes the candidate's name and previous note.
+     */
+    private void assertNoteSuccess(Index index, String newNote, String expectedMessageFormat) {
+        Person personToEdit = model.getFilteredPersonList().get(index.getZeroBased());
+        Person editedPerson = new PersonBuilder(personToEdit).withNote(newNote).build();
+        NoteCommand noteCommand = new NoteCommand(index, new Note(newNote));
+
+        String expectedMessage =
+                String.format(expectedMessageFormat, personToEdit.getName(), personToEdit.getNote());
+
+        Model expectedModel = copyModelWithPersonReplaced(model, personToEdit, editedPerson);
+        assertCommandSuccess(noteCommand, model, expectedMessage, expectedModel);
     }
 }
