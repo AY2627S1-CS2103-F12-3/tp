@@ -91,7 +91,10 @@ Format: `help`
 
 Adds a candidate who is applying for a role.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
+Format: `add n/NAME p/PHONE_NUMBER e/EMAIL [a/ADDRESS] r/ROLE [t/TAG]... `
+
+`a/ADDRESS` is optional. If it is omitted, the candidate is saved with the placeholder
+address `N/A`. An explicitly supplied address must not be blank.
 
 * `NAME`:
   * Is 1 to 100 characters long.
