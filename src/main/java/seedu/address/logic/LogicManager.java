@@ -97,11 +97,7 @@ public class LogicManager implements Logic {
         for (int i = 0; i < first.getPersonList().size(); i++) {
             Person left = first.getPersonList().get(i);
             Person right = second.getPersonList().get(i);
-            if (!left.getName().equals(right.getName()) || !left.getPhone().equals(right.getPhone())
-                    || !left.getEmail().equals(right.getEmail()) || !left.getAddress().equals(right.getAddress())
-                    || !left.getRole().equals(right.getRole()) || !left.getNote().equals(right.getNote())
-                    || !left.getInterview().equals(right.getInterview()) || left.getStatus() != right.getStatus()
-                    || !storedTagNames(left.getTags()).equals(storedTagNames(right.getTags()))) {
+            if (!left.equals(right) || !storedTagNames(left.getTags()).equals(storedTagNames(right.getTags()))) {
                 return false;
             }
         }
