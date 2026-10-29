@@ -2,6 +2,8 @@ package seedu.address.logic;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
@@ -13,9 +15,11 @@ import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 import seedu.address.model.role.Role;
+import seedu.address.model.tag.Tag;
 import seedu.address.storage.Storage;
 
 /**
@@ -48,13 +52,19 @@ public class LogicManager implements Logic {
 
         CommandResult commandResult;
         Command command = addressBookParser.parseCommand(commandText);
+        AddressBook stateBeforeCommand = command.isUndoable()
+                ? new AddressBook(model.getAddressBook()) : null;
         if (command.isUndoable()) {
             model.recordAddressBookState();
         }
         try {
             commandResult = command.execute(model);
             if (command.isUndoable()) {
-                model.commitAddressBookState();
+                if (hasSameStoredValues(stateBeforeCommand, model.getAddressBook())) {
+                    model.discardAddressBookState();
+                } else {
+                    model.commitAddressBookState();
+                }
             }
         } catch (CommandException | RuntimeException e) {
             if (command.isUndoable()) {
@@ -77,6 +87,29 @@ public class LogicManager implements Logic {
         }
 
         return commandResult;
+    }
+
+    private static boolean hasSameStoredValues(AddressBook first, seedu.address.model.ReadOnlyAddressBook second) {
+        if (first.getPersonList().size() != second.getPersonList().size()
+                || first.getRoleList().size() != second.getRoleList().size()) {
+            return false;
+        }
+        for (int i = 0; i < first.getPersonList().size(); i++) {
+            Person left = first.getPersonList().get(i);
+            Person right = second.getPersonList().get(i);
+            if (!left.equals(right) || !storedTagNames(left.getTags()).equals(storedTagNames(right.getTags()))) {
+                return false;
+            }
+        }
+        return first.getRoleList().equals(second.getRoleList());
+    }
+
+    private static Set<String> storedTagNames(Set<Tag> tags) {
+        Set<String> names = new HashSet<>();
+        for (Tag tag : tags) {
+            names.add(tag.tagName);
+        }
+        return names;
     }
 
     @Override

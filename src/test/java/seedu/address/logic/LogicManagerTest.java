@@ -218,6 +218,47 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_successfulNoOpAfterUndo_preservesRedoHistory() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
+        logic.execute("add n/Alice Tan p/91234567 e/alice@example.com a/Bedok r/Software Engineer");
+        logic.execute("edit 1 n/Alicia");
+        logic.execute("undo");
+
+        assertEquals("Status of candidate: Resume", logic.execute("status 1 st/RESUME").getFeedbackToUser());
+        assertEquals("Redid the previous change.", logic.execute("redo").getFeedbackToUser());
+        assertEquals("Alicia", model.getAddressBook().getPersonList().getFirst().getName().fullName);
+    }
+
+    @Test
+    public void execute_tagSpellingChange_isUndoable() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
+        logic.execute("add n/Alice Tan p/91234567 e/alice@example.com a/Bedok "
+                + "r/Software Engineer t/java");
+
+        logic.execute("edit 1 t/JAVA");
+        assertEquals("JAVA", model.getAddressBook().getPersonList().getFirst()
+                .getTags().stream().findFirst().orElseThrow().tagName);
+
+        logic.execute("undo");
+        assertEquals("java", model.getAddressBook().getPersonList().getFirst()
+                .getTags().stream().findFirst().orElseThrow().tagName);
+    }
+
+    @Test
+    public void execute_unchangedEditWithManyTags_preservesRedoHistory() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
+        logic.execute("add n/Alice Tan p/91234567 e/alice@example.com a/Bedok "
+                + "r/Software Engineer t/a1 t/b2 t/c3 t/d4 t/e5 t/f6 t/g7 t/h8 "
+                + "t/i9 t/j0 t/k1 t/l2 t/m3 t/n4 t/o5 t/p6");
+        logic.execute("edit 1 n/Alicia");
+        logic.execute("undo");
+
+        logic.execute("edit 1 n/Alice Tan");
+        assertEquals("Redid the previous change.", logic.execute("redo").getFeedbackToUser());
+        assertEquals("Alicia", model.getAddressBook().getPersonList().getFirst().getName().fullName);
+    }
+
+    @Test
     public void execute_addRoleCommand_roleAddedAndPersisted() throws Exception {
         Role role = new RoleBuilder().build();
         String addRoleCommand = "role add r/Software Engineer x/2 years";
