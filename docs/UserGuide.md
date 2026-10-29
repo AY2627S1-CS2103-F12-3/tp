@@ -144,7 +144,7 @@ recognized only when it starts at a whitespace-delimited token, so a standalone 
   * Emails with spaces inside them or with quotation marks, such as `"john doe"@example.com`, and emails with non-English letters, such as `josé@example.com`, are not supported.
   * If the email is not valid, the error message names the problem, such as `Email cannot contain “,” before the @.`
 * `TAG`:
-  * Contains one or more letters or digits, with no spaces or symbols.
+  * Must contain one or more of the following: any letter from any language, any digit, `'`, `-`, `_`, `.`, `#`, or `+`.
   * Is displayed with the same capitalization as entered.
   * If supplied tags are identical, only one is kept.
   * If supplied tags differ only in capitalization, only the first is kept. For example, entering `t/friends t/FRIENDS` displays only `friends`.
@@ -385,6 +385,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITL
 * Existing values will be updated to the input values.
 * `NAME`, `PHONE_NUMBER` and `EMAIL` follow the same rules as in [`add`](#adding-a-candidate-add), including typing `a/l` and `a/p` in names as `A/L` and `A/P`.
   The email warnings appear only when you change the email to a different address. Changing only its capitals does not count.
+* Tags follow the same validation rules as [`add`](#adding-a-candidate-add).
 * When editing tags, all of the candidate's existing tags are removed; adding tags is not cumulative.
 * As in [`add`](#adding-a-candidate-add), a tag typed more than once with the same capitalisation is saved only once.
 * To remove all of a candidate's tags, enter `t/` without a tag after it.

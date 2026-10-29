@@ -90,6 +90,14 @@ public class AddCommandParserTest {
     }
 
     @Test
+    public void parse_tagWithNewlyAllowedSymbols_success() {
+        Person expectedPerson = new PersonBuilder(BOB).withTags("C++").build();
+
+        assertParseSuccess(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + ADDRESS_DESC_BOB
+                + ROLE_DESC_BOB + " t/C++", new AddCommand(expectedPerson));
+    }
+
+    @Test
     public void parse_nameContainingSlash_success() {
         // "s/" is not a prefix of this command, so "s/o" stays part of the name
         String nameWithSlash = "Ravi s/o Kumar";

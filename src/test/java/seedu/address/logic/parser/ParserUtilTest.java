@@ -29,7 +29,7 @@ public class ParserUtilTest {
     private static final String INVALID_PHONE = "+651234";
     private static final String INVALID_ADDRESS = " ";
     private static final String INVALID_EMAIL = "example.com";
-    private static final String INVALID_TAG = "#friend";
+    private static final String INVALID_TAG = "#friend!";
     private static final String INVALID_ROLE_TITLE = "1234";
     private static final String INVALID_EXPERIENCE_LEVEL = "Senior\nLevel";
     private static final String INVALID_STATUS = "ghosted";
@@ -294,6 +294,12 @@ public class ParserUtilTest {
     }
 
     @Test
+    public void parseTag_newlyAllowedSymbols_returnsTag() throws Exception {
+        assertEquals(new Tag("C++"), ParserUtil.parseTag("C++"));
+        assertEquals(new Tag(".NET"), ParserUtil.parseTag(".NET"));
+    }
+
+    @Test
     public void parseStatus_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> ParserUtil.parseStatus(null));
     }
@@ -350,7 +356,6 @@ public class ParserUtilTest {
     public void parseTags_namesDifferOnlyInCase_returnsOneTag() throws Exception {
         Set<Tag> tags = ParserUtil.parseTags(List.of("Referral", "referral"));
 
-        assertEquals(1, tags.size());
         assertEquals(Set.of(new Tag("Referral")), tags);
     }
 }
