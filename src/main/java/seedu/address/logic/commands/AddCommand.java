@@ -65,19 +65,39 @@ public class AddCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
 
+        verifyNotDuplicate(model);
+        Role role = findOpenRole(model);
+
+        // Saves the role's own spelling of the title, so each role is shown and stored in one way.
+        Person personToAdd = toAdd.withRole(role.getTitle());
+        model.addPerson(personToAdd);
+        logger.info("Added candidate " + personToAdd.getName());
+
+        String successMessage = String.format(MESSAGE_SUCCESS, Messages.format(personToAdd));
+        return new CommandResult(appendWarnings(successMessage, model, personToAdd));
+    }
+
+    /**
+     * Returns {@code successMessage} followed by any warnings about the phone and email of {@code addedPerson}.
+     * Unlike an edit, every field of a new candidate is newly entered, so both fields are always checked.
+     */
+    private static String appendWarnings(String successMessage, Model model, Person addedPerson) {
+        String messageWithPhoneWarnings = PhoneChecks.appendPhoneWarnings(successMessage, model, addedPerson);
+        return EmailChecks.appendEmailWarnings(messageWithPhoneWarnings, addedPerson.getEmail());
+    }
+
+    /**
+     * Checks that no candidate in {@code model} has the same email or phone number as the candidate to add.
+     *
+     * @throws CommandException if such a candidate exists, with a message naming them and the shared field.
+     */
+    private void verifyNotDuplicate(Model model) throws CommandException {
         Optional<Person> existingPerson = model.findSamePerson(toAdd);
         if (existingPerson.isPresent()) {
             String message = Messages.getErrorMessageForDuplicatePerson(toAdd, existingPerson.get());
             logger.info("Rejected duplicate candidate " + toAdd.getName() + ": " + message);
             throw new CommandException(message);
         }
-
-        Role role = findOpenRole(model);
-
-        // Saves the role's own spelling of the title, so each role is shown and stored in one way.
-        Person personToAdd = toAdd.withRole(role.getTitle());
-        model.addPerson(personToAdd);
-        return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(personToAdd)));
     }
 
     /**

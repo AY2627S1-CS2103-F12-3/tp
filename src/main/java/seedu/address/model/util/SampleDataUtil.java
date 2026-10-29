@@ -41,7 +41,7 @@ public class SampleDataUtil {
         return new Person[] {
             new Person(new Name("Alex Yeoh"), new Phone("87438807"), new Email("alexyeoh@example.com"),
                 new Address("Blk 30 Geylang Street 29, #06-40"), SOFTWARE_ENGINEER,
-                new Note("Interview with the hiring manager"),
+                new Note("Strong in Spring Boot and REST APIs, available to start immediately"),
                 new Interview("2026-10-20 14:00"), Person.DEFAULT_STATUS, getTagSet("friends")),
             new Person(new Name("Bernice Yu"), new Phone("99272758"), new Email("berniceyu@example.com"),
                 new Address("Blk 30 Lorong 3 Serangoon Gardens, #07-18"), SOFTWARE_ENGINEER,

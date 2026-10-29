@@ -9,6 +9,7 @@ import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -60,6 +61,11 @@ public class LogicManager implements Logic {
                 model.discardAddressBookState();
             }
             throw e;
+        }
+
+        // Viewing instructions must not depend on permission to save recruitment data.
+        if (command instanceof HelpCommand) {
+            return commandResult;
         }
 
         try {
