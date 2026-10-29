@@ -93,6 +93,12 @@ Adds a candidate who is applying for a role.
 
 Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
 
+Address values are trimmed at the beginning and end, and consecutive whitespace inside the
+address is collapsed to one space. For example, `a/Blk  7` is stored as `Blk 7`.
+Addresses are intended for a Singapore context; where applicable, include local details such
+as the block number, street name, unit number, and six-digit postal code, for example
+`Blk 7 Bedok North Street 2, #04-01, Singapore 460007`.
+
 * `NAME`:
   * Is 1 to 100 characters long.
   * Starts with a letter, which can be from any language, such as `José` or `山田太郎`.

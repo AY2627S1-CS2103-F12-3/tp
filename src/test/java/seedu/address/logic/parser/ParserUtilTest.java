@@ -152,6 +152,11 @@ public class ParserUtilTest {
     }
 
     @Test
+    public void parseAddress_internalRepeatedSpaces_areCollapsed() throws Exception {
+        assertEquals(new Address("Blk 7"), ParserUtil.parseAddress("  Blk  7  "));
+    }
+
+    @Test
     public void parseNote_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> ParserUtil.parseNote(null));
     }
