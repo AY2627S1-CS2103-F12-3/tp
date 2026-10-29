@@ -12,7 +12,9 @@ Class Name
 Class Phone
 Class Email
 Class Address
-Class Note
+Class Note {
+    {static} +NONE: Note
+}
 Class Tag
 Class RoleTitle
 Class Interview {
@@ -30,6 +32,7 @@ Enum Status <<enumeration>> {
 }
 
 show Person methods
+show Note fields
 show Interview fields
 show Status fields
 
@@ -37,7 +40,7 @@ Person *--> "1" Name
 Person *--> "1" Phone
 Person *--> "1" Email
 Person *--> "1" Address
-Person *--> "1" Note
+Person --> "1" Note
 Person *--> "*" Tag
 Person -right-> "1" RoleTitle : applies for
 Person -left-> "1" Interview
