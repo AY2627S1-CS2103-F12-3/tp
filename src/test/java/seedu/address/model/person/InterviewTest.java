@@ -109,7 +109,8 @@ public class InterviewTest {
 
     @Test
     public void hashCode_sameValue_sameHashCode() {
-        assertEquals(new Interview("2026-10-20 14:00").hashCode(), new Interview("2026-10-20 14:00").hashCode());
+        assertEquals(new Interview("2026-10-20 14:00").hashCode(),
+                new Interview("2026-10-20 14:00").hashCode());
     }
 
     @Test

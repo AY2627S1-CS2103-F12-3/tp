@@ -97,8 +97,8 @@ class JsonAdaptedPerson {
         final Interview modelInterview = toModelInterview();
         final Status modelStatus = toModelStatus();
         final Set<Tag> modelTags = toModelTags();
-        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelRole, modelNote, modelInterview,
-                modelStatus, modelTags);
+        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelRole, modelNote,
+                modelInterview, modelStatus, modelTags);
     }
 
     /**
@@ -108,7 +108,8 @@ class JsonAdaptedPerson {
      */
     private static void requireField(String storedValue, Class<?> fieldClass) throws IllegalValueException {
         if (storedValue == null) {
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, fieldClass.getSimpleName()));
+            throw new IllegalValueException(
+                    String.format(MISSING_FIELD_MESSAGE_FORMAT, fieldClass.getSimpleName()));
         }
     }
 
@@ -169,9 +170,11 @@ class JsonAdaptedPerson {
 
     /**
      * Converts the stored interview into the model's {@code Interview} object.
-     * A missing interview (e.g., in a file saved before interviews existed) or an empty one means no interview.
+     * A missing interview (e.g., in a file saved before interviews existed) or an empty one
+     * means no interview.
      *
-     * @throws IllegalValueException if the stored interview has the wrong format or is not a real date and time.
+     * @throws IllegalValueException if the stored interview has the wrong format
+     *         or is not a real date and time.
      */
     private Interview toModelInterview() throws IllegalValueException {
         if (interview == null || interview.isEmpty()) {

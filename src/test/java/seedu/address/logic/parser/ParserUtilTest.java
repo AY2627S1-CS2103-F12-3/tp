@@ -74,7 +74,8 @@ public class ParserUtilTest {
             -> ParserUtil.parseIndex(tooLargeIndex));
 
         // zeros are not a positive number, however many there are
-        assertThrows(ParseException.class, MESSAGE_INVALID_INDEX, () -> ParserUtil.parseIndex("000000000000"));
+        assertThrows(ParseException.class, MESSAGE_INVALID_INDEX, ()
+                -> ParserUtil.parseIndex("000000000000"));
     }
 
     @Test

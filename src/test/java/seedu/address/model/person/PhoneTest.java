@@ -83,10 +83,12 @@ public class PhoneTest {
         // different numbers -> returns false
         assertFalse(localNumber.isPossiblySameNumber(new Phone("91234568")));
         assertFalse(localNumber.isPossiblySameNumber(new Phone("+85291234567"))); // other country code
-        assertFalse(localNumber.isPossiblySameNumber(new Phone("659123456"))); // 65 and 7 digits is not stripped
+        // 65 and 7 digits is not stripped
+        assertFalse(localNumber.isPossiblySameNumber(new Phone("659123456")));
         assertFalse(new Phone("912345678").isPossiblySameNumber(new Phone("65912345678"))); // 65 and 9 digits
 
-        // overseas number with and without its country code -> returns false, as overseas formats are not known
+        // overseas number with and without its country code -> returns false,
+        // as overseas formats are not known
         assertFalse(new Phone("+60123456789").isPossiblySameNumber(new Phone("0123456789")));
     }
 
@@ -109,7 +111,8 @@ public class PhoneTest {
         assertFalse(new Phone("51234567").isPlausibleNumber()); // starts with 5
         assertFalse(new Phone("912345678").isPlausibleNumber()); // 9 digits
         assertFalse(new Phone("0123456789").isPlausibleNumber()); // overseas number without its country code
-        assertFalse(new Phone("+6512345678").isPlausibleNumber()); // Singapore code, then not a Singapore number
+        // Singapore code, then not a Singapore number
+        assertFalse(new Phone("+6512345678").isPlausibleNumber());
         assertFalse(new Phone("+65912345678").isPlausibleNumber()); // Singapore code, then 9 digits
     }
 

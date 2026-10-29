@@ -168,7 +168,8 @@ public class EditRoleIntegrationTest {
 
     @Test
     public void execute_renamedRole_retainsHiringClosureAndDeletionGuards() throws Exception {
-        model.addPerson(new PersonBuilder().withNameAndDistinctContacts("Carol").withStatus(Status.RESUME).build());
+        model.addPerson(new PersonBuilder().withNameAndDistinctContacts("Carol")
+                .withStatus(Status.RESUME).build());
         logic.execute("role edit 1 r/Platform Engineer");
         logic.execute("list");
 

@@ -31,9 +31,9 @@ final class EmailChecks {
         requireAllNonNull(message, email);
         List<String> warnings = new ArrayList<>();
 
-        String uncommonSymbols = email.getUncommonSymbols();
-        if (!uncommonSymbols.isEmpty()) {
-            warnings.add(String.format(Messages.MESSAGE_UNCOMMON_EMAIL_SYMBOLS, uncommonSymbols));
+        String uncommonSymbolsText = email.getUncommonSymbols();
+        if (!uncommonSymbolsText.isEmpty()) {
+            warnings.add(String.format(Messages.MESSAGE_UNCOMMON_EMAIL_SYMBOLS, uncommonSymbolsText));
         }
         if (email.hasDotlessDomain()) {
             warnings.add(String.format(Messages.MESSAGE_DOTLESS_EMAIL_DOMAIN, email.getDomain()));

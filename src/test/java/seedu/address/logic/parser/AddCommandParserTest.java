@@ -68,7 +68,8 @@ public class AddCommandParserTest {
         Person expectedPersonMultipleTags = new PersonBuilder(BOB).withTags(VALID_TAG_FRIEND, VALID_TAG_HUSBAND)
                 .build();
         assertParseSuccess(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + ADDRESS_DESC_BOB
-                + ROLE_DESC_BOB + TAG_DESC_HUSBAND + TAG_DESC_FRIEND, new AddCommand(expectedPersonMultipleTags));
+                + ROLE_DESC_BOB + TAG_DESC_HUSBAND + TAG_DESC_FRIEND,
+                        new AddCommand(expectedPersonMultipleTags));
     }
 
     @Test
@@ -135,8 +136,8 @@ public class AddCommandParserTest {
         assertParseFailure(parser,
                 validExpectedPersonString + PHONE_DESC_AMY + EMAIL_DESC_AMY + NAME_DESC_AMY + ADDRESS_DESC_AMY
                         + ROLE_DESC_AMY + validExpectedPersonString,
-                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_NAME, PREFIX_ADDRESS, PREFIX_EMAIL, PREFIX_PHONE,
-                        PREFIX_ROLE_TITLE));
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_NAME, PREFIX_ADDRESS, PREFIX_EMAIL,
+                        PREFIX_PHONE, PREFIX_ROLE_TITLE));
 
         // invalid value followed by valid value
 
@@ -235,7 +236,8 @@ public class AddCommandParserTest {
                 + ROLE_DESC_BOB + TAG_DESC_HUSBAND + TAG_DESC_FRIEND, Email.MESSAGE_MISSING_AT);
 
         // space inside email is named in the error
-        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + " e/bob choo@example.com" + ADDRESS_DESC_BOB
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + " e/bob choo@example.com"
+                + ADDRESS_DESC_BOB
                 + ROLE_DESC_BOB, String.format(Email.MESSAGE_INVALID_LOCAL_PART_CHARACTER, "a space"));
 
         // invalid address

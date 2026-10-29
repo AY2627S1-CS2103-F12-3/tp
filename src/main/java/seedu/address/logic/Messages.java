@@ -23,7 +23,8 @@ public class Messages {
     public static final String MESSAGE_ROLE_LIST_NOT_DISPLAYED =
             "The role list is not displayed. Use list role first.";
     public static final String MESSAGE_INVALID_COMMAND_FORMAT = "Invalid command format!\n%1$s";
-    public static final String MESSAGE_INVALID_PERSON_DISPLAYED_INDEX = "The candidate index provided is invalid.";
+    public static final String MESSAGE_INVALID_PERSON_DISPLAYED_INDEX =
+            "The candidate index provided is invalid.";
     public static final String MESSAGE_PERSON_INDEX_OUT_OF_RANGE =
             "There is no candidate %1$d in the displayed list. Use an index from 1 to %2$d.";
     public static final String MESSAGE_PERSON_INDEX_EMPTY_LIST =
@@ -38,13 +39,15 @@ public class Messages {
     public static final String MESSAGE_POSSIBLE_DUPLICATE_PHONE =
             "Warning: this phone number may belong to other candidate(s): %1$s";
     public static final String MESSAGE_UNUSUAL_PHONE =
-            "Warning: this doesn't look like a Singapore number. If overseas, add its country code, e.g. +60.";
+            "Warning: this doesn't look like a Singapore number. "
+            + "If overseas, add its country code, e.g. +60.";
     public static final String MESSAGE_DUPLICATE_FIELDS =
                 "Multiple values specified for the following single-valued field(s): ";
     public static final String MESSAGE_UNCOMMON_EMAIL_SYMBOLS =
             "Warning: the email has unusual symbols (%1$s). Check that it is not a typo.";
-    public static final String MESSAGE_DOTLESS_EMAIL_DOMAIN = "Warning: the email domain “%1$s” has no dot "
-            + "(e.g. example.com). Check that it is not a typo.";
+    public static final String MESSAGE_DOTLESS_EMAIL_DOMAIN =
+            "Warning: the email domain “%1$s” has no dot (e.g. example.com). "
+            + "Check that it is not a typo.";
 
     /**
      * Returns an error message indicating the duplicate prefixes.

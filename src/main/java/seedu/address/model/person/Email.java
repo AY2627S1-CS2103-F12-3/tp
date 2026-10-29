@@ -26,13 +26,16 @@ public class Email {
     public static final String MESSAGE_EMPTY = "Email cannot be empty.";
     public static final String MESSAGE_MISSING_AT = "Email is missing an @, e.g. name@example.com.";
     public static final String MESSAGE_MULTIPLE_AT = "Email can contain only one @.";
-    public static final String MESSAGE_MISSING_NAME = "Email needs a name before the @, e.g. name@example.com.";
-    public static final String MESSAGE_INVALID_LOCAL_PART_CHARACTER = "Email cannot contain %1$s before the @.";
+    public static final String MESSAGE_MISSING_NAME =
+            "Email needs a name before the @, e.g. name@example.com.";
+    public static final String MESSAGE_INVALID_LOCAL_PART_CHARACTER =
+            "Email cannot contain %1$s before the @.";
     public static final String MESSAGE_INVALID_DOMAIN_CHARACTER = "Email cannot contain %1$s after the @.";
     public static final String MESSAGE_LOCAL_PART_DOTS =
             "Before the @, a dot cannot come first, last, or twice in a row.";
-    public static final String MESSAGE_DOMAIN_PARTS = "After the @, each part between dots must start and end "
-            + "with a letter or digit, e.g. example.com.";
+    public static final String MESSAGE_DOMAIN_PARTS =
+            "After the @, each part between dots must start and end with a letter or digit, "
+            + "e.g. example.com.";
     public static final String MESSAGE_DOMAIN_ENDING =
             "The domain must end with a part of at least 2 characters, e.g. .com.";
 
@@ -102,7 +105,8 @@ public class Email {
             return Optional.of(String.format(MESSAGE_INVALID_LOCAL_PART_CHARACTER, invalidCharacter.get()));
         }
 
-        boolean hasMisplacedDot = localPart.startsWith(".") || localPart.endsWith(".") || localPart.contains("..");
+        boolean hasMisplacedDot = localPart.startsWith(".") || localPart.endsWith(".")
+                || localPart.contains("..");
         if (hasMisplacedDot) {
             return Optional.of(MESSAGE_LOCAL_PART_DOTS);
         }
@@ -118,7 +122,8 @@ public class Email {
             return Optional.of(String.format(MESSAGE_INVALID_DOMAIN_CHARACTER, invalidCharacter.get()));
         }
 
-        // A limit of -1 keeps empty parts, so an empty domain or a leading, trailing or doubled dot is caught.
+        // A limit of -1 keeps empty parts,
+        // so an empty domain or a leading, trailing or doubled dot is caught.
         String[] domainParts = domain.split("\\.", -1);
         boolean hasInvalidPart = Arrays.stream(domainParts).anyMatch(part -> !isValidDomainPart(part));
         if (hasInvalidPart) {
@@ -207,7 +212,8 @@ public class Email {
      */
     private int getAtSignIndex() {
         int atIndex = value.indexOf('@');
-        assert atIndex > 0 && atIndex == value.lastIndexOf('@') : "A valid email has exactly one @, after its name";
+        assert atIndex > 0 && atIndex == value.lastIndexOf('@')
+                : "A valid email has exactly one @, after its name";
         return atIndex;
     }
 

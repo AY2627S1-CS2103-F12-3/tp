@@ -104,7 +104,8 @@ public class NoteCommandTest {
     @Test
     public void execute_personWithInterview_interviewPreserved() {
         Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person personWithInterview = new PersonBuilder(firstPerson).withInterview(VALID_INTERVIEW_BOB).build();
+        Person personWithInterview = new PersonBuilder(firstPerson)
+                .withInterview(VALID_INTERVIEW_BOB).build();
         model.setPerson(firstPerson, personWithInterview);
 
         Person editedPerson = new PersonBuilder(personWithInterview).withNote(VALID_NOTE_AMY).build();
@@ -174,17 +175,21 @@ public class NoteCommandTest {
         Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         String firstName = firstPerson.getName().toString();
 
-        CommandResult addResult = new NoteCommand(INDEX_FIRST_PERSON, new Note(VALID_NOTE_AMY)).execute(model);
+        CommandResult addResult =
+                new NoteCommand(INDEX_FIRST_PERSON, new Note(VALID_NOTE_AMY)).execute(model);
         assertEquals("Added note to " + firstName + ".", addResult.getFeedbackToUser());
 
-        CommandResult sameResult = new NoteCommand(INDEX_FIRST_PERSON, new Note(VALID_NOTE_AMY)).execute(model);
+        CommandResult sameResult =
+                new NoteCommand(INDEX_FIRST_PERSON, new Note(VALID_NOTE_AMY)).execute(model);
         assertEquals("Updated note of " + firstName + ".", sameResult.getFeedbackToUser());
 
-        CommandResult replaceResult = new NoteCommand(INDEX_FIRST_PERSON, new Note(VALID_NOTE_BOB)).execute(model);
+        CommandResult replaceResult =
+                new NoteCommand(INDEX_FIRST_PERSON, new Note(VALID_NOTE_BOB)).execute(model);
         assertEquals("Replaced note of " + firstName + ".", replaceResult.getFeedbackToUser());
 
         CommandResult clearResult = new NoteCommand(INDEX_FIRST_PERSON, new Note("")).execute(model);
-        assertEquals("Cleared note of " + firstName + ". Use undo to revert.\nPrevious note: " + VALID_NOTE_BOB,
+        assertEquals("Cleared note of " + firstName + ". Use undo to revert.\nPrevious note: "
+                + VALID_NOTE_BOB,
                 clearResult.getFeedbackToUser());
 
         CommandResult clearAgainResult = new NoteCommand(INDEX_FIRST_PERSON, new Note("")).execute(model);

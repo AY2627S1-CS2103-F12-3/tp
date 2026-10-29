@@ -70,7 +70,8 @@ public class UniqueRoleListTest {
     @Test
     public void findByTitle_titleInDifferentCase_returnsRole() {
         uniqueRoleList.add(SOFTWARE_ENGINEER);
-        assertEquals(Optional.of(SOFTWARE_ENGINEER), uniqueRoleList.findByTitle(new RoleTitle("software ENGINEER")));
+        assertEquals(Optional.of(SOFTWARE_ENGINEER),
+                uniqueRoleList.findByTitle(new RoleTitle("software ENGINEER")));
     }
 
     @Test

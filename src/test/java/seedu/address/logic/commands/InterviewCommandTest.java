@@ -35,7 +35,8 @@ import seedu.address.testutil.PersonBuilder;
 public class InterviewCommandTest {
 
     /** Fixes today's date at 2026-10-28, so date warnings do not depend on when tests run. */
-    private static final Clock FIXED_CLOCK = Clock.fixed(Instant.parse("2026-10-28T00:00:00Z"), ZoneOffset.UTC);
+    private static final Clock FIXED_CLOCK =
+            Clock.fixed(Instant.parse("2026-10-28T00:00:00Z"), ZoneOffset.UTC);
     /** Keeps the common valid interview dates in the future for tests that do not concern date warnings. */
     private static final Clock BEFORE_VALID_INTERVIEWS_CLOCK =
             Clock.fixed(Instant.parse("2026-10-01T00:00:00Z"), ZoneOffset.UTC);
@@ -94,7 +95,8 @@ public class InterviewCommandTest {
                 .withInterview(VALID_INTERVIEW_BOB).build();
         model.setPerson(firstPerson, personWithInterview);
 
-        Person editedPerson = new PersonBuilder(personWithInterview).withInterview(VALID_INTERVIEW_AMY).build();
+        Person editedPerson = new PersonBuilder(personWithInterview)
+                .withInterview(VALID_INTERVIEW_AMY).build();
         InterviewCommand interviewCommand =
                 new InterviewCommand(INDEX_FIRST_PERSON, new Interview(VALID_INTERVIEW_AMY),
                         BEFORE_VALID_INTERVIEWS_CLOCK);
@@ -111,7 +113,8 @@ public class InterviewCommandTest {
     @Test
     public void execute_sameInterview_success() {
         Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person personWithInterview = new PersonBuilder(firstPerson).withInterview(VALID_INTERVIEW_AMY).build();
+        Person personWithInterview = new PersonBuilder(firstPerson)
+                .withInterview(VALID_INTERVIEW_AMY).build();
         model.setPerson(firstPerson, personWithInterview);
 
         InterviewCommand interviewCommand =
@@ -129,7 +132,8 @@ public class InterviewCommandTest {
     @Test
     public void execute_clearInterview_success() {
         Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person personWithInterview = new PersonBuilder(firstPerson).withInterview(VALID_INTERVIEW_AMY).build();
+        Person personWithInterview = new PersonBuilder(firstPerson)
+                .withInterview(VALID_INTERVIEW_AMY).build();
         model.setPerson(firstPerson, personWithInterview);
 
         Person editedPerson = new PersonBuilder(personWithInterview).withInterview(Interview.NONE).build();
@@ -268,7 +272,8 @@ public class InterviewCommandTest {
         model.setPerson(firstPerson, hiredPerson);
 
         Person editedPerson = new PersonBuilder(hiredPerson).withInterview(Interview.NONE).build();
-        InterviewCommand interviewCommand = new InterviewCommand(INDEX_FIRST_PERSON, Interview.NONE, FIXED_CLOCK);
+        InterviewCommand interviewCommand =
+                new InterviewCommand(INDEX_FIRST_PERSON, Interview.NONE, FIXED_CLOCK);
 
         String expectedMessage = String.format(InterviewCommand.MESSAGE_CLEAR_SUCCESS, firstPerson.getName());
 
@@ -283,7 +288,8 @@ public class InterviewCommandTest {
         Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         Person secondPerson = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
         Person thirdPerson = model.getFilteredPersonList().get(INDEX_THIRD_PERSON.getZeroBased());
-        Person secondWithInterview = new PersonBuilder(secondPerson).withInterview(VALID_INTERVIEW_AMY).build();
+        Person secondWithInterview = new PersonBuilder(secondPerson)
+                .withInterview(VALID_INTERVIEW_AMY).build();
         Person thirdWithInterview = new PersonBuilder(thirdPerson).withInterview(VALID_INTERVIEW_AMY).build();
         model.setPerson(secondPerson, secondWithInterview);
         model.setPerson(thirdPerson, thirdWithInterview);
@@ -317,7 +323,8 @@ public class InterviewCommandTest {
         Person secondWithInterview = new PersonBuilder(secondPerson).withName(longName)
                 .withInterview(VALID_INTERVIEW_AMY).build();
         Person thirdWithInterview = new PersonBuilder(thirdPerson).withInterview(VALID_INTERVIEW_AMY).build();
-        Person fourthWithInterview = new PersonBuilder(fourthPerson).withInterview(VALID_INTERVIEW_AMY).build();
+        Person fourthWithInterview = new PersonBuilder(fourthPerson)
+                .withInterview(VALID_INTERVIEW_AMY).build();
         model.setPerson(secondPerson, secondWithInterview);
         model.setPerson(thirdPerson, thirdWithInterview);
         model.setPerson(fourthPerson, fourthWithInterview);
@@ -351,7 +358,8 @@ public class InterviewCommandTest {
                 new InterviewCommand(INDEX_FIRST_PERSON, new Interview(pastInterview), FIXED_CLOCK);
 
         String expectedMessage = String.join("\n",
-                String.format(InterviewCommand.MESSAGE_SCHEDULE_SUCCESS, firstPerson.getName(), pastInterview),
+                String.format(InterviewCommand.MESSAGE_SCHEDULE_SUCCESS, firstPerson.getName(),
+                        pastInterview),
                 InterviewCommand.MESSAGE_PAST_WARNING,
                 String.format(InterviewCommand.MESSAGE_SAME_TIME, secondPerson.getName()));
 
@@ -391,7 +399,8 @@ public class InterviewCommandTest {
     public void execute_invalidIndexUnfilteredList_failure() {
         int listSize = model.getFilteredPersonList().size();
         Index outOfBoundIndex = Index.fromOneBased(listSize + 1);
-        InterviewCommand interviewCommand = new InterviewCommand(outOfBoundIndex, new Interview(VALID_INTERVIEW_AMY));
+        InterviewCommand interviewCommand =
+                new InterviewCommand(outOfBoundIndex, new Interview(VALID_INTERVIEW_AMY));
 
         assertCommandFailure(interviewCommand, model,
                 String.format(Messages.MESSAGE_PERSON_INDEX_OUT_OF_RANGE, listSize + 1, listSize));
@@ -405,7 +414,8 @@ public class InterviewCommandTest {
         // ensures that outOfBoundIndex is still in bounds of address book list
         assertTrue(outOfBoundIndex.getZeroBased() < model.getAddressBook().getPersonList().size());
 
-        InterviewCommand interviewCommand = new InterviewCommand(outOfBoundIndex, new Interview(VALID_INTERVIEW_AMY));
+        InterviewCommand interviewCommand =
+                new InterviewCommand(outOfBoundIndex, new Interview(VALID_INTERVIEW_AMY));
 
         assertCommandFailure(interviewCommand, model,
                 String.format(Messages.MESSAGE_PERSON_INDEX_OUT_OF_RANGE, 2, 1));
@@ -417,7 +427,8 @@ public class InterviewCommandTest {
         InterviewCommand interviewCommand =
                 new InterviewCommand(INDEX_FIRST_PERSON, new Interview(VALID_INTERVIEW_AMY));
 
-        assertCommandFailure(interviewCommand, model, String.format(Messages.MESSAGE_PERSON_INDEX_EMPTY_LIST, 1));
+        assertCommandFailure(interviewCommand, model,
+                String.format(Messages.MESSAGE_PERSON_INDEX_EMPTY_LIST, 1));
     }
 
     @Test

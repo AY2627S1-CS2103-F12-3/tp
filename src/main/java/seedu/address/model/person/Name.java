@@ -11,8 +11,9 @@ public class Name {
 
     public static final int MAX_LENGTH = 100;
 
-    public static final String MESSAGE_CONSTRAINTS = "Names should be 1 to " + MAX_LENGTH + " characters long "
-            + "and start with a letter. They can contain letters, digits, spaces and the symbols ' - . , / ( )";
+    public static final String MESSAGE_CONSTRAINTS = "Names should be 1 to " + MAX_LENGTH
+            + " characters long and start with a letter. "
+            + "They can contain letters, digits, spaces and the symbols ' - . , / ( )";
 
     /*
      * The first character must be a letter in any language, so blank names, names starting with a digit and

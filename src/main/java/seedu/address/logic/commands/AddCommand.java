@@ -78,7 +78,8 @@ public class AddCommand extends Command {
     }
 
     /**
-     * Returns {@code successMessage} followed by any warnings about the phone and email of {@code addedPerson}.
+     * Returns {@code successMessage} followed by any warnings about the phone and email of
+     * {@code addedPerson}.
      * Unlike an edit, every field of a new candidate is newly entered, so both fields are always checked.
      */
     private static String appendWarnings(String successMessage, Model model, Person addedPerson) {
@@ -107,7 +108,8 @@ public class AddCommand extends Command {
      */
     private Role findOpenRole(Model model) throws CommandException {
         Role role = model.findRole(toAdd.getRole())
-                .orElseThrow(() -> new CommandException(String.format(MESSAGE_ROLE_NOT_FOUND, toAdd.getRole())));
+                .orElseThrow(() -> new CommandException(
+                        String.format(MESSAGE_ROLE_NOT_FOUND, toAdd.getRole())));
 
         if (role.isClosed()) {
             throw new CommandException(String.format(MESSAGE_ROLE_CLOSED, role.getTitle()));

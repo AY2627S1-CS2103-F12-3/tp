@@ -51,7 +51,8 @@ public class EditCommandTest {
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(editedPerson).build();
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, descriptor);
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        String expectedMessage =
+                String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(model.getFilteredPersonList().get(0), editedPerson);
@@ -72,7 +73,8 @@ public class EditCommandTest {
                 .withPhone(VALID_PHONE_BOB).withTags(VALID_TAG_HUSBAND).build();
         EditCommand editCommand = new EditCommand(indexLastPerson, descriptor);
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        String expectedMessage =
+                String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(lastPerson, editedPerson);
@@ -137,7 +139,8 @@ public class EditCommandTest {
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptor());
         Person editedPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        String expectedMessage =
+                String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
 
@@ -153,7 +156,8 @@ public class EditCommandTest {
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
                 new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB).build());
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        String expectedMessage =
+                String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(model.getFilteredPersonList().get(0), editedPerson);
@@ -186,15 +190,18 @@ public class EditCommandTest {
         Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
 
         assertEditSuccess(INDEX_FIRST_PERSON,
-                new EditPersonDescriptorBuilder().withPhone(UNUSUAL_PHONE).withEmail(DOTLESS_DOMAIN_EMAIL).build(),
-                new PersonBuilder(firstPerson).withPhone(UNUSUAL_PHONE).withEmail(DOTLESS_DOMAIN_EMAIL).build(),
+                new EditPersonDescriptorBuilder().withPhone(UNUSUAL_PHONE)
+                        .withEmail(DOTLESS_DOMAIN_EMAIL).build(),
+                new PersonBuilder(firstPerson).withPhone(UNUSUAL_PHONE)
+                        .withEmail(DOTLESS_DOMAIN_EMAIL).build(),
                 Messages.MESSAGE_UNUSUAL_PHONE,
                 String.format(Messages.MESSAGE_DOTLESS_EMAIL_DOMAIN, "gmailcom"));
     }
 
     @Test
     public void execute_otherFieldEditedWithDotlessDomainEmail_successWithoutWarning() {
-        Person personWithDotlessDomain = replaceFirstPerson(builder -> builder.withEmail(DOTLESS_DOMAIN_EMAIL));
+        Person personWithDotlessDomain =
+                replaceFirstPerson(builder -> builder.withEmail(DOTLESS_DOMAIN_EMAIL));
 
         assertEditSuccess(INDEX_FIRST_PERSON,
                 new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build(),
@@ -203,7 +210,8 @@ public class EditCommandTest {
 
     @Test
     public void execute_emailCaseChangedForDotlessDomainEmail_successWithoutWarning() {
-        Person personWithDotlessDomain = replaceFirstPerson(builder -> builder.withEmail(DOTLESS_DOMAIN_EMAIL));
+        Person personWithDotlessDomain =
+                replaceFirstPerson(builder -> builder.withEmail(DOTLESS_DOMAIN_EMAIL));
         String upperCaseEmail = DOTLESS_DOMAIN_EMAIL.toUpperCase();
 
         // Emails are compared ignoring case, so this is the same email and is not checked again.
@@ -233,7 +241,8 @@ public class EditCommandTest {
         EditCommand editCommand = new EditCommand(index, descriptor);
 
         List<String> expectedLines = new ArrayList<>();
-        expectedLines.add(String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)));
+        expectedLines.add(
+                String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)));
         expectedLines.addAll(List.of(expectedWarnings));
         String expectedMessage = String.join("\n", expectedLines);
 
@@ -253,7 +262,8 @@ public class EditCommandTest {
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
                 new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build());
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        String expectedMessage =
+                String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(personWithNote, editedPerson);
@@ -271,7 +281,8 @@ public class EditCommandTest {
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
                 new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build());
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        String expectedMessage =
+                String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(hiredPerson, editedPerson);
@@ -282,14 +293,16 @@ public class EditCommandTest {
     @Test
     public void execute_personWithInterviewEdited_interviewPreserved() {
         Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person personWithInterview = new PersonBuilder(firstPerson).withInterview(VALID_INTERVIEW_BOB).build();
+        Person personWithInterview = new PersonBuilder(firstPerson)
+                .withInterview(VALID_INTERVIEW_BOB).build();
         model.setPerson(firstPerson, personWithInterview);
 
         Person editedPerson = new PersonBuilder(personWithInterview).withPhone(VALID_PHONE_BOB).build();
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
                 new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build());
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        String expectedMessage =
+                String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(personWithInterview, editedPerson);
@@ -336,11 +349,13 @@ public class EditCommandTest {
     public void execute_nameOfAnotherPerson_success() {
         Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         Person secondPerson = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
-        Person editedPerson = new PersonBuilder(secondPerson).withName(firstPerson.getName().fullName).build();
+        Person editedPerson = new PersonBuilder(secondPerson)
+                .withName(firstPerson.getName().fullName).build();
         EditCommand editCommand = new EditCommand(INDEX_SECOND_PERSON,
                 new EditPersonDescriptorBuilder().withName(firstPerson.getName().fullName).build());
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        String expectedMessage =
+                String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(secondPerson, editedPerson);

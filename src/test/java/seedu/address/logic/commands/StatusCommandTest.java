@@ -64,7 +64,8 @@ public class StatusCommandTest {
         for (Status original : new Status[]{Status.HIRED, Status.REJECTED, Status.WITHDRAWN}) {
             Person candidate = new PersonBuilder().withRole(CLOSED_DESIGNER.getTitle().value)
                     .withStatus(original).withNote("Retain history").withTags("referral").build();
-            setHiringCandidates(new PersonBuilder().withNameAndDistinctContacts("Other Candidate").build(), candidate);
+            setHiringCandidates(new PersonBuilder().withNameAndDistinctContacts("Other Candidate").build(),
+                    candidate);
             model.updateFilteredPersonList(person -> person.isSamePerson(candidate));
             for (Status pending : new Status[]{Status.RESUME, Status.INTERVIEW,
                 Status.OFFER, Status.DECISION}) {
@@ -133,7 +134,8 @@ public class StatusCommandTest {
 
     @Test
     public void execute_sameRoleInDifferentCase_rejectsSecondHire() {
-        Person hired = new PersonBuilder().withNameAndDistinctContacts("Hired Candidate").withRole("software engineer")
+        Person hired = new PersonBuilder().withNameAndDistinctContacts("Hired Candidate")
+                .withRole("software engineer")
                 .withStatus(Status.HIRED).build();
         Person pending = new PersonBuilder().build();
         setHiringCandidates(pending, hired);

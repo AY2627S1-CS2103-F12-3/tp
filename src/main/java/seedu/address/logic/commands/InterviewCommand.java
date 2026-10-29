@@ -31,14 +31,16 @@ public class InterviewCommand extends Command {
     public static final String EXAMPLE = COMMAND_WORD + " 1 d/2026-10-20 14:00";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Schedules an interview for the candidate identified by the index number used in the displayed "
-            + "candidate list, replacing any existing interview. Leave out d/ to clear the interview.\n"
+            + ": Schedules an interview for the candidate identified by the index number "
+            + "used in the displayed candidate list, replacing any existing interview. "
+            + "Leave out d/ to clear the interview.\n"
             + "Parameters: INDEX (must be a positive integer) [d/YYYY-MM-DD HH:MM]\n"
             + "Example: " + EXAMPLE;
 
     public static final String MESSAGE_SCHEDULE_SUCCESS = "Scheduled interview for %1$s on %2$s.";
     public static final String MESSAGE_CLEAR_SUCCESS = "Cleared interview for %1$s.";
-    public static final String MESSAGE_FAR_FUTURE_WARNING = "Warning: date is over a year ahead; check the year.";
+    public static final String MESSAGE_FAR_FUTURE_WARNING =
+            "Warning: date is over a year ahead; check the year.";
     public static final String MESSAGE_PAST_WARNING = "Warning: interview is in the past; check the date.";
     public static final String MESSAGE_FINAL_STATUS_WARNING = "Warning: candidate is %1$s.";
     public static final String MESSAGE_SAME_TIME = "Also at this time: %1$s.";
@@ -61,7 +63,8 @@ public class InterviewCommand extends Command {
      * Creates an InterviewCommand to set the interview of the person at {@code index} to {@code interview}.
      *
      * @param index Index of the person in the filtered person list.
-     * @param interview New interview of the person, which is {@link Interview#NONE} to clear the existing one.
+     * @param interview New interview of the person, which is {@link Interview#NONE} to clear
+     *         the existing one.
      */
     public InterviewCommand(Index index, Interview interview) {
         this(index, interview, Clock.systemDefaultZone());
@@ -71,7 +74,8 @@ public class InterviewCommand extends Command {
      * Creates an InterviewCommand that reads today's date from {@code clock}, so tests can fix the date.
      *
      * @param index Index of the person in the filtered person list.
-     * @param interview New interview of the person, which is {@link Interview#NONE} to clear the existing one.
+     * @param interview New interview of the person, which is {@link Interview#NONE} to clear
+     *         the existing one.
      * @param clock Clock that gives today's date, used to generate date warnings.
      */
     InterviewCommand(Index index, Interview interview, Clock clock) {
@@ -90,7 +94,8 @@ public class InterviewCommand extends Command {
         List<Person> lastShownList = model.getFilteredPersonList();
 
         if (index.getZeroBased() >= lastShownList.size()) {
-            throw new CommandException(Messages.getErrorMessageForInvalidPersonIndex(index, lastShownList.size()));
+            throw new CommandException(
+                    Messages.getErrorMessageForInvalidPersonIndex(index, lastShownList.size()));
         }
 
         Person personToEdit = lastShownList.get(index.getZeroBased());
@@ -115,13 +120,14 @@ public class InterviewCommand extends Command {
         if (!interview.isEmpty()) {
             findFinalStatusWarning(editedPerson).ifPresent(lines::add);
             findDateWarning().ifPresent(lines::add);
-            findSameTimeCandidates(model, editedPerson).ifPresent(lines::add);
+            findSameTimeWarning(model, editedPerson).ifPresent(lines::add);
         }
         return String.join("\n", lines);
     }
 
     /**
-     * Returns the success message for {@code editedPerson}, stating whether the interview was scheduled or cleared.
+     * Returns the success message for {@code editedPerson}, stating whether the interview was
+     * scheduled or cleared.
      */
     private String generateSuccessMessage(Person editedPerson) {
         String name = editedPerson.getName().fullName;
@@ -168,10 +174,10 @@ public class InterviewCommand extends Command {
     }
 
     /**
-     * Returns a line naming up to {@value #MAX_SAME_TIME_NAMES} other candidates with an interview at the
+     * Returns a warning naming up to {@value #MAX_SAME_TIME_NAMES} other candidates with an interview at the
      * same date and time, if any. All candidates are checked, including those hidden by the current filter.
      */
-    private Optional<String> findSameTimeCandidates(Model model, Person editedPerson) {
+    private Optional<String> findSameTimeWarning(Model model, Person editedPerson) {
         List<String> names = model.getAddressBook().getPersonList().stream()
                 .filter(candidate -> !candidate.isSamePerson(editedPerson))
                 .filter(candidate -> candidate.getInterview().equals(interview))
@@ -182,15 +188,15 @@ public class InterviewCommand extends Command {
         }
 
         int displayedNameCount = Math.min(names.size(), MAX_SAME_TIME_NAMES);
-        String displayedNames = names.stream()
+        String displayedNamesText = names.stream()
                 .limit(displayedNameCount)
                 .map(InterviewCommand::truncateName)
                 .collect(Collectors.joining(", "));
-        int otherCandidates = names.size() - displayedNameCount;
-        if (otherCandidates > 0) {
-            displayedNames += String.format(" (+%d others)", otherCandidates);
+        int otherCandidateCount = names.size() - displayedNameCount;
+        if (otherCandidateCount > 0) {
+            displayedNamesText += String.format(" (+%d others)", otherCandidateCount);
         }
-        return Optional.of(String.format(MESSAGE_SAME_TIME, displayedNames));
+        return Optional.of(String.format(MESSAGE_SAME_TIME, displayedNamesText));
     }
 
     /**
