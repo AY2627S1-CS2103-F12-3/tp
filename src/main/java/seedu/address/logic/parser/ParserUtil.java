@@ -5,6 +5,7 @@ import static seedu.address.logic.Messages.MESSAGE_INVALID_ROLE_DISPLAYED_INDEX;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
@@ -221,7 +222,7 @@ public class ParserUtil {
      */
     public static Status parseStatus(String status) throws ParseException {
         requireNonNull(status);
-        String normalizedStatus = status.trim().toUpperCase();
+        String normalizedStatus = status.trim().toUpperCase(Locale.ROOT);
         try {
             return Status.valueOf(normalizedStatus);
         } catch (IllegalArgumentException e) {

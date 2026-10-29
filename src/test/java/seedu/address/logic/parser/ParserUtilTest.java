@@ -8,6 +8,7 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -322,6 +323,17 @@ public class ParserUtilTest {
     @Test
     public void parseStatus_validValueWithWhitespace_returnsStatus() throws Exception {
         assertEquals(VALID_STATUS, ParserUtil.parseStatus(WHITESPACE + VALID_STATUS_STRING + WHITESPACE));
+    }
+
+    @Test
+    public void parseStatus_validInterviewValueWithTurkishLocale_returnsStatus() throws Exception {
+        Locale originalLocale = Locale.getDefault();
+        try {
+            Locale.setDefault(new Locale("tr", "TR"));
+            assertEquals(Status.INTERVIEW, ParserUtil.parseStatus("interview"));
+        } finally {
+            Locale.setDefault(originalLocale);
+        }
     }
 
     @Test
