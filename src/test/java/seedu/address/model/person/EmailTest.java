@@ -80,54 +80,60 @@ public class EmailTest {
     }
 
     @Test
-    public void findProblem_validEmail_returnsEmpty() {
-        assertEquals(Optional.empty(), Email.findProblem("peter.jack@example.com"));
-        assertEquals(Optional.empty(), Email.findProblem("a@bc"));
+    public void findValidationError_validEmail_returnsEmpty() {
+        assertEquals(Optional.empty(), Email.findValidationError("peter.jack@example.com"));
+        assertEquals(Optional.empty(), Email.findValidationError("a@bc"));
     }
 
     @Test
-    public void findProblem_invalidEmail_returnsSpecificMessage() {
-        assertProblem(Email.MESSAGE_EMPTY, "");
-        assertProblem(Email.MESSAGE_MISSING_AT, "peterjackexample.com");
-        assertProblem(Email.MESSAGE_MULTIPLE_AT, "peter@jack@example.com");
-        assertProblem(Email.MESSAGE_MISSING_NAME, "@example.com");
-        assertProblem(String.format(Email.MESSAGE_INVALID_CHARACTER, "“,”", "before"), "peter,jack@example.com");
-        assertProblem(Email.MESSAGE_LOCAL_PART_DOTS, ".peterjack@example.com");
-        assertProblem(Email.MESSAGE_LOCAL_PART_DOTS, "peterjack.@example.com");
-        assertProblem(Email.MESSAGE_LOCAL_PART_DOTS, "peter..jack@example.com");
-        assertProblem(String.format(Email.MESSAGE_INVALID_CHARACTER, "“_”", "after"), "peterjack@exam_ple.com");
-        assertProblem(Email.MESSAGE_DOMAIN_PARTS, "peterjack@"); // empty domain
-        assertProblem(Email.MESSAGE_DOMAIN_PARTS, "peterjack@.example.com");
-        assertProblem(Email.MESSAGE_DOMAIN_PARTS, "peterjack@example..com");
-        assertProblem(Email.MESSAGE_DOMAIN_PARTS, "peterjack@-example.com");
-        assertProblem(Email.MESSAGE_DOMAIN_PARTS, "peterjack@example-.com");
-        assertProblem(Email.MESSAGE_DOMAIN_ENDING, "peterjack@example.c");
+    public void findValidationError_invalidEmail_returnsSpecificMessage() {
+        assertValidationError(Email.MESSAGE_EMPTY, "");
+        assertValidationError(Email.MESSAGE_MISSING_AT, "peterjackexample.com");
+        assertValidationError(Email.MESSAGE_MULTIPLE_AT, "peter@jack@example.com");
+        assertValidationError(Email.MESSAGE_MISSING_NAME, "@example.com");
+        assertValidationError(String.format(Email.MESSAGE_INVALID_LOCAL_PART_CHARACTER, "“,”"),
+                "peter,jack@example.com");
+        assertValidationError(Email.MESSAGE_LOCAL_PART_DOTS, ".peterjack@example.com");
+        assertValidationError(Email.MESSAGE_LOCAL_PART_DOTS, "peterjack.@example.com");
+        assertValidationError(Email.MESSAGE_LOCAL_PART_DOTS, "peter..jack@example.com");
+        assertValidationError(String.format(Email.MESSAGE_INVALID_DOMAIN_CHARACTER, "“_”"),
+                "peterjack@exam_ple.com");
+        assertValidationError(Email.MESSAGE_DOMAIN_PARTS, "peterjack@"); // empty domain
+        assertValidationError(Email.MESSAGE_DOMAIN_PARTS, "peterjack@.example.com");
+        assertValidationError(Email.MESSAGE_DOMAIN_PARTS, "peterjack@example..com");
+        assertValidationError(Email.MESSAGE_DOMAIN_PARTS, "peterjack@-example.com");
+        assertValidationError(Email.MESSAGE_DOMAIN_PARTS, "peterjack@example-.com");
+        assertValidationError(Email.MESSAGE_DOMAIN_ENDING, "peterjack@example.c");
     }
 
     @Test
-    public void findProblem_invisibleCharacter_namesCharacter() {
-        assertProblem(String.format(Email.MESSAGE_INVALID_CHARACTER, "a space", "before"), "peter jack@example.com");
-        assertProblem(String.format(Email.MESSAGE_INVALID_CHARACTER, "a tab", "after"), "peterjack@exam\tple.com");
-        assertProblem(String.format(Email.MESSAGE_INVALID_CHARACTER, "a new line", "before"), "peter\njack@a.com");
-        assertProblem(String.format(Email.MESSAGE_INVALID_CHARACTER, "“é”", "before"), "pétér@example.com");
-        assertProblem(String.format(Email.MESSAGE_INVALID_CHARACTER, "a quotation mark", "before"),
+    public void findValidationError_invisibleCharacter_namesCharacter() {
+        assertValidationError(String.format(Email.MESSAGE_INVALID_LOCAL_PART_CHARACTER, "a space"),
+                "peter jack@example.com");
+        assertValidationError(String.format(Email.MESSAGE_INVALID_DOMAIN_CHARACTER, "a tab"),
+                "peterjack@exam\tple.com");
+        assertValidationError(String.format(Email.MESSAGE_INVALID_LOCAL_PART_CHARACTER, "a new line"),
+                "peter\njack@a.com");
+        assertValidationError(String.format(Email.MESSAGE_INVALID_LOCAL_PART_CHARACTER, "“é”"),
+                "pétér@example.com");
+        assertValidationError(String.format(Email.MESSAGE_INVALID_LOCAL_PART_CHARACTER, "a quotation mark"),
                 "\"peterjack\"@example.com");
     }
 
     @Test
-    public void findProblem_severalProblems_returnsFirstInCheckOrder() {
-        assertProblem(Email.MESSAGE_MULTIPLE_AT, "peter jack@@example.com"); // '@' count before characters
-        assertProblem(Email.MESSAGE_MISSING_NAME, "@exam_ple.com"); // missing name before domain problems
-        assertProblem(String.format(Email.MESSAGE_INVALID_CHARACTER, "“,”", "before"),
+    public void findValidationError_severalProblems_returnsFirstInCheckOrder() {
+        assertValidationError(Email.MESSAGE_MULTIPLE_AT, "peter jack@@example.com"); // '@' count before characters
+        assertValidationError(Email.MESSAGE_MISSING_NAME, "@exam_ple.com"); // missing name before domain problems
+        assertValidationError(String.format(Email.MESSAGE_INVALID_LOCAL_PART_CHARACTER, "“,”"),
                 "peter,..jack@example.com"); // characters before dots
-        assertProblem(Email.MESSAGE_LOCAL_PART_DOTS, "peter..jack@exam_ple.com"); // local part before domain
-        assertProblem(String.format(Email.MESSAGE_INVALID_CHARACTER, "“_”", "after"),
+        assertValidationError(Email.MESSAGE_LOCAL_PART_DOTS, "peter..jack@exam_ple.com"); // local part before domain
+        assertValidationError(String.format(Email.MESSAGE_INVALID_DOMAIN_CHARACTER, "“_”"),
                 "peterjack@-exam_ple.c"); // domain characters before domain parts
-        assertProblem(Email.MESSAGE_DOMAIN_PARTS, "peterjack@-example.c"); // domain parts before ending length
+        assertValidationError(Email.MESSAGE_DOMAIN_PARTS, "peterjack@-example.c"); // domain parts before ending length
     }
 
-    private static void assertProblem(String expectedMessage, String email) {
-        assertEquals(Optional.of(expectedMessage), Email.findProblem(email));
+    private static void assertValidationError(String expectedMessage, String email) {
+        assertEquals(Optional.of(expectedMessage), Email.findValidationError(email));
         assertFalse(Email.isValidEmail(email));
     }
 

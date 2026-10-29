@@ -161,9 +161,9 @@ public class ParserUtil {
     public static Email parseEmail(String email) throws ParseException {
         requireNonNull(email);
         String trimmedEmail = email.trim();
-        Optional<String> problem = Email.findProblem(trimmedEmail);
-        if (problem.isPresent()) {
-            throw new ParseException(problem.get());
+        Optional<String> validationError = Email.findValidationError(trimmedEmail);
+        if (validationError.isPresent()) {
+            throw new ParseException(validationError.get());
         }
         return new Email(trimmedEmail);
     }

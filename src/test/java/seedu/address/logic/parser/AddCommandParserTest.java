@@ -227,7 +227,7 @@ public class AddCommandParserTest {
 
         // space inside email is named in the error
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + " e/bob choo@example.com" + ADDRESS_DESC_BOB
-                + ROLE_DESC_BOB, String.format(Email.MESSAGE_INVALID_CHARACTER, "a space", "before"));
+                + ROLE_DESC_BOB, String.format(Email.MESSAGE_INVALID_LOCAL_PART_CHARACTER, "a space"));
 
         // invalid address
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + INVALID_ADDRESS_DESC

@@ -27,7 +27,8 @@ public class Email {
     public static final String MESSAGE_MISSING_AT = "Email is missing an @, e.g. name@example.com.";
     public static final String MESSAGE_MULTIPLE_AT = "Email can contain only one @.";
     public static final String MESSAGE_MISSING_NAME = "Email needs a name before the @, e.g. name@example.com.";
-    public static final String MESSAGE_INVALID_CHARACTER = "Email cannot contain %1$s %2$s the @.";
+    public static final String MESSAGE_INVALID_LOCAL_PART_CHARACTER = "Email cannot contain %1$s before the @.";
+    public static final String MESSAGE_INVALID_DOMAIN_CHARACTER = "Email cannot contain %1$s after the @.";
     public static final String MESSAGE_LOCAL_PART_DOTS =
             "Before the @, a dot cannot come first, last, or twice in a row.";
     public static final String MESSAGE_DOMAIN_PARTS = "After the @, each part between dots must start and end "
@@ -60,7 +61,7 @@ public class Email {
      * Returns true if a given string is a valid email.
      */
     public static boolean isValidEmail(String test) {
-        return findProblem(test).isEmpty();
+        return findValidationError(test).isEmpty();
     }
 
     /**
@@ -68,7 +69,7 @@ public class Email {
      * or an empty {@code Optional} if {@code test} is valid.
      * The checks run in a fixed order, so an email with several problems always reports the same one.
      */
-    public static Optional<String> findProblem(String test) {
+    public static Optional<String> findValidationError(String test) {
         requireNonNull(test);
         if (test.isEmpty()) {
             return Optional.of(MESSAGE_EMPTY);
@@ -85,20 +86,20 @@ public class Email {
         int atIndex = test.indexOf('@');
         String localPart = test.substring(0, atIndex);
         String domain = test.substring(atIndex + 1);
-        return findLocalPartProblem(localPart).or(() -> findDomainProblem(domain));
+        return findLocalPartError(localPart).or(() -> findDomainError(domain));
     }
 
     /**
      * Returns a message describing the first problem with the part of an email before the {@code @}, if any.
      */
-    private static Optional<String> findLocalPartProblem(String localPart) {
+    private static Optional<String> findLocalPartError(String localPart) {
         if (localPart.isEmpty()) {
             return Optional.of(MESSAGE_MISSING_NAME);
         }
 
         Optional<String> invalidCharacter = findInvalidCharacter(localPart, LOCAL_PART_CHARACTER);
         if (invalidCharacter.isPresent()) {
-            return Optional.of(String.format(MESSAGE_INVALID_CHARACTER, invalidCharacter.get(), "before"));
+            return Optional.of(String.format(MESSAGE_INVALID_LOCAL_PART_CHARACTER, invalidCharacter.get()));
         }
 
         boolean hasMisplacedDot = localPart.startsWith(".") || localPart.endsWith(".") || localPart.contains("..");
@@ -111,10 +112,10 @@ public class Email {
     /**
      * Returns a message describing the first problem with the part of an email after the {@code @}, if any.
      */
-    private static Optional<String> findDomainProblem(String domain) {
+    private static Optional<String> findDomainError(String domain) {
         Optional<String> invalidCharacter = findInvalidCharacter(domain, DOMAIN_CHARACTER);
         if (invalidCharacter.isPresent()) {
-            return Optional.of(String.format(MESSAGE_INVALID_CHARACTER, invalidCharacter.get(), "after"));
+            return Optional.of(String.format(MESSAGE_INVALID_DOMAIN_CHARACTER, invalidCharacter.get()));
         }
 
         // A limit of -1 keeps empty parts, so an empty domain or a leading, trailing or doubled dot is caught.
