@@ -22,7 +22,7 @@ RecruiterBuddy supports the following features:
 * **Interview tracking:** Record or reschedule a candidate's recruiter interview date and time as a free-text candidate note. Checking that interview dates and times are valid is planned for a future version.
 * **Role management:** Add, list, edit, and delete role openings. Edit a role's title or required experience level; renaming also updates all associated candidates without changing their other details or the role's status. A role can be deleted only if it has no candidates. Each role represents exactly one vacancy and has either an `OPEN` or `CLOSED` status.
 * **Role closure:** Close a role once every candidate for it has a final outcome (`HIRED`, `REJECTED`, or `WITHDRAWN`) and at most one is hired. The role's candidates are kept, and no new candidates can be added to it.
-* **Command guidance:** Open a help window that links to the User Guide, which covers the purpose, format, and examples of every command.
+* **Command guidance:** Use `help [COMMAND]` for an offline command overview or a specific command's syntax and examples in the result area. The Help menu and F1 show the overview.
 * **Data persistence:** Save changes automatically and restore saved candidate and role data when RecruiterBuddy starts.
 
 RecruiterBuddy focuses on tracking candidates and role openings within a department. It does not manage internal HR matters such as payroll, leave, or employee benefits. It also does not communicate with candidates or hiring managers, process resumes, or automatically assess whether candidates are suitable for a role.

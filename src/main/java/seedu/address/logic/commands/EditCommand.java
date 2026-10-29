@@ -91,14 +91,7 @@ public class EditCommand extends Command {
         Person personToEdit = lastShownList.get(index.getZeroBased());
         RoleTitle updatedRole = resolveRole(model, personToEdit);
         Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor, updatedRole);
-
-        // The candidate being edited is excluded, so keeping their own email or phone is not a duplicate.
-        Optional<Person> existingPerson = model.findSamePersonExcluding(editedPerson, personToEdit);
-        if (existingPerson.isPresent()) {
-            String message = Messages.getErrorMessageForDuplicatePerson(editedPerson, existingPerson.get());
-            logger.info("Rejected edit of candidate " + personToEdit.getName() + ": " + message);
-            throw new CommandException(message);
-        }
+        verifyNotDuplicate(model, personToEdit, editedPerson);
 
         boolean isRoleTransfer = isRoleChanged(personToEdit, updatedRole);
         if (isRoleTransfer) {
@@ -110,7 +103,47 @@ public class EditCommand extends Command {
         if (isRoleTransfer) {
             logger.info("Updated candidate role in memory at displayed index " + index.getOneBased() + ".");
         }
-        return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)));
+        String successMessage = String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        return new CommandResult(appendWarningsForChangedFields(successMessage, model, personToEdit, editedPerson));
+    }
+
+    /**
+     * Checks that no candidate other than {@code personToEdit} has the same email or phone number as
+     * {@code editedPerson}. The candidate being edited is excluded, so keeping their own email or phone
+     * is not a duplicate.
+     *
+     * @throws CommandException if such a candidate exists, with a message naming them and the shared field.
+     */
+    private static void verifyNotDuplicate(Model model, Person personToEdit, Person editedPerson)
+            throws CommandException {
+        Optional<Person> existingPerson = model.findSamePersonExcluding(editedPerson, personToEdit);
+        if (existingPerson.isPresent()) {
+            String message = Messages.getErrorMessageForDuplicatePerson(editedPerson, existingPerson.get());
+            logger.info("Rejected edit of candidate " + personToEdit.getName() + ": " + message);
+            throw new CommandException(message);
+        }
+    }
+
+    /**
+     * Returns {@code successMessage} followed by any warnings about the phone and email of {@code editedPerson}.
+     * Only a newly entered phone or email is checked, since warnings about a saved value were already shown
+     * when it was saved, and repeating them on every edit would hide new warnings.
+     */
+    private static String appendWarningsForChangedFields(String successMessage, Model model, Person personToEdit,
+            Person editedPerson) {
+        String resultMessage = successMessage;
+
+        boolean isPhoneChanged = !editedPerson.getPhone().equals(personToEdit.getPhone());
+        if (isPhoneChanged) {
+            resultMessage = PhoneChecks.appendPhoneWarnings(resultMessage, model, editedPerson);
+        }
+
+        // Emails are compared ignoring case, so changing only the case of an email is not a new email.
+        boolean isEmailChanged = !editedPerson.getEmail().isSameEmail(personToEdit.getEmail());
+        if (isEmailChanged) {
+            resultMessage = EmailChecks.appendEmailWarnings(resultMessage, editedPerson.getEmail());
+        }
+        return resultMessage;
     }
 
     /**
