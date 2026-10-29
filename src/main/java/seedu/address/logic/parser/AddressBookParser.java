@@ -56,7 +56,10 @@ public class AddressBookParser {
         // Lower level log messages are used sparingly to minimize noise in the code.
         logger.fine("Command word: " + commandWord + "; Arguments: " + arguments);
 
-        return switch (commandWord) {
+        // Help lookup is case-insensitive without changing the syntax of other commands.
+        String dispatchWord = HelpCommand.COMMAND_WORD.equalsIgnoreCase(commandWord)
+                ? HelpCommand.COMMAND_WORD : commandWord;
+        return switch (dispatchWord) {
             case AddCommand.COMMAND_WORD -> new AddCommandParser().parse(arguments);
             case RoleCommandParser.COMMAND_WORD -> new RoleCommandParser().parse(arguments);
             case EditCommand.COMMAND_WORD -> new EditCommandParser().parse(arguments);
@@ -67,7 +70,7 @@ public class AddressBookParser {
             case FindCommand.COMMAND_WORD -> new FindCommandParser().parse(arguments);
             case ListCommand.COMMAND_WORD -> new ListCommandParser().parse(arguments);
             case ExitCommand.COMMAND_WORD -> new ExitCommand();
-            case HelpCommand.COMMAND_WORD -> new HelpCommand();
+            case HelpCommand.COMMAND_WORD -> new HelpCommandParser().parse(arguments);
             case StatusCommand.COMMAND_WORD -> new StatusCommandParser().parse(arguments);
             case UndoCommand.COMMAND_WORD -> new UndoCommand();
             case RedoCommand.COMMAND_WORD -> new RedoCommand();

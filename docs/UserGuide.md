@@ -28,7 +28,7 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
 
-1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
+1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to read the offline command guide in the result area.<br>
    Some example commands you can try:
 
    * `list` : Lists all candidates.
@@ -72,20 +72,36 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
 * A parameter may contain text such as `s/o` or `c/o`, as long as it is not one of the command's prefixes.<br>
   For example, in `n/Ravi s/o Kumar` the name is `Ravi s/o Kumar`, because `s/` is not a prefix of `add`.
 
-* Extraneous parameters for `help`, `exit`, and `clear` are ignored.<br>
-  For example, `help 123` is interpreted as `help`. `list` accepts only `list` or `list role`; anything else is rejected.
+* Extraneous parameters for `exit` and `clear` are ignored. `help` accepts at most one command name.
+  `list` accepts only `list` or `list role`; anything else is rejected.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </box>
 
 ### Viewing help: `help`
 
-Shows a message explaining how to access the help page.
+Shows every supported command's purpose, syntax and example in the result area. No internet
+connection is needed. The result area expands for help, wraps long lines and can be scrolled
+vertically. The candidate and role lists remain visible.
 
-![help message](images/helpMessage.png)
+Format: `help [COMMAND]`
 
-Format: `help`
+* `help` shows the complete guide; `help COMMAND` shows only that command's syntax, purpose and examples.
+* Supported topics: `add`, `edit`, `delete`, `note`, `interview`, `status`, `find`, `list`, `role`,
+  `clear`, `undo`, `redo`, `exit` and `help`.
+* Help keywords are case-insensitive: `HELP ADD` and `help add` show the same instructions. This does
+  not change the casing accepted when executing other commands.
+* `help list` explains both `list` and `list role`. `help role` explains `role add`, `role edit`,
+  `role close` and `role delete`. Subcommands are grouped under these single-word topics;
+  `help list role` is not supported.
+* An unknown topic shows: `No help is available for “COMMAND”. Use help to view all commands.`
+* More than one argument shows: `Help accepts at most one command name.`
 
+Examples: `help`, `help add`, `help role`.
+
+The **Help** menu and **F1** show the same overview. Viewing help does not change candidates,
+roles, either list's filter, the data file or undo/redo history. The next command replaces the
+guide with its usual result message.
 
 ### Adding a candidate: `add`
 
@@ -486,9 +502,12 @@ Format: `exit`
 
 ### Saving the data
 
-RecruiterBuddy automatically stores `data/addressbook.json` (containing candidate and role data), `preferences.json`, and log files in the folder containing the JAR file, regardless of the terminal's working directory. Candidate and role data is saved automatically when a command executes
-successfully, including commands such as `list` that do not change records. You do not need to save
-manually. Commands rejected during parsing or validation do not trigger a save.
+RecruiterBuddy automatically stores `data/addressbook.json` (containing candidate and role data),
+`preferences.json`, and log files in the folder containing the JAR file, regardless of the terminal's
+working directory. Candidate and role data is saved automatically after every successful command
+except `help`, including commands such as `list` that do not change records. You do not need to save
+manually. Viewing help, including through the Help menu or F1, does not save recruitment data.
+Commands rejected during parsing or validation do not trigger a save.
 
 Upon startup, RecruiterBuddy automatically loads saved data from the folder where the JAR file is located. Saved roles retain their titles, required experience levels, and `OPEN` or `CLOSED` statuses after
 restarting. Candidates associated with closed roles are retained too. If no data file exists,
@@ -496,14 +515,15 @@ RecruiterBuddy starts with sample roles and candidates, not an empty data set.
 
 If saving fails, an error reports the file-access problem instead of the normal success message.
 Changes already made may remain in the current session without being saved. Resolve the file-access
-problem and run a successful command to retry saving before exiting.
+problem and run `list` successfully to retry saving before exiting. Viewing help does not retry saving.
 
 **Caution:** due to changes in Status names, save files from v1.3 and earlier are incompatible with later versions and will fail to load. Please backup obsolete save files and manually change any invalid Status names to valid ones (see below for information on editing the save file).
 
 ### Editing the data file
 
 RecruiterBuddy saves data in `data/addressbook.json`, relative to the folder containing the JAR file, regardless of the terminal's working directory.
-The file is created after the first successfully executed command.
+If no data file exists on startup, the first successful command other than `help` creates it.
+Viewing help does not create the recruitment data file.
 Advanced users may edit this JSON file while the application is closed. Back it up first.
 
 The file contains a `persons` array for candidates and a `roles` array for role openings.
@@ -595,7 +615,6 @@ _Details coming soon ..._
 ## Known issues
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
-2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -619,4 +638,4 @@ Action     | Format, Examples
 **Role close** | `role close INDEX`<br> e.g., `list role` followed by `role close 1`
 **Role delete** | `role delete INDEX`<br> e.g., `list role` followed by `role delete 1`
 **Status** | `status INDEX... st/STATUS`<br> e.g., `status 1 2 3 st/HIRED`
-**Help**   | `help`
+**Help**   | `help [COMMAND]`<br> e.g., `help role`

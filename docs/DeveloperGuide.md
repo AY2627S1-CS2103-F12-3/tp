@@ -16,7 +16,7 @@
 * This project builds on [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) by the
   [SE-EDU initiative](https://se-education.org). Its existing architecture and documentation form the
   starting point for RecruiterBuddy.
-* Kavin Parthipan (`kpkavin04`) used OpenAI Codex to assist with requirements analysis, implementation, tests, review, and documentation for candidate role reassignment, the persistent role model, role commands, role-card summaries, role workflow diagnostics, associated candidate-status and displayed-list safeguards, and safe startup after recruitment-data loading failures. This acknowledgement covers that contribution, not other team members' tool usage.
+* Kavin Parthipan (`kpkavin04`) used OpenAI Codex to assist with requirements analysis, implementation, tests, review, and documentation for candidate role reassignment, the persistent role model, role commands, role-card summaries, role workflow diagnostics, associated candidate-status and displayed-list safeguards, safe startup after recruitment-data loading failures, and the offline command guide. This acknowledgement covers that contribution, not other team members' tool usage.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -202,13 +202,37 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Offline command guide
+
+`HelpCommandParser` accepts zero or one command name. More than one token is rejected with the
+dedicated extra-argument message. `AddressBookParser` recognizes the help keyword without case
+sensitivity, without changing dispatch for other commands.
+
+`HelpCommand` returns a non-undoable `CommandResult` containing `CommandGuide#getOverview()` when
+no topic is supplied, or `CommandGuide#findHelp()` for a single topic. Lookup uses `Locale.ROOT` so
+case-insensitive matching is independent of the machine's language settings. Unknown topics produce
+a `CommandException` naming the original input; neither failure path changes the model.
+`CommandGuide` keeps instructions in a stable command order and reuses existing `MESSAGE_USAGE`
+definitions where available. This avoids a second source of truth for command parameters and examples.
+
+`MainWindow` displays help in the existing `ResultDisplay`, with additional height, wrapped text and
+vertical scrolling. The Help menu and F1 use the same overview without opening a separate window.
+Both recruitment lists remain visible; no filter or recruitment record changes.
+
+`LogicManager` skips the normal save specifically for `HelpCommand`. Reading instructions therefore
+works even when saving recruitment data would fail, and does not create an undo snapshot or discard redo
+history. Other commands retain their existing saving behavior. Help is bundled with the JAR and needs
+no network connection or additional files.
+
 ### Candidate Statuses
 
 #### Representation and Persistence
 
 The 'Status' enum defines seven candidate statuses: `RESUME`, `INTERVIEW`, `OFFER`, `DECISION`, `HIRED`, `REJECTED`, and `WITHDRAWN`. The first four are _pending_ statuses; the remaining three are _final_ statuses. New candidates are assigned the `RESUME` status by default.
 
-When stored candidate data has no status, loading it defaults to `RESUME`. Upon successful execution of any command, `LogicManager` saves the complete addressbook, and `JsonAdaptedPerson` writes each status using its exact enum name.
+When stored candidate data has no status, loading it defaults to `RESUME`. Upon successful execution
+of any command except `HelpCommand`, `LogicManager` saves the complete address book, and
+`JsonAdaptedPerson` writes each status using its exact enum name. Viewing help does not trigger a save.
 
 An unrecognized stored value causes data loading to fail and invokes the recovery process described in [Protecting unreadable recruitment data](#protecting-unreadable-recruitment-data).
 
@@ -296,8 +320,11 @@ Saving occurs in `LogicManager` after the command returns successfully, as descr
 
 #### Saving and restoring associations
 
-After a command executes successfully, `LogicManager#execute` asks `Storage` to save the complete
-address book, including both collections. This also happens for successful read-only commands.
+After a command other than `HelpCommand` executes successfully, `LogicManager#execute` asks `Storage`
+to save the complete address book, including both collections. This also happens for successful
+read-only commands such as `list`. `HelpCommand` returns before the save call, so viewing help neither
+creates the recruitment data file nor retries a failed save. After resolving a file-access problem,
+the user can run `list` successfully to retry saving.
 Parsing and command-validation failures do not reach the save call. Save errors become
 `CommandException`s; earlier in-memory changes are not rolled back. Normal command saves are not
 transactional and do not create backups. Startup recovery below handles unreadable data separately.
@@ -1308,6 +1335,25 @@ testers are expected to do more *exploratory* testing.
    1. Relaunch the app by running the same command from the same folder.<br>
        Expected: The most recent window size and location are retained.
 
+### Offline help
+
+1. In a disposable JAR copy, run `find Alice`, then `help`.
+   Expected: The result area shows the command guide, wraps long instructions and allows vertical
+   scrolling. Both lists and the candidate filter remain unchanged. Scroll to the final `help` entry.
+1. Use the Help menu and press F1 with the command box focused, then with the result area focused.
+   Expected: Each action displays the same overview without opening another window or replacing text
+   being typed in the command box. No internet connection is required.
+1. Run `list`. Expected: Normal result-area height is restored and command execution remains usable.
+1. Add a disposable role, run `help`, then `undo`, `help`, `redo`.
+   Expected: Undo removes the added role and redo restores it; help never becomes a history entry.
+1. Run `help add`, `HELP INTERVIEW`, `help status`, `help list`, `help role` and `help help`.
+   Expected: Only the requested topic is shown, using the currently supported syntax (`d/` for
+   interviews and `st/` for statuses). List help covers both lists; role help covers all four role
+   subcommands. Neither `help clear` nor `help exit` executes the command being described.
+1. Run `help NotACommand`, then `help list role`.
+   Expected: Respectively, `No help is available for “NotACommand”. Use help to view all commands.`
+   and `Help accepts at most one command name.` Data, filters and undo/redo history are unchanged.
+
 ### Role management
 
 Use a **disposable copy of the JAR in a separate empty folder**, with Java 25. Do not use real
@@ -1407,8 +1453,8 @@ Always switch back with `list` or `list role` before using indices for that list
 
 1. Run `find Alice`, then `role edit 1 x/Senior`.<br>
    Expected: The role-view guard asks for `list role`; no data changes. Run `list role`, then
-   `role edit 1 x/Senior`. The role card updates. Run `help` to return to the candidate view without
-   changing its filter; only Alice is still displayed. Run `list` to restore all candidates.
+   `role edit 1 x/Senior`. The role card updates. Run `help` to show the offline guide without
+   changing either list or its filter; only Alice is still displayed. Run `list` to restore all candidates.
 
 1. Run `list role` and try `role edit 0 x/Senior`, `role edit 99 x/Senior`, `role edit 1`,
    `role edit 1 x/`, `role edit 1 x/Junior x/Senior`, and `role edit 1 x/Senior r/`.<br>
@@ -1418,7 +1464,7 @@ Always switch back with `list` or `list role` before using indices for that list
    line separators, and control characters are not valid experience descriptions.
 
 1. Run `find Alice`, `list role`, then `role edit 1 r/Platform Engineer x/Senior`.<br>
-   Expected: `Edited role: Platform Engineer.` Both Alice and hidden Ben now refer to Platform Engineer; names, contact details, notes, tags and statuses are unchanged. The role remains OPEN, its experience is Senior, and the role view remains displayed. Run `help` to show candidates without resetting the filter; only Alice is displayed, with the new title. Run `list` to see both candidates. Restart and verify that the role and both associations persist.
+   Expected: `Edited role: Platform Engineer.` Both Alice and hidden Ben now refer to Platform Engineer; names, contact details, notes, tags and statuses are unchanged. The role remains OPEN and its experience is Senior. Run `help` to show the offline guide without resetting either list; only Alice is displayed, with the new title. Run `list` to see both candidates. Restart and verify that the role and both associations persist.
 
 1. Restore the fixture, run `list role`, then try `role edit 1 r/qa analyst x/Senior` and `role edit 1 r/QA Engineer r/Other`.<br>
    Expected: The first reports the duplicate QA Analyst title without changing experience or candidates; the second reports repeated `r/`. Repeat the duplicate check after closing the empty analyst role: its title remains reserved. An invalid title or experience in a combined edit must leave both fields and all candidates unchanged.
@@ -1680,8 +1726,10 @@ Close the application window before editing or moving data files.
 
 1. Missing file: while the app is closed, move `data/addressbook.json` to a backup location within the
    test folder. Restart.<br>
-   Expected: Sample roles and candidates appear, not empty lists. Close the window and restore the
-   backup before continuing with the other scenarios.
+   Expected: Sample roles and candidates appear, not empty lists. Run `help`, use the Help menu and
+   press F1: instructions appear, but `data/addressbook.json` is not created. Run `list` successfully:
+   the file is created with the displayed sample data. Close the window and restore the backup
+   before continuing with the other scenarios.
 
 1. Invalid file: back up the fixture file while the app is closed. Replace the JSON with `{` and restart.<br>
    Expected: A `Recruitment data backed up` warning identifies the full backup and replacement paths
