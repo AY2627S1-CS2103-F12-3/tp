@@ -3,6 +3,7 @@ package seedu.address.logic;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -35,11 +36,15 @@ public class Messages {
     public static final String MESSAGE_DUPLICATE_PHONE =
             "This phone number is already used by the candidate %1$s.";
     public static final String MESSAGE_POSSIBLE_DUPLICATE_PHONE =
-            "Note: this phone number may belong to other candidate(s): %1$s";
+            "Warning: this phone number may belong to other candidate(s): %1$s";
     public static final String MESSAGE_UNUSUAL_PHONE =
-            "Note: this doesn't look like a Singapore number. If overseas, add its country code, e.g. +60.";
+            "Warning: this doesn't look like a Singapore number. If overseas, add its country code, e.g. +60.";
     public static final String MESSAGE_DUPLICATE_FIELDS =
                 "Multiple values specified for the following single-valued field(s): ";
+    public static final String MESSAGE_UNCOMMON_EMAIL_SYMBOLS =
+            "Warning: the email has unusual symbols (%1$s). Check that it is not a typo.";
+    public static final String MESSAGE_DOTLESS_EMAIL_DOMAIN = "Warning: the email domain “%1$s” has no dot "
+            + "(e.g. example.com). Check that it is not a typo.";
 
     /**
      * Returns an error message indicating the duplicate prefixes.
@@ -65,6 +70,18 @@ public class Messages {
                 ? MESSAGE_DUPLICATE_EMAIL
                 : MESSAGE_DUPLICATE_PHONE;
         return String.format(message, existingPerson.getName());
+    }
+
+    /**
+     * Returns {@code message} followed by each of {@code warnings} on its own line,
+     * or {@code message} unchanged if there are no warnings.
+     */
+    public static String appendWarnings(String message, List<String> warnings) {
+        requireAllNonNull(message, warnings);
+        if (warnings.isEmpty()) {
+            return message;
+        }
+        return message + "\n" + String.join("\n", warnings);
     }
 
     /**

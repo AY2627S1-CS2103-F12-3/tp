@@ -38,9 +38,9 @@ public class InterviewCommand extends Command {
 
     public static final String MESSAGE_SCHEDULE_SUCCESS = "Scheduled interview for %1$s on %2$s.";
     public static final String MESSAGE_CLEAR_SUCCESS = "Cleared interview for %1$s.";
-    public static final String MESSAGE_FAR_FUTURE_WARNING = "Note: date is over a year ahead; check the year.";
-    public static final String MESSAGE_PAST_WARNING = "Note: interview is in the past; check the date.";
-    public static final String MESSAGE_FINAL_STATUS_WARNING = "Note: candidate is %1$s.";
+    public static final String MESSAGE_FAR_FUTURE_WARNING = "Warning: date is over a year ahead; check the year.";
+    public static final String MESSAGE_PAST_WARNING = "Warning: interview is in the past; check the date.";
+    public static final String MESSAGE_FINAL_STATUS_WARNING = "Warning: candidate is %1$s.";
     public static final String MESSAGE_SAME_TIME = "Also at this time: %1$s.";
 
     /** Interviews further ahead than this are more likely to have a mistyped year. */

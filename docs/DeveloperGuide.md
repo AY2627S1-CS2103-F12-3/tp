@@ -599,12 +599,43 @@ The following activity diagram summarizes what happens when a user executes a ne
 
 _{more aspects and alternatives to be added}_
 
+### Candidate email validation
+
+`Email` checks the part before the `@` (the local part) and the part after it (the domain) separately. The local part follows the unquoted (dot-atom) form of [RFC 5322](https://www.rfc-editor.org/rfc/rfc5322#section-3.2.3), which is also the form the [HTML standard](https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address) accepts for email inputs. It may contain letters, digits and the symbols ``! # $ % & ' * + - / = ? ^ _ ` { | } ~``, with dots only between other characters, so a dot is never first, last, or next to another dot. The domain follows the rules for internet host names: parts separated by dots, each made of letters, digits and hyphens, and not starting or ending with a hyphen. The last part must be at least 2 characters long, as every top-level domain such as `com` or `sg` is. Hyphens may be consecutive inside a part, as in the encoded non-English domain `xn--80ak6aa92e.com`.
+
+`Email#findValidationError` is the only validator. It runs the checks in a fixed order (the `@`, then the part before it, then the domain) and returns a message naming the first problem found, such as `Email cannot contain “,” before the @.` `Email#isValidEmail` returns true exactly when `findValidationError` finds nothing, so the error messages cannot disagree with what is rejected. Both `ParserUtil#parseEmail` and `JsonAdaptedPerson` show the specific message. Related problems share one message where the cause is easy to spot once the user knows which part to look at, such as a dot that comes first, last, or twice in a row before the `@`.
+
+Two kinds of valid email are likely typos. `Email#getUncommonSymbols` returns the symbols before the `@` other than `. _ - + '`, which major email providers do not issue, such as `#` in `john#doe@example.com`. `Email#hasDotlessDomain` returns true for a domain such as `gmailcom`. `Email` accepts both, but `AddCommand` and `EditCommand` add a warning for each to their success message through `EmailChecks#appendEmailWarnings`, which works like `PhoneChecks#appendPhoneWarnings`. `EditCommand` checks the email only when it changes, ignoring case, so editing another field of a candidate does not repeat the warnings. Loading the data file never warns.
+
+#### Design considerations
+
+**Aspect: Which local parts are accepted**
+
+* **Alternative 1 (current choice):** The unquoted form of RFC 5322, with a warning for symbols other than `. _ - + '`.
+  * Pros: Every address that an email provider issues is accepted, the rule comes from a published standard, and a typo such as `john#doe@example.com` is still flagged.
+  * Cons: The user can ignore the warning and keep an address that is a typo.
+* **Alternative 2:** Only letters, digits and `. _ - + '`, the symbols that major email providers issue.
+  * Pros: A typo with another symbol can never be saved.
+  * Cons: Rejects some valid addresses.
+* **Alternative 3:** All of RFC 5322, including quoted local parts such as `"john doe"@example.com`.
+  * Pros: Accepts every valid address.
+  * Cons: A quoted local part can contain spaces and text such as ` a/`, which `ArgumentTokenizer` would read as the start of another field. Major email providers also do not issue such addresses.
+
+**Aspect: How a domain without a dot is handled**
+
+* **Alternative 1 (current choice):** Accept it and warn.
+  * Pros: Catches a likely typo, such as `gmailcom` for `gmail.com`, without rejecting a valid address.
+  * Cons: The user can ignore the warning and keep an address that is a typo.
+* **Alternative 2:** Reject it.
+  * Pros: A typo can never be saved.
+  * Cons: Rejects valid addresses.
+
 ### Candidate phone numbers
 
 `Phone` accepts 8 to 15 digits with an optional leading `+`, and removes spaces and hyphens before saving. Two kinds of phone problems are checked when a candidate is added or their phone number is edited:
 
 * **Exact duplicates are rejected.** `Person#isSamePerson` compares phone numbers with `Phone#equals`, which compares the saved digits exactly. `UniquePersonList` and the data-file loader use the same rule.
-* **Possible problems only add a note to the success message.** `PhoneChecks#appendPhoneWarnings` runs after `AddCommand` or `EditCommand` has stored the candidate. `EditCommand` calls it only when the phone number changes, so an unchanged number is not flagged again.
+* **Possible problems only add a warning to the success message.** `PhoneChecks#appendPhoneWarnings` runs after `AddCommand` or `EditCommand` has stored the candidate. `EditCommand` calls it only when the phone number changes, so an unchanged number is not flagged again.
   * `Phone#isPlausibleNumber` treats a number without a `+`, or with `+65`, as a Singapore number, which has 8 digits starting with 3, 6, 8 or 9. Numbers with another country code are not checked, since overseas formats vary.
   * `Phone#isPossiblySameNumber` compares numbers after removing the `+` and, if `65` is followed by exactly 8 digits, the `65`. So `+6591234567`, `6591234567` and `91234567` may be the same number, but are not exact duplicates.
 
@@ -612,14 +643,14 @@ _{more aspects and alternatives to be added}_
 
 **Aspect: What to do with a number that may be another candidate's**
 
-* **Alternative 1 (current choice):** Accept it and add a note naming the candidates whose number may be the same.
+* **Alternative 1 (current choice):** Accept it and add a warning naming the candidates whose number may be the same.
   * Pros: A real but unusual number, such as an overseas number written without its `+`, is never blocked.
-  * Cons: The user may miss the note and keep a duplicate.
+  * Cons: The user may miss the warning and keep a duplicate.
 * **Alternative 2:** Reject it, like an exact duplicate.
   * Pros: Duplicates cannot be added by mistake.
   * Cons: Wrongly blocks different numbers that happen to match, such as an overseas number without its country code. The loader would also have to reject such pairs, so data files saved by older versions could stop loading.
 
-The loader must keep using only the exact rule. Otherwise, a pair of candidates accepted with a note could be saved in a file that then fails to load.
+The loader must keep using only the exact rule. Otherwise, a pair of candidates accepted with a warning could be saved in a file that then fails to load.
 
 ### Candidate notes
 
@@ -1621,10 +1652,10 @@ Candidates list shows Alice at index 1 and Ben at index 2, both `Resume`.
       Expected: No candidate is added. The error message says the phone number is already used by Alex Yeoh.
 
    1. Test case: `add n/Kim Lee p/+65 8743 8807 e/kim@example.com a/Bedok r/Data Analyst`<br>
-      Expected: Kim Lee is added with `+6587438807`. The result has a note that the number may belong to `Alex Yeoh (87438807)`.
+      Expected: Kim Lee is added with `+6587438807`. The result has a warning that the number may belong to `Alex Yeoh (87438807)`.
 
    1. Test case: `add n/Tom Ong p/12345678 e/tom@example.com a/Bedok r/Data Analyst`<br>
-      Expected: Tom Ong is added. The result has a note that the number does not look like a Singapore number.
+      Expected: Tom Ong is added. The result has a warning that the number does not look like a Singapore number.
 
 ### Editing a candidate
 
@@ -1764,13 +1795,13 @@ Candidates list shows Alice at index 1 and Ben at index 2, both `Resume`.
       Expected: Bernice Yu's interview is set, and the result message adds `Also at this time: Alex Yeoh.`
 
    1. Test case: a date more than a year after today's date on your computer, e.g. `interview 2 d/2062-10-20 14:00`<br>
-      Expected: The interview is set, and the result message adds `Note: date is over a year ahead; check the year.`
+      Expected: The interview is set, and the result message adds `Warning: date is over a year ahead; check the year.`
 
    1. Test case: `status 2 st/REJECTED`, then `interview 2 d/DATE 10:00`, where `DATE` is any date after today's date on your computer, e.g. `2027-01-15`<br>
-      Expected: The interview is set, and the result message adds `Note: candidate is Rejected.`
+      Expected: The interview is set, and the result message adds `Warning: candidate is Rejected.`
 
    1. Test case: after the previous test case, `interview 2 d/2020-01-15 10:00`<br>
-      Expected: The past interview is set, and the result message adds `Note: interview is in the past; check the date.` It adds no line about Bernice Yu's status, because the interview already happened.
+      Expected: The past interview is set, and the result message adds `Warning: interview is in the past; check the date.` It adds no line about Bernice Yu's status, because the interview already happened.
 
    1. Test case: `interview 2`<br>
       Expected: The interview is cleared, and no warning lines are added.

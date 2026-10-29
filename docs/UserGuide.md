@@ -127,8 +127,17 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
 * `PHONE_NUMBER`:
   * Has 8 to 15 digits, with an optional `+` at the start.
   * Can include spaces and hyphens, such as `+65 9123-4567`.
-  * Without no country code is treated as a Singapore number. If it does not look like one (8 digits starting with 3, 6, 8 or 9), such as `12345678`, the candidate is still added, and the result includes a note reminding you to include the country code for an overseas number, such as `+60 12-345 6789`.
+  * A number without a country code is treated as a Singapore number. If it does not look like one (8 digits starting with 3, 6, 8 or 9), such as `12345678`, the candidate is still added, and the result includes a warning reminding you to include the country code for an overseas number, such as `+60 12-345 6789`.
   * Spaces and hyphens are ignored and removed when the number is saved, so `+65 9123-4567` is shown as `+6591234567`.
+* `EMAIL`:
+  * Looks like `name@example.com`.
+  * Before the `@`, can contain letters, digits and dots, plus:
+    * common symbols `_` `-` `+` `'`, such as in `o'brien@example.com`, which are accepted as usual.
+    * less common symbols `` ! # $ % & * / = ? ^ ` { | } ~ ``, such as in `john#doe@example.com`. These are also accepted, but the result includes a warning that the email may be a typo. If the symbol is intended, you can ignore the warning.
+  * A dot cannot come first, last, or twice in a row before the `@`.
+  * If the part after the `@` has no dot, such as in `john@gmailcom`, the email is also accepted, with a warning that it may be a typo.
+  * Emails with spaces inside them or with quotation marks, such as `"john doe"@example.com`, and emails with non-English letters, such as `josé@example.com`, are not supported.
+  * If the email is not valid, the error message names the problem, such as `Email cannot contain “,” before the @.`
 * `TAG`:
   * Contains one or more letters or digits, with no spaces or symbols.
   * Is displayed with the same capitalization as entered.
@@ -141,7 +150,7 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
   * Phone numbers are compared as saved, so `9123 4567` and `91234567` are the same number and cannot both be used.
   * A number that only differs from another candidate's by a `+` or the Singapore country code `65`, such as
     `+65 9123 4567`, `6591234567` and `91234567`, is still accepted, since it may be a different number.
-    The result includes a note naming every candidate whose number may be the same, so you can check.
+    The result includes a warning naming every candidate whose number may be the same, so you can check.
   * Overseas numbers written with and without their country code, such as `+60 12-345 6789` and
     `012-345 6789`, are not recognised as possibly the same number.
 * Candidates may share a name, as long as their emails and phone numbers are different.
@@ -369,7 +378,8 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITL
 * Edits the candidate at the specified `INDEX`. The index refers to the index number shown in the displayed candidate list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
-* `NAME` and `PHONE_NUMBER` follow the same rules as in [`add`](#adding-a-candidate-add), including typing `a/l` and `a/p` in names as `A/L` and `A/P`.
+* `NAME`, `PHONE_NUMBER` and `EMAIL` follow the same rules as in [`add`](#adding-a-candidate-add), including typing `a/l` and `a/p` in names as `A/L` and `A/P`.
+  The email warnings appear only when you change the email to a different address. Changing only its capitals does not count.
 * When editing tags, all of the candidate's existing tags are removed; adding tags is not cumulative.
 * As in [`add`](#adding-a-candidate-add), a tag typed more than once with the same capitalisation is saved only once.
 * To remove all of a candidate's tags, enter `t/` without a tag after it.
@@ -449,7 +459,7 @@ Format: `interview INDEX [d/YYYY-MM-DD HH:MM]`
 * The interview is shown on the candidate's card. The candidate's note and other details are not changed, and the displayed list stays as it is, so a filtered list remains filtered.
 * If the index is missing, is not a positive whole number, is past the end of the displayed list, or is followed by extra text before `d/`, the error message says which of these happened, so you can tell what to correct.
 * An interview that might be a mistake is still saved, but the result message adds a line about it, in this order:
-  * The interview is today or later, but the candidate's status is already `HIRED`, `REJECTED` or `WITHDRAWN`, for example `Note: candidate is Rejected.` If they are back in the process, update their status with [`status`](#updating-a-candidate-s-status-status).
+  * The interview is today or later, but the candidate's status is already `HIRED`, `REJECTED` or `WITHDRAWN`, for example `Warning: candidate is Rejected.` If they are back in the process, update their status with [`status`](#updating-a-candidate-s-status-status).
   * The date is before today, which may mean the date was mistyped. Historical interviews are still saved.
   * The date is more than a year from today, which may mean the year was mistyped. Today's date is taken from your computer.
   * Other candidates have an interview at the same date and time. The line `Also at this time:` names up to two of them, including candidates hidden by the current filter. Longer names are shortened, and any remaining candidates are shown as a count, for example `(+3 others)`.
@@ -577,13 +587,13 @@ For example, this complete file contains one role and no candidates:
 
 When editing candidates, roles and their associations:
 
-* Candidate names and phone numbers must follow the same rules as in [`add`](#adding-a-candidate-add).
+* Candidate names, phone numbers and emails must follow the same rules as in [`add`](#adding-a-candidate-add).
   Files from older versions may contain phone numbers with fewer than 8 digits, which need updating before the file can load.
 * Every role needs `title`, `experienceLevel`, and `status`. Title and experience values must satisfy
   the same constraints as `role add`; role status must be exactly `OPEN` or `CLOSED` in uppercase.
 * Do not repeat role titles, even with different capitalisation or experience levels.
 * No two candidates may share an email (ignoring case) or a phone number, following the same rules as in
-  [`add`](#adding-a-candidate-add). Numbers that `add` accepts with a note, such as `+6591234567` and
+  [`add`](#adding-a-candidate-add). Numbers that `add` accepts with a warning, such as `+6591234567` and
   `91234567`, load normally.
 * Each candidate's `role` field must name an existing role, ignoring case. It may name a closed role,
   because closing preserves candidates. On loading, the role's stored capitalisation is used for
