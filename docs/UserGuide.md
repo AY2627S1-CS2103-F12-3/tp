@@ -28,7 +28,7 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
 
-1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
+1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to read the offline command guide in the result area.<br>
    Some example commands you can try:
 
    * `list` : Lists all candidates.
@@ -72,20 +72,36 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
 * A parameter may contain text such as `s/o` or `c/o`, as long as it is not one of the command's prefixes.<br>
   For example, in `n/Ravi s/o Kumar` the name is `Ravi s/o Kumar`, because `s/` is not a prefix of `add`.
 
-* Extraneous parameters for `help`, `exit`, and `clear` are ignored.<br>
-  For example, `help 123` is interpreted as `help`. `list` accepts only `list` or `list role`; anything else is rejected.
+* Extraneous parameters for `exit` and `clear` are ignored. `help` accepts at most one command name.
+  `list` accepts only `list` or `list role`; anything else is rejected.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </box>
 
 ### Viewing help: `help`
 
-Shows a message explaining how to access the help page.
+Shows every supported command's purpose, syntax and example in the result area. No internet
+connection is needed. The result area expands for help, wraps long lines and can be scrolled
+vertically. The candidate and role lists remain visible.
 
-![help message](images/helpMessage.png)
+Format: `help [COMMAND]`
 
-Format: `help`
+* `help` shows the complete guide; `help COMMAND` shows only that command's syntax, purpose and examples.
+* Supported topics: `add`, `edit`, `delete`, `note`, `interview`, `status`, `find`, `list`, `role`,
+  `clear`, `undo`, `redo`, `exit` and `help`.
+* Help keywords are case-insensitive: `HELP ADD` and `help add` show the same instructions. This does
+  not change the casing accepted when executing other commands.
+* `help list` explains both `list` and `list role`. `help role` explains `role add`, `role edit`,
+  `role close` and `role delete`. Subcommands are grouped under these single-word topics;
+  `help list role` is not supported.
+* An unknown topic shows: `No help is available for “COMMAND”. Use help to view all commands.`
+* More than one argument shows: `Help accepts at most one command name.`
 
+Examples: `help`, `help add`, `help role`.
+
+The **Help** menu and **F1** show the same overview. Viewing help does not change candidates,
+roles, either list's filter, the data file or undo/redo history. The next command replaces the
+guide with its usual result message.
 
 ### Adding a candidate: `add`
 
@@ -104,6 +120,10 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
   * Can include spaces and hyphens, such as `+65 9123-4567`.
 
   Spaces and hyphens are ignored and removed when the number is saved, so `+65 9123-4567` is shown as `+6591234567`.
+
+  A number without a country code is treated as a Singapore number. If it does not look like one (8 digits
+  starting with 3, 6, 8 or 9), such as `12345678`, the candidate is still added, and the result includes a note
+  reminding you to include the country code for an overseas number, such as `+60 12-345 6789`.
 * `EMAIL`:
   * Looks like `name@example.com`.
   * Before the `@`, can contain letters, digits and dots, plus:
@@ -117,7 +137,12 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
 * `ROLE` is matched ignoring case; for example, `r/software engineer` matches the role `Software Engineer`. The candidate is saved with the role's own spelling of the title.
 * Each candidate needs their own email and phone number. A candidate cannot be added if another candidate already uses the same email or the same phone number, and the error message names that candidate.
   * Emails are compared ignoring case, so `Alex@Example.com` and `alex@example.com` are the same email.
-  * Phone numbers are compared exactly as saved, so `+6591234567` and `91234567` are different numbers. Type phone numbers in one consistent format, such as always without the country code.
+  * Phone numbers are compared as saved, so `9123 4567` and `91234567` are the same number and cannot both be used.
+  * A number that only differs from another candidate's by a `+` or the Singapore country code `65`, such as
+    `+65 9123 4567`, `6591234567` and `91234567`, is still accepted, since it may be a different number.
+    The result includes a note naming every candidate whose number may be the same, so you can check.
+  * Overseas numbers written with and without their country code, such as `+60 12-345 6789` and
+    `012-345 6789`, are not recognised as possibly the same number.
 * Candidates may share a name, as long as their emails and phone numbers are different.
 * Each candidate applies for one role. Since their email and phone number stay the same, the same person cannot be added again for a second role.
 * Newly added candidates are automatically assigned the status `RESUME`, displayed as `Resume`.
@@ -126,6 +151,7 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
 <box type="tip" seamless>
 
 **Tip:** A candidate can have any number of tags, including zero.
+A tag typed more than once with the same capitalisation is saved only once, so `t/java t/java` gives the candidate a single `java` tag.
 </box>
 
 <box type="tip" seamless>
@@ -353,6 +379,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITL
 * `NAME`, `PHONE_NUMBER` and `EMAIL` follow the same rules as in [`add`](#adding-a-candidate-add), including typing `a/l` and `a/p` in names as `A/L` and `A/P`.
   The email warnings appear only when you change the email to a different address. Changing only its capitals does not count.
 * When editing tags, all of the candidate's existing tags are removed; adding tags is not cumulative.
+* As in [`add`](#adding-a-candidate-add), a tag typed more than once with the same capitalisation is saved only once.
 * To remove all of a candidate's tags, enter `t/` without a tag after it.
 * Use `r/ROLE_TITLE` to correct the candidate's role, on its own or with other edits. The title must
   match an existing role, ignoring case and surrounding spaces; the saved title uses that role's spelling.
@@ -367,6 +394,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITL
   same [role-title rules](#adding-a-role-role-add) as role creation.
 * The new email and phone number must not be used by another candidate, following the same rules as in
   [`add`](#adding-a-candidate-add). Keeping a candidate's own email or phone number is fine.
+* When `p/` changes the phone number, the result includes the same phone number notes as `add`, if any apply.
 * Success shows `Edited candidate: ...` with the updated name and details, refreshes the candidate
   list to show all candidates, and saves the change. Validation failures leave records and filters unchanged.
 
@@ -413,8 +441,15 @@ Format: `interview INDEX [d/YYYY-MM-DD HH:MM]`
 * Past dates are accepted, so you can record interviews that have already happened.
 * A new interview replaces the candidate's existing interview. Each candidate has at most one interview.
 * To clear a candidate's interview, enter `interview INDEX` without `d/`. An empty `d/` is rejected, so a mistyped date never clears an interview by accident.
-* Clearing a candidate who has no interview, or entering the same date and time again, still succeeds and shows the usual result message. The candidate's details stay the same.
+* Clearing a candidate who has no interview, or entering the same date and time again, still succeeds. The candidate's details stay the same.
 * The interview is shown on the candidate's card. The candidate's note and other details are not changed, and the displayed list stays as it is, so a filtered list remains filtered.
+* If the index is missing, is not a positive whole number, is past the end of the displayed list, or is followed by extra text before `d/`, the error message says which of these happened, so you can tell what to correct.
+* An interview that might be a mistake is still saved, but the result message adds a line about it, in this order:
+  * The interview is today or later, but the candidate's status is already `HIRED`, `REJECTED` or `WITHDRAWN`, for example `Note: candidate is Rejected.` If they are back in the process, update their status with [`status`](#updating-a-candidate-s-status-status).
+  * The date is before today, which may mean the date was mistyped. Historical interviews are still saved.
+  * The date is more than a year from today, which may mean the year was mistyped. Today's date is taken from your computer.
+  * Other candidates have an interview at the same date and time. The line `Also at this time:` names up to two of them, including candidates hidden by the current filter. Longer names are shortened, and any remaining candidates are shown as a count, for example `(+3 others)`.
+* Sorting and filtering candidates by interview date are not supported yet, and are planned for a future version.
 
 Examples:
 *  `interview 1 d/2026-10-20 14:00` Schedules an interview for the 1st candidate on 20 October 2026 at 2pm.
@@ -496,9 +531,12 @@ Format: `exit`
 
 ### Saving the data
 
-RecruiterBuddy automatically stores `data/addressbook.json` (containing candidate and role data), `preferences.json`, and log files in the folder containing the JAR file, regardless of the terminal's working directory. Candidate and role data is saved automatically when a command executes
-successfully, including commands such as `list` that do not change records. You do not need to save
-manually. Commands rejected during parsing or validation do not trigger a save.
+RecruiterBuddy automatically stores `data/addressbook.json` (containing candidate and role data),
+`preferences.json`, and log files in the folder containing the JAR file, regardless of the terminal's
+working directory. Candidate and role data is saved automatically after every successful command
+except `help`, including commands such as `list` that do not change records. You do not need to save
+manually. Viewing help, including through the Help menu or F1, does not save recruitment data.
+Commands rejected during parsing or validation do not trigger a save.
 
 Upon startup, RecruiterBuddy automatically loads saved data from the folder where the JAR file is located. Saved roles retain their titles, required experience levels, and `OPEN` or `CLOSED` statuses after
 restarting. Candidates associated with closed roles are retained too. If no data file exists,
@@ -506,14 +544,15 @@ RecruiterBuddy starts with sample roles and candidates, not an empty data set.
 
 If saving fails, an error reports the file-access problem instead of the normal success message.
 Changes already made may remain in the current session without being saved. Resolve the file-access
-problem and run a successful command to retry saving before exiting.
+problem and run `list` successfully to retry saving before exiting. Viewing help does not retry saving.
 
 **Caution:** due to changes in Status names, save files from v1.3 and earlier are incompatible with later versions and will fail to load. Please backup obsolete save files and manually change any invalid Status names to valid ones (see below for information on editing the save file).
 
 ### Editing the data file
 
 RecruiterBuddy saves data in `data/addressbook.json`, relative to the folder containing the JAR file, regardless of the terminal's working directory.
-The file is created after the first successfully executed command.
+If no data file exists on startup, the first successful command other than `help` creates it.
+Viewing help does not create the recruitment data file.
 Advanced users may edit this JSON file while the application is closed. Back it up first.
 
 The file contains a `persons` array for candidates and a `roles` array for role openings.
@@ -540,7 +579,8 @@ When editing candidates, roles and their associations:
   the same constraints as `role add`; role status must be exactly `OPEN` or `CLOSED` in uppercase.
 * Do not repeat role titles, even with different capitalisation or experience levels.
 * No two candidates may share an email (ignoring case) or a phone number, following the same rules as in
-  [`add`](#adding-a-candidate-add).
+  [`add`](#adding-a-candidate-add). Numbers that `add` accepts with a note, such as `+6591234567` and
+  `91234567`, load normally.
 * Each candidate's `role` field must name an existing role, ignoring case. It may name a closed role,
   because closing preserves candidates. On loading, the role's stored capitalisation is used for
   its candidates. If you rename a role in the file, update every associated candidate's `role` too.
@@ -605,7 +645,6 @@ _Details coming soon ..._
 ## Known issues
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
-2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -629,4 +668,4 @@ Action     | Format, Examples
 **Role close** | `role close INDEX`<br> e.g., `list role` followed by `role close 1`
 **Role delete** | `role delete INDEX`<br> e.g., `list role` followed by `role delete 1`
 **Status** | `status INDEX... st/STATUS`<br> e.g., `status 1 2 3 st/HIRED`
-**Help**   | `help`
+**Help**   | `help [COMMAND]`<br> e.g., `help role`

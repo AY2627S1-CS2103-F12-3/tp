@@ -16,7 +16,7 @@
 * This project builds on [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) by the
   [SE-EDU initiative](https://se-education.org). Its existing architecture and documentation form the
   starting point for RecruiterBuddy.
-* Kavin Parthipan (`kpkavin04`) used OpenAI Codex to assist with requirements analysis, implementation, tests, review, and documentation for candidate role reassignment, the persistent role model, role commands, role-card summaries, role workflow diagnostics, associated candidate-status and displayed-list safeguards, and safe startup after recruitment-data loading failures. This acknowledgement covers that contribution, not other team members' tool usage.
+* Kavin Parthipan (`kpkavin04`) used OpenAI Codex to assist with requirements analysis, implementation, tests, review, and documentation for candidate role reassignment, the persistent role model, role commands, role-card summaries, role workflow diagnostics, associated candidate-status and displayed-list safeguards, safe startup after recruitment-data loading failures, and the offline command guide. This acknowledgement covers that contribution, not other team members' tool usage.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -202,13 +202,37 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Offline command guide
+
+`HelpCommandParser` accepts zero or one command name. More than one token is rejected with the
+dedicated extra-argument message. `AddressBookParser` recognizes the help keyword without case
+sensitivity, without changing dispatch for other commands.
+
+`HelpCommand` returns a non-undoable `CommandResult` containing `CommandGuide#getOverview()` when
+no topic is supplied, or `CommandGuide#findHelp()` for a single topic. Lookup uses `Locale.ROOT` so
+case-insensitive matching is independent of the machine's language settings. Unknown topics produce
+a `CommandException` naming the original input; neither failure path changes the model.
+`CommandGuide` keeps instructions in a stable command order and reuses existing `MESSAGE_USAGE`
+definitions where available. This avoids a second source of truth for command parameters and examples.
+
+`MainWindow` displays help in the existing `ResultDisplay`, with additional height, wrapped text and
+vertical scrolling. The Help menu and F1 use the same overview without opening a separate window.
+Both recruitment lists remain visible; no filter or recruitment record changes.
+
+`LogicManager` skips the normal save specifically for `HelpCommand`. Reading instructions therefore
+works even when saving recruitment data would fail, and does not create an undo snapshot or discard redo
+history. Other commands retain their existing saving behavior. Help is bundled with the JAR and needs
+no network connection or additional files.
+
 ### Candidate Statuses
 
 #### Representation and Persistence
 
 The 'Status' enum defines seven candidate statuses: `RESUME`, `INTERVIEW`, `OFFER`, `DECISION`, `HIRED`, `REJECTED`, and `WITHDRAWN`. The first four are _pending_ statuses; the remaining three are _final_ statuses. New candidates are assigned the `RESUME` status by default.
 
-When stored candidate data has no status, loading it defaults to `RESUME`. Upon successful execution of any command, `LogicManager` saves the complete addressbook, and `JsonAdaptedPerson` writes each status using its exact enum name.
+When stored candidate data has no status, loading it defaults to `RESUME`. Upon successful execution
+of any command except `HelpCommand`, `LogicManager` saves the complete address book, and
+`JsonAdaptedPerson` writes each status using its exact enum name. Viewing help does not trigger a save.
 
 An unrecognized stored value causes data loading to fail and invokes the recovery process described in [Protecting unreadable recruitment data](#protecting-unreadable-recruitment-data).
 
@@ -296,8 +320,11 @@ Saving occurs in `LogicManager` after the command returns successfully, as descr
 
 #### Saving and restoring associations
 
-After a command executes successfully, `LogicManager#execute` asks `Storage` to save the complete
-address book, including both collections. This also happens for successful read-only commands.
+After a command other than `HelpCommand` executes successfully, `LogicManager#execute` asks `Storage`
+to save the complete address book, including both collections. This also happens for successful
+read-only commands such as `list`. `HelpCommand` returns before the save call, so viewing help neither
+creates the recruitment data file nor retries a failed save. After resolving a file-access problem,
+the user can run `list` successfully to retry saving.
 Parsing and command-validation failures do not reach the save call. Save errors become
 `CommandException`s; earlier in-memory changes are not rolled back. Normal command saves are not
 transactional and do not create backups. Startup recovery below handles unreadable data separately.
@@ -617,6 +644,28 @@ Two kinds of valid email are likely typos. `Email#getUncommonSymbols` returns th
   * Pros: A typo can never be saved.
   * Cons: Rejects valid addresses.
 
+### Candidate phone numbers
+
+`Phone` accepts 8 to 15 digits with an optional leading `+`, and removes spaces and hyphens before saving. Two kinds of phone problems are checked when a candidate is added or their phone number is edited:
+
+* **Exact duplicates are rejected.** `Person#isSamePerson` compares phone numbers with `Phone#equals`, which compares the saved digits exactly. `UniquePersonList` and the data-file loader use the same rule.
+* **Possible problems only add a note to the success message.** `PhoneChecks#appendPhoneWarnings` runs after `AddCommand` or `EditCommand` has stored the candidate. `EditCommand` calls it only when the phone number changes, so an unchanged number is not flagged again.
+  * `Phone#isPlausibleNumber` treats a number without a `+`, or with `+65`, as a Singapore number, which has 8 digits starting with 3, 6, 8 or 9. Numbers with another country code are not checked, since overseas formats vary.
+  * `Phone#isPossiblySameNumber` compares numbers after removing the `+` and, if `65` is followed by exactly 8 digits, the `65`. So `+6591234567`, `6591234567` and `91234567` may be the same number, but are not exact duplicates.
+
+#### Design considerations
+
+**Aspect: What to do with a number that may be another candidate's**
+
+* **Alternative 1 (current choice):** Accept it and add a note naming the candidates whose number may be the same.
+  * Pros: A real but unusual number, such as an overseas number written without its `+`, is never blocked.
+  * Cons: The user may miss the note and keep a duplicate.
+* **Alternative 2:** Reject it, like an exact duplicate.
+  * Pros: Duplicates cannot be added by mistake.
+  * Cons: Wrongly blocks different numbers that happen to match, such as an overseas number without its country code. The loader would also have to reject such pairs, so data files saved by older versions could stop loading.
+
+The loader must keep using only the exact rule. Otherwise, a pair of candidates accepted with a note could be saved in a file that then fails to load.
+
 ### Candidate notes
 
 Each `Person` has a `Note`, a free-text field for details such as a candidate's skills or availability. Interview dates and times have their own field, described in [Candidate interviews](#candidate-interviews). An empty note means the candidate has no note, and the candidate card hides it.
@@ -655,13 +704,21 @@ Strict resolving is needed because the default resolver silently adjusts `2026-0
 
 #### Scheduling or clearing an interview
 
-`InterviewCommandParser` tokenizes the arguments with the `d/` prefix. The preamble must be exactly one index. If `d/` is present, `ParserUtil#parseInterview` runs the two checks above and creates the `Interview`. If `d/` is left out, the parser uses `Interview.NONE`, so `interview 1` clears the first candidate's interview. An empty `d/` is rejected with the format error instead of clearing the interview, so a user who forgets to type the date does not lose the existing one.
+`InterviewCommandParser` tokenizes the arguments with the `d/` prefix. The preamble must be exactly one index. A missing index, an index joined to `d/` without a space, an index that is not a positive whole number, and extra text after the index each get their own error message, so the user can tell what to correct. If `d/` is present, `ParserUtil#parseInterview` runs the two checks above and creates the `Interview`. If `d/` is left out, the parser uses `Interview.NONE`, so `interview 1` clears the first candidate's interview. An empty `d/` is rejected with the format error instead of clearing the interview, so a user who forgets to type the date does not lose the existing one.
 
 The sequence diagram below shows how `interview 1 d/2026-10-20 14:00` is executed, including the two date and time checks and the branch that clears the interview when `d/` is left out.
 
 <puml src="diagrams/InterviewSequenceDiagram.puml" alt="Interactions for the interview 1 d/2026-10-20 14:00 command" />
 
 `InterviewCommand#execute` looks up the candidate in the displayed candidate list and replaces it with `Person#withInterview`, a copy that has the new interview. A candidate has only one interview, so scheduling another one replaces the previous interview, and `interview INDEX` replaces it with `Interview.NONE`. Unlike `note`, it does not reset the candidate filter, so a recruiter can schedule interviews for a filtered list by its displayed numbers. Clearing a candidate with no interview, or giving the same date and time again, succeeds without changing the data, as `note` does for notes.
+
+After saving a new interview, `InterviewCommand` checks whether it might be a mistake and adds a line to the result message for each of these cases, in this order:
+
+* The candidate's status is final (`HIRED`, `REJECTED` or `WITHDRAWN`), using `Status#isPending`, and the interview is today or later. This line comes first, as it suggests the interview may not be needed at all. A past interview is not checked, as recording one is how a recruiter keeps the history of a candidate who already has an outcome.
+* The date is before today, or more than a year after today. The interview is still saved so that historical interviews can be recorded, but the warning helps catch a mistyped year. Today's date comes from a `Clock`, which is the system clock in the app and a fixed clock in tests.
+* Other candidates in the whole address book, including those hidden by the filter, have an interview at the same date and time. The line `Also at this time:` shows at most two names, shortens names longer than 30 characters, and reports how many additional candidates share the slot.
+
+Clearing an interview is never checked.
 
 Other commands that rebuild a `Person`, such as `edit`, `note`, and `status`, copy the existing interview across, so they never change it.
 
@@ -688,6 +745,15 @@ Interviews are stored as the `interview` field of each candidate in the JSON dat
 * **Alternative 2:** A sentinel date, such as `0000-01-01 00:00`.
   * Pros: Every interview has a real `LocalDateTime`.
   * Cons: The sentinel could be shown or sorted as if it were a real interview, and a user could enter the same value.
+
+**Aspect: How unusual interviews are handled**
+
+* **Alternative 1 (current choice):** Save the interview and add a line to the result message.
+  * Pros: Each case can be legitimate, such as a panel interviewing two candidates at once, or recording an interview for a candidate who was later rejected. The recruiter is not blocked, but still sees a likely mistake.
+  * Cons: A recruiter who does not read the result message can miss the warning.
+* **Alternative 2:** Reject the interview.
+  * Pros: A mistyped year cannot be saved.
+  * Cons: Valid interviews would be refused, and the recruiter would need a way to override the check.
 
 ### \[Proposed\] Data archiving
 
@@ -881,6 +947,9 @@ Use case ends.
 * 4a. The candidate already has an interview recorded, and the interview is being rescheduled.
   * 4a1. RecruiterBuddy replaces the earlier date and time with the new ones.
   * Use case resumes at step 5.
+* 4b. The interview might be a mistake: it is before today or more than a year from today, the candidate already has a final outcome, or another candidate has an interview at the same date and time.
+  * 4b1. RecruiterBuddy records the interview, and points out each possible mistake when confirming it.
+  * Use case ends.
 
 #### UC05 — Save and Load Data
 
@@ -1339,6 +1408,25 @@ testers are expected to do more *exploratory* testing.
    1. Relaunch the app by running the same command from the same folder.<br>
        Expected: The most recent window size and location are retained.
 
+### Offline help
+
+1. In a disposable JAR copy, run `find Alice`, then `help`.
+   Expected: The result area shows the command guide, wraps long instructions and allows vertical
+   scrolling. Both lists and the candidate filter remain unchanged. Scroll to the final `help` entry.
+1. Use the Help menu and press F1 with the command box focused, then with the result area focused.
+   Expected: Each action displays the same overview without opening another window or replacing text
+   being typed in the command box. No internet connection is required.
+1. Run `list`. Expected: Normal result-area height is restored and command execution remains usable.
+1. Add a disposable role, run `help`, then `undo`, `help`, `redo`.
+   Expected: Undo removes the added role and redo restores it; help never becomes a history entry.
+1. Run `help add`, `HELP INTERVIEW`, `help status`, `help list`, `help role` and `help help`.
+   Expected: Only the requested topic is shown, using the currently supported syntax (`d/` for
+   interviews and `st/` for statuses). List help covers both lists; role help covers all four role
+   subcommands. Neither `help clear` nor `help exit` executes the command being described.
+1. Run `help NotACommand`, then `help list role`.
+   Expected: Respectively, `No help is available for “NotACommand”. Use help to view all commands.`
+   and `Help accepts at most one command name.` Data, filters and undo/redo history are unchanged.
+
 ### Role management
 
 Use a **disposable copy of the JAR in a separate empty folder**, with Java 25. Do not use real
@@ -1438,8 +1526,8 @@ Always switch back with `list` or `list role` before using indices for that list
 
 1. Run `find Alice`, then `role edit 1 x/Senior`.<br>
    Expected: The role-view guard asks for `list role`; no data changes. Run `list role`, then
-   `role edit 1 x/Senior`. The role card updates. Run `help` to return to the candidate view without
-   changing its filter; only Alice is still displayed. Run `list` to restore all candidates.
+   `role edit 1 x/Senior`. The role card updates. Run `help` to show the offline guide without
+   changing either list or its filter; only Alice is still displayed. Run `list` to restore all candidates.
 
 1. Run `list role` and try `role edit 0 x/Senior`, `role edit 99 x/Senior`, `role edit 1`,
    `role edit 1 x/`, `role edit 1 x/Junior x/Senior`, and `role edit 1 x/Senior r/`.<br>
@@ -1449,7 +1537,7 @@ Always switch back with `list` or `list role` before using indices for that list
    line separators, and control characters are not valid experience descriptions.
 
 1. Run `find Alice`, `list role`, then `role edit 1 r/Platform Engineer x/Senior`.<br>
-   Expected: `Edited role: Platform Engineer.` Both Alice and hidden Ben now refer to Platform Engineer; names, contact details, notes, tags and statuses are unchanged. The role remains OPEN, its experience is Senior, and the role view remains displayed. Run `help` to show candidates without resetting the filter; only Alice is displayed, with the new title. Run `list` to see both candidates. Restart and verify that the role and both associations persist.
+   Expected: `Edited role: Platform Engineer.` Both Alice and hidden Ben now refer to Platform Engineer; names, contact details, notes, tags and statuses are unchanged. The role remains OPEN and its experience is Senior. Run `help` to show the offline guide without resetting either list; only Alice is displayed, with the new title. Run `list` to see both candidates. Restart and verify that the role and both associations persist.
 
 1. Restore the fixture, run `list role`, then try `role edit 1 r/qa analyst x/Senior` and `role edit 1 r/QA Engineer r/Other`.<br>
    Expected: The first reports the duplicate QA Analyst title without changing experience or candidates; the second reports repeated `r/`. Repeat the duplicate check after closing the empty analyst role: its title remains reserved. An invalid title or experience in a combined edit must leave both fields and all candidates unchanged.
@@ -1566,7 +1654,20 @@ Always switch back with `list` or `list role` before using indices for that list
       Expected: No candidate is added. The error message shows the correct `add` format, which includes `r/ROLE`.
 
    1. Test case: `add n/Alex Yeoh p/94567890 e/alex2@example.com a/Bedok r/Data Analyst`<br>
-      Expected: No candidate is added, because a candidate named Alex Yeoh already exists.
+      Expected: A second Alex Yeoh is added, because candidates may share a name if their emails and phone numbers differ.
+
+1. Adding a candidate with a duplicate or unusual phone number
+
+   1. Prerequisites: Start with the sample data. Alex Yeoh's phone number is `87438807`.
+
+   1. Test case: `add n/Kim Lee p/8743 8807 e/kim@example.com a/Bedok r/Data Analyst`<br>
+      Expected: No candidate is added. The error message says the phone number is already used by Alex Yeoh.
+
+   1. Test case: `add n/Kim Lee p/+65 8743 8807 e/kim@example.com a/Bedok r/Data Analyst`<br>
+      Expected: Kim Lee is added with `+6587438807`. The result has a note that the number may belong to `Alex Yeoh (87438807)`.
+
+   1. Test case: `add n/Tom Ong p/12345678 e/tom@example.com a/Bedok r/Data Analyst`<br>
+      Expected: Tom Ong is added. The result has a note that the number does not look like a Singapore number.
 
 ### Editing a candidate
 
@@ -1668,8 +1769,49 @@ Always switch back with `list` or `list role` before using indices for that list
    1. Test case: `interview 1 d/`<br>
       Expected: Alex Yeoh's interview is not cleared. The error message shows the required format.
 
-   1. Other incorrect interview commands to try: `interview`, `interview 0 d/2026-10-20 14:00`, `interview x d/2026-10-20 14:00` (where x is larger than the list size), `interview 1 d/2026-10-20 14:00 d/2026-10-21 14:00`<br>
-      Expected: No interview is changed and an error message is shown.
+   1. Test case: `interview 1 d/2026-10-20 14:00 d/2026-10-21 14:00`<br>
+      Expected: No interview is changed. The error message names the repeated `d/` prefix.
+
+1. Rejecting incorrect indices
+
+   1. Prerequisites: Start with the sample data and run `list`, so 6 candidates are shown.
+
+   1. Test case: `interview`<br>
+      Expected: The error message says the candidate index is missing and shows the command format.
+
+   1. Test case: `interview 0 d/2026-10-20 14:00`<br>
+      Expected: The error message says the index must be a positive whole number. Try `-1` and `a` too.
+
+   1. Test case: `interview 7 d/2026-10-20 14:00`<br>
+      Expected: The error message says there is no candidate 7 and to use an index from 1 to 6.
+
+   1. Test case: `interview 99999999999 d/2026-10-20 14:00`<br>
+      Expected: The error message says the index is larger than any list.
+
+   1. Test case: `interview 1 2026-10-20 14:00`<br>
+      Expected: The error message quotes the unexpected text `2026-10-20 14:00` and says to put the date and time after `d/`.
+
+   1. Test case: `interview 1d/2026-10-20 14:00`<br>
+      Expected: The error message says to put a space between the index and `d/`.
+
+1. Warning about interviews that might be mistakes
+
+   1. Prerequisites: Start with the sample data and run `list`. Alex Yeoh has an interview on `2026-10-20 14:00`.
+
+   1. Test case: `interview 2 d/2026-10-20 14:00`<br>
+      Expected: Bernice Yu's interview is set, and the result message adds `Also at this time: Alex Yeoh.`
+
+   1. Test case: a date more than a year after today's date on your computer, e.g. `interview 2 d/2062-10-20 14:00`<br>
+      Expected: The interview is set, and the result message adds `Note: date is over a year ahead; check the year.`
+
+   1. Test case: `status 2 st/REJECTED`, then `interview 2 d/DATE 10:00`, where `DATE` is any date after today's date on your computer, e.g. `2027-01-15`<br>
+      Expected: The interview is set, and the result message adds `Note: candidate is Rejected.`
+
+   1. Test case: after the previous test case, `interview 2 d/2020-01-15 10:00`<br>
+      Expected: The past interview is set, and the result message adds `Note: interview is in the past; check the date.` It adds no line about Bernice Yu's status, because the interview already happened.
+
+   1. Test case: `interview 2`<br>
+      Expected: The interview is cleared, and no warning lines are added.
 
 1. Keeping the filter
 
@@ -1711,8 +1853,10 @@ Close the application window before editing or moving data files.
 
 1. Missing file: while the app is closed, move `data/addressbook.json` to a backup location within the
    test folder. Restart.<br>
-   Expected: Sample roles and candidates appear, not empty lists. Close the window and restore the
-   backup before continuing with the other scenarios.
+   Expected: Sample roles and candidates appear, not empty lists. Run `help`, use the Help menu and
+   press F1: instructions appear, but `data/addressbook.json` is not created. Run `list` successfully:
+   the file is created with the displayed sample data. Close the window and restore the backup
+   before continuing with the other scenarios.
 
 1. Invalid file: back up the fixture file while the app is closed. Replace the JSON with `{` and restart.<br>
    Expected: A `Recruitment data backed up` warning identifies the full backup and replacement paths

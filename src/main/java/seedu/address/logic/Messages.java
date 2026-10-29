@@ -1,11 +1,13 @@
 package seedu.address.logic;
 
+import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import seedu.address.commons.core.index.Index;
 import seedu.address.logic.parser.Prefix;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Person;
@@ -22,12 +24,21 @@ public class Messages {
             "The role list is not displayed. Use list role first.";
     public static final String MESSAGE_INVALID_COMMAND_FORMAT = "Invalid command format!\n%1$s";
     public static final String MESSAGE_INVALID_PERSON_DISPLAYED_INDEX = "The candidate index provided is invalid.";
+    public static final String MESSAGE_PERSON_INDEX_OUT_OF_RANGE =
+            "There is no candidate %1$d in the displayed list. Use an index from 1 to %2$d.";
+    public static final String MESSAGE_PERSON_INDEX_EMPTY_LIST =
+            "There is no candidate %1$d because the displayed candidate list is empty. "
+            + "Run list to show all candidates.";
     public static final String MESSAGE_PERSON_LIST_NOT_DISPLAYED =
             "No candidate list is displayed. Run list before using a candidate index command.";
     public static final String MESSAGE_PERSONS_LISTED_OVERVIEW = "%1$d candidate(s) listed!";
     public static final String MESSAGE_DUPLICATE_EMAIL = "This email is already used by the candidate %1$s.";
     public static final String MESSAGE_DUPLICATE_PHONE =
             "This phone number is already used by the candidate %1$s.";
+    public static final String MESSAGE_POSSIBLE_DUPLICATE_PHONE =
+            "Note: this phone number may belong to other candidate(s): %1$s";
+    public static final String MESSAGE_UNUSUAL_PHONE =
+            "Note: this doesn't look like a Singapore number. If overseas, add its country code, e.g. +60.";
     public static final String MESSAGE_DUPLICATE_FIELDS =
                 "Multiple values specified for the following single-valued field(s): ";
     public static final String MESSAGE_UNCOMMON_EMAIL_SYMBOLS =
@@ -78,6 +89,23 @@ public class Messages {
             message.append("\n").append(String.format(MESSAGE_DOTLESS_EMAIL_DOMAIN, email.getDomain()));
         }
         return message.toString();
+    }
+
+    /**
+     * Returns an error message for {@code index} being past the end of the displayed candidate list,
+     * telling the user which indices they can use instead.
+     *
+     * @param index The index that has no candidate in the displayed list.
+     * @param displayedListSize The number of candidates in the displayed list.
+     */
+    public static String getErrorMessageForInvalidPersonIndex(Index index, int displayedListSize) {
+        requireNonNull(index);
+        assert index.getZeroBased() >= displayedListSize : "Message requested for an index in the list";
+
+        if (displayedListSize == 0) {
+            return String.format(MESSAGE_PERSON_INDEX_EMPTY_LIST, index.getOneBased());
+        }
+        return String.format(MESSAGE_PERSON_INDEX_OUT_OF_RANGE, index.getOneBased(), displayedListSize);
     }
 
     /**

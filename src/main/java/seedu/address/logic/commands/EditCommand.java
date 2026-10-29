@@ -111,7 +111,11 @@ public class EditCommand extends Command {
             logger.info("Updated candidate role in memory at displayed index " + index.getOneBased() + ".");
         }
         String successMessage = String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
-        // Only a newly entered email is checked, so other edits do not keep warning about a saved email.
+        // Only a newly entered phone or email is checked, so other edits do not repeat the same warnings.
+        boolean isPhoneChanged = !editedPerson.getPhone().equals(personToEdit.getPhone());
+        if (isPhoneChanged) {
+            successMessage = PhoneChecks.appendPhoneWarnings(successMessage, model, editedPerson);
+        }
         boolean isEmailChanged = !editedPerson.getEmail().isSameEmail(personToEdit.getEmail());
         if (isEmailChanged) {
             successMessage = Messages.appendEmailWarnings(successMessage, editedPerson.getEmail());
