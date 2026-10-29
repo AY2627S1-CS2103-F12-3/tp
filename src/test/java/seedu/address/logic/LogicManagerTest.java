@@ -230,6 +230,21 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_tagSpellingChange_isUndoable() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
+        logic.execute("add n/Alice Tan p/91234567 e/alice@example.com a/Bedok "
+                + "r/Software Engineer t/java");
+
+        logic.execute("edit 1 t/JAVA");
+        assertEquals("JAVA", model.getAddressBook().getPersonList().getFirst()
+                .getTags().stream().findFirst().orElseThrow().tagName);
+
+        logic.execute("undo");
+        assertEquals("java", model.getAddressBook().getPersonList().getFirst()
+                .getTags().stream().findFirst().orElseThrow().tagName);
+    }
+
+    @Test
     public void execute_addRoleCommand_roleAddedAndPersisted() throws Exception {
         Role role = new RoleBuilder().build();
         String addRoleCommand = "role add r/Software Engineer x/2 years";

@@ -57,7 +57,8 @@ public class LogicManager implements Logic {
         try {
             commandResult = command.execute(model);
             if (command.isUndoable()) {
-                if (stateBeforeCommand.equals(model.getAddressBook())) {
+                // AddressBook.equals is intentionally case-insensitive for tags, but tag spelling is persisted.
+                if (stateBeforeCommand.toString().equals(model.getAddressBook().toString())) {
                     model.discardAddressBookState();
                 } else {
                     model.commitAddressBookState();
