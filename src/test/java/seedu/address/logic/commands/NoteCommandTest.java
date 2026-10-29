@@ -193,10 +193,12 @@ public class NoteCommandTest {
 
     @Test
     public void execute_invalidIndexUnfilteredList_failure() {
-        Index outOfBoundIndex = Index.fromOneBased(model.getFilteredPersonList().size() + 1);
+        int listSize = model.getFilteredPersonList().size();
+        Index outOfBoundIndex = Index.fromOneBased(listSize + 1);
         NoteCommand noteCommand = new NoteCommand(outOfBoundIndex, new Note(VALID_NOTE_AMY));
 
-        assertCommandFailure(noteCommand, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        assertCommandFailure(noteCommand, model,
+                String.format(Messages.MESSAGE_PERSON_INDEX_OUT_OF_RANGE, listSize + 1, listSize));
     }
 
     @Test
@@ -209,7 +211,15 @@ public class NoteCommandTest {
 
         NoteCommand noteCommand = new NoteCommand(outOfBoundIndex, new Note(VALID_NOTE_AMY));
 
-        assertCommandFailure(noteCommand, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        assertCommandFailure(noteCommand, model, String.format(Messages.MESSAGE_PERSON_INDEX_OUT_OF_RANGE, 2, 1));
+    }
+
+    @Test
+    public void execute_emptyDisplayedList_failure() {
+        model.updateFilteredPersonList(person -> false);
+        NoteCommand noteCommand = new NoteCommand(INDEX_FIRST_PERSON, new Note(VALID_NOTE_AMY));
+
+        assertCommandFailure(noteCommand, model, String.format(Messages.MESSAGE_PERSON_INDEX_EMPTY_LIST, 1));
     }
 
     @Test
