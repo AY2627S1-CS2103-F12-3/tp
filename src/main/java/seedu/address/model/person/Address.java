@@ -26,7 +26,7 @@ public class Address {
      */
     public Address(String address) {
         requireNonNull(address);
-        String normalizedAddress = normalizeWhitespace(address);
+        String normalizedAddress = normalizeWhitespace(address.trim().replaceAll("\\s+", " "));
         checkArgument(isValidAddress(normalizedAddress), MESSAGE_CONSTRAINTS);
         value = normalizedAddress;
     }
