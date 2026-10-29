@@ -108,7 +108,7 @@ Model --> InterviewCommand : lastShownList
 deactivate Model
 
 note right of InterviewCommand
-Rejected if the index is out of range;
+Rejected if index is out of range;
 otherwise takes personToEdit at index.
 end note
 

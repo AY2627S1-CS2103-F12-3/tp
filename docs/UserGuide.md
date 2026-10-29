@@ -20,16 +20,25 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
 1. Ensure that Java `25` or later is installed on your computer.<br>
    **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
-1. Download the latest `.jar` file from [here](https://github.com/AY2627S1-CS2103-F12-3/tp/releases).
+2. Download the latest `.jar` file from [here](https://github.com/AY2627S1-CS2103-F12-3/tp/releases).
 
-1. Copy the file to an empty folder you want to use for RecruiterBuddy.
+3. Copy the file to an empty folder you want to use for RecruiterBuddy.
 
-1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
+4. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
 
-1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to read the offline command guide in the result area.<br>
-   Some example commands you can try:
+   <box type="warning" seamless>
+
+   **Caution:**
+   Always launch RecruiterBuddy this way. RecruiterBuddy creates its data, preferences, and log files
+   in the folder it is launched from. Other ways of launching it, such as double-clicking the JAR file,
+   may launch it from a different folder, depending on your operating system. RecruiterBuddy would then
+   create and use files in that folder instead of the JAR file's folder.
+   </box>
+
+5. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to read the offline command guide in the result area.<br>
+   Some other example commands you can try:
 
    * `list` : Lists all candidates.
    * `list role` : Lists all unique roles, with each role shown in its own box.
@@ -47,7 +56,7 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
 
    * `exit` : Exits the app.
 
-1. Refer to the [Features](#features) section below for details of each command.
+6. Refer to the [Features](#features) section below for details of each command.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -185,7 +194,6 @@ Examples:
 * `role add r/Manager, Sales x/5 years`
 
 On success, RecruiterBuddy shows `Added open role: ROLE_TITLE.` and saves the role with status `OPEN`.
-Run `list role` to display it; `role add` itself returns to the candidate list.
 
 If validation fails, no role is created:
 
@@ -214,7 +222,7 @@ Corrects a role's title or required experience level without removing the role o
 
 Format: `role edit INDEX [r/ROLE_TITLE] [x/EXPERIENCE_LEVEL]`
 
-* Run `list role` first. `INDEX` must be a positive integer shown in the current role list.
+* `INDEX` must be a positive integer shown in the current role list.
 * Supply at least one field, with each supplied prefix appearing only once. Either field order is accepted.
 * Values use the same title and experience constraints as [`role add`](#adding-a-role-role-add). Surrounding whitespace is removed. Titles remain unique across OPEN and CLOSED roles, ignoring case but not internal spaces.
 * Both OPEN and CLOSED roles may be corrected. Editing a closed role does not reopen it or transfer candidates to another opening.
@@ -222,18 +230,17 @@ Format: `role edit INDEX [r/ROLE_TITLE] [x/EXPERIENCE_LEVEL]`
 * Capitalization-only corrections update the role and all its candidates to the supplied spelling. Supplying unchanged values succeeds without changing the stored data.
 * After a rename, the old title is available for a new role. Existing candidates remain associated with the renamed role; the old title is not an alias.
 
-Examples, after running `list role`:
+Examples:
 
 * `role edit 1 x/5 years`
 * `role edit 1 r/Platform Engineer`
 * `role edit 1 r/Platform Engineer x/Senior`
 
-Success shows `Edited role: ROLE_TITLE.`, using the updated title. The role card refreshes, the role list stays displayed, and the complete change is saved automatically. Role and candidate filter predicates are preserved and reevaluated against the updated records.
+Success shows `Edited role: ROLE_TITLE.`, using the updated title. The role card refreshes, and the complete change is saved automatically. Role and candidate filter predicates are preserved and reevaluated against the updated records.
 
 Validation failures leave all records, filters, and the saved data unchanged:
 
 * Invalid or missing index: `Role index must refer to a displayed role.`
-* Candidate list displayed: `The role list is not displayed. Use list role first.`
 * No fields supplied: `At least one field to edit must be provided.`
 * Repeated prefix: `Multiple values specified for the following single-valued field(s): PREFIX`. If both prefixes repeat, the message names both.
 * Empty or invalid title: the same two-line role-title constraint message shown under
@@ -248,13 +255,13 @@ Ends recruitment while retaining the role and all its candidate records.
 
 Format: `role close INDEX`
 
-Run `list role` first. `INDEX` must be a positive integer shown in the current role list.
+`INDEX` must be a positive integer shown in the current role list.
 The role must be `OPEN`. Every associated candidate must be `HIRED`, `REJECTED`, or `WITHDRAWN`,
 and at most one may be `HIRED`. A role with no candidates, or no hired candidate, may also be closed.
 Checks include candidates hidden by filters. Candidates loaded without a saved status receive
 `RESUME` and must receive a final outcome before closure.
 
-Example: `list role`, followed by `role close 1`.
+Example: `role close 1`.
 
 Success shows `Closed role: ROLE_TITLE.` and changes the displayed status to `CLOSED`.
 The role and its candidates are saved automatically; candidate statuses remain unchanged.
@@ -269,11 +276,10 @@ If closure fails, no records change:
 * Already closed: `ROLE_TITLE is already closed.`
 * Invalid or missing index: `Role index must refer to a displayed role.`
 * Extra arguments: `The role close command takes only a role index.`
-* Candidate list displayed: `The role list is not displayed. Use list role first.`
 
 ### Deleting a role: `role delete`
 
-Removes a role entered by mistake. Run `list role` first.
+Removes a role entered by mistake.
 
 Format: `role delete INDEX`
 
@@ -281,7 +287,7 @@ Format: `role delete INDEX`
 can be deleted only when it has no associated candidates. All candidates are checked, including
 those hidden by filters and those marked `HIRED`, `REJECTED`, or `WITHDRAWN`.
 
-Example: `list role`, followed by `role delete 1`.
+Example: `role delete 1`.
 
 Success shows `Deleted role: ROLE_TITLE.`. The role disappears, remaining displayed indices update,
 and the change is saved automatically. Its title can be used again with `role add`.
@@ -293,7 +299,6 @@ If deletion fails, no records change:
 * Associated candidates: `Cannot delete role: ROLE_TITLE. It has N associated candidate(s).`
 * Invalid or missing index: `Role index must refer to a displayed role.`
 * Extra arguments: `The role delete command takes only a role index.`
-* Candidate list displayed: `The role list is not displayed. Use list role first.`
 
 Use `role close` to finish recruitment and retain its history; `role delete` removes an unused role.
 
@@ -354,10 +359,6 @@ zeros. For example: `Pending: 3`, `Hired: 1`, `Rejected: 2`, `Withdrawn: 0`.
 * Both `OPEN` and `CLOSED` roles show totals. An empty role shows zero for all four categories.
 * Totals refresh from the current records after additions, removals, and status changes, and are
   reconstructed when data is loaded. They do not change candidate statuses or close roles automatically.
-
-Role indices can be used only while the role list is displayed. If a successful command such as
-adding or finding a candidate switches back to the candidate list, run `list role` again before
-using `role edit`, `role close`, or `role delete`. Failed commands leave the current list displayed.
 
 ### Editing a candidate: `edit`
 
@@ -659,5 +660,10 @@ Action     | Format, Examples
 **Role edit** | `role edit INDEX [r/ROLE_TITLE] [x/EXPERIENCE_LEVEL]`<br> e.g., `list role` followed by `role edit 1 r/Platform Engineer x/5 years`
 **Role close** | `role close INDEX`<br> e.g., `list role` followed by `role close 1`
 **Role delete** | `role delete INDEX`<br> e.g., `list role` followed by `role delete 1`
+**Status** | `status INDEX... st/STATUS`<br> e.g., `status 1 2 3 st/HIRED`
+**Help**   | `help [COMMAND]`<br> e.g., `help role`
+**Role edit** | `role edit INDEX [r/ROLE_TITLE] [x/EXPERIENCE_LEVEL]`<br> e.g., `role edit 1 r/Platform Engineer x/5 years`
+**Role close** | `role close INDEX`<br> e.g., `role close 1`
+**Role delete** | `role delete INDEX`<br> e.g., `role delete 1`
 **Status** | `status INDEX... st/STATUS`<br> e.g., `status 1 2 3 st/HIRED`
 **Help**   | `help [COMMAND]`<br> e.g., `help role`
