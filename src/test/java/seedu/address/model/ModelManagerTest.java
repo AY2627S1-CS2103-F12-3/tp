@@ -163,7 +163,7 @@ public class ModelManagerTest {
         assertTrue(modelManager.redoAddressBook());
         assertTrue(modelManager.getFilteredPersonList().isEmpty());
     }
-  
+
     @Test
     public void equals() {
         AddressBook addressBook = new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build();
