@@ -683,3 +683,4 @@ Action     | Format, Examples
 **Role delete** | `role delete INDEX`<br> e.g., `list role` followed by `role delete 1`
 **Status** | `status INDEX... st/STATUS`<br> e.g., `status 1 2 3 st/HIRED`
 **Help**   | `help [COMMAND]`<br> e.g., `help role`
+
