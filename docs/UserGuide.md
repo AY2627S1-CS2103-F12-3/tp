@@ -118,12 +118,13 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS r/ROLE [t/TAG]... `
 * `PHONE_NUMBER`:
   * Has 8 to 15 digits, with an optional `+` at the start.
   * Can include spaces and hyphens, such as `+65 9123-4567`.
-
-  Spaces and hyphens are ignored and removed when the number is saved, so `+65 9123-4567` is shown as `+6591234567`.
-
-  A number without a country code is treated as a Singapore number. If it does not look like one (8 digits
-  starting with 3, 6, 8 or 9), such as `12345678`, the candidate is still added, and the result includes a note
-  reminding you to include the country code for an overseas number, such as `+60 12-345 6789`.
+  * Without no country code is treated as a Singapore number. If it does not look like one (8 digits starting with 3, 6, 8 or 9), such as `12345678`, the candidate is still added, and the result includes a note reminding you to include the country code for an overseas number, such as `+60 12-345 6789`.
+  * Spaces and hyphens are ignored and removed when the number is saved, so `+65 9123-4567` is shown as `+6591234567`.
+* `TAG`:
+  * Contains one or more letters or digits, with no spaces or symbols.
+  * Is displayed with the same capitalization as entered.
+  * If supplied tags are identical, only one is kept.
+  * If supplied tags differ only in capitalization, only the first is kept. For example, entering `t/friends t/FRIENDS` displays only `friends`.
 * `ROLE` must be the title of an existing role that is `OPEN`. Use [`role add`](#adding-a-role-role-add) to create the role first.
 * `ROLE` is matched ignoring case; for example, `r/software engineer` matches the role `Software Engineer`. The candidate is saved with the role's own spelling of the title.
 * Each candidate needs their own email and phone number. A candidate cannot be added if another candidate already uses the same email or the same phone number, and the error message names that candidate.
@@ -371,6 +372,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITL
 * When editing tags, all of the candidate's existing tags are removed; adding tags is not cumulative.
 * As in [`add`](#adding-a-candidate-add), a tag typed more than once with the same capitalisation is saved only once.
 * To remove all of a candidate's tags, enter `t/` without a tag after it.
+* Tags follow the same [character rules as `add`](#adding-a-candidate-add). Rules regarding checking and discarding of duplicates is also the same as `add`.
 * Use `r/ROLE_TITLE` to correct the candidate's role, on its own or with other edits. The title must
   match an existing role, ignoring case and surrounding spaces; the saved title uses that role's spelling.
 * A transfer can leave an open or closed role, but the destination must be **OPEN**. Selecting the

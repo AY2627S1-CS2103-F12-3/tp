@@ -344,4 +344,12 @@ public class ParserUtilTest {
 
         assertEquals(expectedTagSet, actualTagSet);
     }
+
+    @Test
+    public void parseTags_namesDifferOnlyInCase_returnsOneTag() throws Exception {
+        Set<Tag> tags = ParserUtil.parseTags(List.of("Referral", "referral"));
+
+        assertEquals(1, tags.size());
+        assertEquals(Set.of(new Tag("Referral")), tags);
+    }
 }
