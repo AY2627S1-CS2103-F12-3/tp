@@ -319,11 +319,16 @@ Saving occurs in `LogicManager` after the command returns successfully, as descr
 
 #### Saving and restoring associations
 
-After a command other than `HelpCommand` executes successfully, `LogicManager#execute` asks `Storage`
-to save the complete address book, including both collections. This also happens for successful
-read-only commands such as `list`. `HelpCommand` returns before the save call, so viewing help neither
+After a command other than `HelpCommand` executes successfully, `LogicManager#execute` asks `Storage` to save the complete
+address book, including both collections. This also happens for successful read-only commands such as `list`. 
+`HelpCommand` returns before the save call, so viewing help neither
 creates the recruitment data file nor retries a failed save. After resolving a file-access problem,
 the user can run `list` successfully to retry saving.
+
+When running AddressBook from a JAR file, `data/addressbook.json`, `preferences.json`, and the log files
+are saved in the directory containing the JAR. When running from compiled classes, they are saved in
+the process's working directory.
+
 Parsing and command-validation failures do not reach the save call. Save errors become
 `CommandException`s; earlier in-memory changes are not rolled back. Normal command saves are not
 transactional and do not create backups. Startup recovery below handles unreadable data separately.

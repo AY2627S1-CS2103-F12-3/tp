@@ -31,22 +31,26 @@ public class FileSavingTestDriver {
      */
     private static class HeadlessApp extends MainApp {
         private void exercise(String mode, Path expectedDirectory) throws Exception {
-            // Expand Windows short-path aliases before comparing with the code-source-based storage paths.
+            // Expand Windows short-path aliases before comparing with the selected storage directory.
             Path realDirectory = expectedDirectory.toRealPath();
             init();
-            if (mode.equals("development")) {
-                if (storage.getAddressBookFilePath().startsWith(realDirectory)
-                        || storage.getUserPrefsFilePath().startsWith(realDirectory)) {
-                    throw new AssertionError("Persistent files must not be saved inside the build directory: "
-                            + storage.getAddressBookFilePath());
+            Path dataPath = storage.getAddressBookFilePath();
+            Path prefsPath = storage.getUserPrefsFilePath();
+            if (!dataPath.endsWith(Path.of("data", "addressbook.json"))
+                    || !dataPath.getParent().getParent().toRealPath().equals(realDirectory)
+                    || !prefsPath.getFileName().equals(Path.of("preferences.json"))
+                    || !prefsPath.getParent().toRealPath().equals(realDirectory)) {
+                throw new AssertionError("Storage paths must resolve under " + realDirectory
+                        + ", but were " + dataPath + " and " + prefsPath);
+            }
+            if (mode.equals("recover")) {
+                if (!new AddressBook().equals(new AddressBook(model.getAddressBook()))
+                        || !new AddressBook().equals(storage.readAddressBook().orElseThrow())) {
+                    throw new AssertionError("Recovery must persist empty records in the selected data directory");
                 }
+                logic.execute("list");
                 stop();
                 return;
-            }
-
-            if (!storage.getAddressBookFilePath().equals(realDirectory.resolve("data/addressbook.json"))
-                    || !storage.getUserPrefsFilePath().equals(realDirectory.resolve("preferences.json"))) {
-                throw new AssertionError("Storage paths must resolve beside the JAR");
             }
 
             AddressBook expected = new AddressBook();
