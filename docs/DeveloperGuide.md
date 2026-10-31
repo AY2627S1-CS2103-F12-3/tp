@@ -17,6 +17,7 @@
   [SE-EDU initiative](https://se-education.org). Its existing architecture and documentation form the
   starting point for RecruiterBuddy.
 * Kavin Parthipan (`kpkavin04`) used OpenAI Codex to assist with requirements analysis, implementation, tests, review, and documentation for candidate role reassignment, the persistent role model, role commands, role-card summaries, role workflow diagnostics, and associated candidate-status safeguards, and safe startup after recruitment-data loading failures, and the offline command guide. This acknowledgement covers that contribution, not other team members' tool usage.
+* Wang Yixuan (`wangyixuan818`) used Claude Code to assist with requirements analysis, implementation, tests, code-quality refactoring, review, and documentation for the `add` command (name, phone and email validation, duplicate detection, the link to an open role, and the default status), the `note` and `interview` commands, varied sample data, and related error messages, and the UML diagrams for these features. This acknowledgement covers that contribution, not other team members' tool usage.
 
 --------------------------------------------------------------------------------------------------------------------
 
