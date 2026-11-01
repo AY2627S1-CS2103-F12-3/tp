@@ -17,6 +17,7 @@
   [SE-EDU initiative](https://se-education.org). Its existing architecture and documentation form the
   starting point for RecruiterBuddy.
 * Kavin Parthipan (`kpkavin04`) used OpenAI Codex to assist with requirements analysis, implementation, tests, review, and documentation for candidate role reassignment, the persistent role model, role commands, role-card summaries, role workflow diagnostics, and associated candidate-status safeguards, and safe startup after recruitment-data loading failures, and the offline command guide. This acknowledgement covers that contribution, not other team members' tool usage.
+* Kavin also used OpenAI Codex for edit-command input diagnostics and their tests and guide updates.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -491,6 +492,10 @@ rendering and refresh wiring rather than treating excluded UI code as automatica
 `EditCommandParser` accepts `r/` as an optional, non-repeatable edit field. It uses
 `ParserUtil#parseRoleTitle` for the existing title constraints and stores the result in
 `EditPersonDescriptor`, including its copy, equality and diagnostic-string behaviour.
+The parser validates the first preamble token as the index before rejecting any remaining preamble
+text with the edit format and a dedicated unexpected-text message. This distinguishes unsupported
+fields before the first recognised edit field from invalid indices, without changing tokenization
+or the parsing of field values.
 
 `EditCommand` resolves an explicitly requested role through `Model#findRole` before replacing any
 records or changing filters. A missing role is rejected; a different role must be open. The source
@@ -1706,6 +1711,19 @@ Candidates list shows Alice at index 1 and Ben at index 2, both `Resume`.
       Expected: Tom Ong is added. The result has a warning that the number does not look like a Singapore number.
 
 ### Editing a candidate
+
+1. Rejecting unexpected text after a valid index
+
+   1. With a candidate displayed, run `edit 1 st/HIRED`, then `edit 1 extra n/Accidental Change`.<br>
+      Expected: Each command shows the edit format and
+      `Unexpected text after the index. Use the edit fields shown above.` Records, filters and the
+      saved data remain unchanged. Neither command creates an undo entry or discards redo history.
+   1. Run `edit 0 st/HIRED`, then `edit 2147483648 st/HIRED`.<br>
+      Expected: The first reports that the index must be a positive whole number; the second reports
+      that the index is larger than any list. Both include the edit format and leave records unchanged.
+   1. Run `edit 1 a/Block st/HIRED`.<br>
+      Expected: The address becomes `Block st/HIRED`. Text inside an existing field is still parsed
+      as its value, not as an extra edit field. Use `undo` to restore the address.
 
 1. Editing a candidate's details
 

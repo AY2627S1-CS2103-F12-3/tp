@@ -385,6 +385,10 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITL
 
 * Edits the candidate at the specified `INDEX`. The index refers to the index number shown in the displayed candidate list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
+* If unsupported fields or other text occur between `INDEX` and the first supported edit field,
+  the command is rejected with the edit format and
+  `Unexpected text after the index. Use the edit fields shown above.` For example, `edit 1 st/HIRED`
+  is rejected because `st/` is not an edit field; use `status 1 st/HIRED` to update the status instead.
 * Existing values will be updated to the input values.
 * `NAME`, `PHONE_NUMBER` and `EMAIL` follow the same rules as in [`add`](#adding-a-candidate-add), including typing `a/l` and `a/p` in names as `A/L` and `A/P`.
   The email warnings appear only when you change the email to a different address. Changing only its capitals does not count.
