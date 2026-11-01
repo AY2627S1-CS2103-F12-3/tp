@@ -1,8 +1,10 @@
 package seedu.address.logic;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
@@ -33,6 +35,7 @@ import seedu.address.logic.commands.AddRoleCommand;
 import seedu.address.logic.commands.CloseRoleCommand;
 import seedu.address.logic.commands.CommandGuide;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.logic.commands.DeleteRoleCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RedoCommand;
@@ -56,6 +59,9 @@ import seedu.address.testutil.RoleBuilder;
 public class LogicManagerTest {
     private static final IOException DUMMY_IO_EXCEPTION = new IOException("dummy IO exception");
     private static final IOException DUMMY_AD_EXCEPTION = new AccessDeniedException("dummy access denied exception");
+    private static final String DELETE_EXTRA_TEXT_ERROR =
+            String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE)
+                    + "\nThe delete command takes only a candidate index.";
 
     @TempDir
     public Path temporaryFolder;
@@ -82,6 +88,56 @@ public class LogicManagerTest {
     public void execute_commandExecutionError_throwsCommandException() {
         String deleteCommand = "delete 9";
         assertCommandException(deleteCommand, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+    }
+
+    @Test
+    public void execute_deleteWithExtraArguments_preservesSavedDataAndFilters() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
+        model.addRole(PRODUCT_ANALYST);
+        model.addPerson(AMY);
+        model.addPerson(new PersonBuilder().withName("Hidden Candidate").withPhone("91234567")
+                .withEmail("hidden@example.com").withRole("Product Analyst").build());
+        addressBookStorage.saveAddressBook(model.getAddressBook());
+        byte[] saved = Files.readAllBytes(addressBookStorage.getAddressBookFilePath());
+        ReadOnlyAddressBook expected = addressBookStorage.readAddressBook().orElseThrow();
+        model.updateFilteredPersonList(AMY::equals);
+        model.updateFilteredRoleList(SOFTWARE_ENGINEER::equals);
+
+        for (String command : List.of("delete 1 extra", "delete 1 2", "delete 1 n/Accidental Deletion")) {
+            assertThrows(ParseException.class, DELETE_EXTRA_TEXT_ERROR, () -> logic.execute(command));
+            assertEquals(expected, model.getAddressBook());
+            assertArrayEquals(saved, Files.readAllBytes(addressBookStorage.getAddressBookFilePath()));
+            assertEquals(List.of(AMY), model.getFilteredPersonList());
+            assertEquals(List.of(SOFTWARE_ENGINEER), model.getFilteredRoleList());
+        }
+    }
+
+    @Test
+    public void execute_deleteWithExtraArguments_preservesUndoAndRedoHistory() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
+        model.addPerson(AMY);
+        logic.execute("edit 1 n/Amy Updated");
+
+        assertParseException("delete 1 extra", DELETE_EXTRA_TEXT_ERROR);
+        logic.execute("undo");
+        assertEquals(List.of(AMY), model.getAddressBook().getPersonList());
+
+        assertParseException("delete 1 extra", DELETE_EXTRA_TEXT_ERROR);
+        logic.execute("redo");
+        assertEquals("Amy Updated", model.getAddressBook().getPersonList().getFirst().getName().fullName);
+        assertEquals(model.getAddressBook(), addressBookStorage.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_deleteWithExtraArguments_doesNotCreateDataFile() {
+        model.addRole(SOFTWARE_ENGINEER);
+        model.addPerson(AMY);
+        assertFalse(Files.exists(addressBookStorage.getAddressBookFilePath()));
+
+        assertParseException("delete 1 extra", DELETE_EXTRA_TEXT_ERROR);
+
+        assertFalse(Files.exists(addressBookStorage.getAddressBookFilePath()));
+        assertEquals(List.of(AMY), model.getAddressBook().getPersonList());
     }
 
     @Test

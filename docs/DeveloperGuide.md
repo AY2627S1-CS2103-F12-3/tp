@@ -17,6 +17,7 @@
   [SE-EDU initiative](https://se-education.org). Its existing architecture and documentation form the
   starting point for RecruiterBuddy.
 * Kavin Parthipan (`kpkavin04`) used OpenAI Codex to assist with requirements analysis, implementation, tests, review, and documentation for candidate role reassignment, the persistent role model, role commands, role-card summaries, role workflow diagnostics, and associated candidate-status safeguards, and safe startup after recruitment-data loading failures, and the offline command guide. This acknowledgement covers that contribution, not other team members' tool usage.
+  He also used Codex to help improve candidate-delete diagnostics, regression tests, and documentation.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -110,6 +111,12 @@ How the `Logic` component works:
 1. The command can communicate with the `Model` when it is executed (e.g. to delete a person).<br>
    Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
 1. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
+
+`DeleteCommandParser` validates the first argument as the candidate index before checking for extra
+text. Missing, invalid, and oversized indices retain their existing errors. A valid index followed
+by extra arguments is rejected with usage and `The delete command takes only a candidate index.`
+Parsing fails before command execution, so records, filters, the saved file, and undo/redo history
+remain unchanged.
 
 Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
 
@@ -1879,6 +1886,13 @@ Candidates list shows Alice at index 1 and Ben at index 2, both `Resume`.
 
    1. Test case: `delete 0`<br>
       Expected: No candidate is deleted. The status message shows error details.
+
+   1. Test case: `delete 1 extra`<br>
+      Expected: No candidate is deleted. The result shows the delete usage followed by
+      `The delete command takes only a candidate index.`, rather than blaming index `1`.
+      The current candidate filter and saved records remain unchanged. Also try `delete 1 2`
+      and `delete 1 n/Alice`; both are rejected in the same way. `delete 0 extra` still reports
+      an invalid index, and `delete 2147483648 extra` reports that the index is too large.
 
    1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
       Expected: Similar to previous.
