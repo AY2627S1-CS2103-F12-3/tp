@@ -858,7 +858,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *` | department recruiter | remove a candidate | correct an erroneous entry or remove a record that is no longer required |
 | `* * *` | user | have successful changes saved automatically and restored when RecruiterBuddy starts | avoid losing candidate and role information |
 | `* * *` | user | access a guide covering all supported commands and their formats | understand and correctly use RecruiterBuddy's features |
-| `* *` | department recruiter | be warned when a new candidate's phone number may be an existing candidate's number written differently | catch the same person entered twice with a differently formatted number |
+| `* *` | department recruiter | be warned when a candidate's phone number may match another candidate's number in a different format | spot a likely duplicate without being blocked when two different people's numbers only look alike |
 | `* *` | department recruiter | have an interview's date and time checked when I record or reschedule it | avoid saving an impossible or mistyped interview slot |
 | `* *` | potential user | see sample roles and candidates | understand how RecruiterBuddy looks when populated with department-specific information |
 | `* *` | first-time user | be greeted with a brief guide to key commands | begin using the most important features without feeling lost or overwhelmed |
