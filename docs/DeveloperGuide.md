@@ -1422,8 +1422,8 @@ Use case ends.
 * **Final outcome**: A candidate status recording how the candidate's application ended: `HIRED`, `REJECTED` or `WITHDRAWN`. Also called a final status.
 * **Pending**: Describes a candidate status for an application still in progress: `RESUME`, `INTERVIEW`, `OFFER` or `DECISION`.
 * **Recruitment record**: Stored information about a candidate or role opening, including any associated interview details and candidate notes.
-* **Role opening**: A job vacancy in the recruiter's department tracked in RecruiterBuddy. Here, "role" refers to a job position.
-* **Role status**: Whether recruitment for a role opening is `OPEN` or `CLOSED`, as distinct from an individual candidate's progress. Candidates can be added only to an open role; a closed role keeps its existing candidates.
+* **Role opening**: A job vacancy in the recruiter's department. Also called a role.
+* **Role status**: Whether recruitment for a role opening is `OPEN` or `CLOSED`. Candidates can be added only to an open role; a closed role keeps its existing candidates.
 
 --------------------------------------------------------------------------------------------------------------------
 
