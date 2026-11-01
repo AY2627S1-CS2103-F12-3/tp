@@ -1220,6 +1220,9 @@ Use case ends.
 
 Use case ends.
 
+For role-specific corrections and their additional checks, see
+[UC27 — Correct Candidate Role](#uc27-correct-candidate-role).
+
 #### UC17 — Filter Candidates
 
 **System:** RecruiterBuddy<br>
@@ -1386,6 +1389,49 @@ Use case ends.
   * Use case ends.
 * 2b. The updated records cannot be saved.
   * 2b1. RecruiterBuddy reports the save error instead of the normal confirmation; changes may remain in the current session.
+  * Use case ends.
+
+#### UC27 — Correct Candidate Role
+
+**System:** RecruiterBuddy<br>
+**Actor:** Recruiter<br>
+**Guarantees:** The candidate's status, note, interview, and fields not explicitly edited are
+preserved. Neither role opens or closes automatically. Validation failures leave records and
+filters unchanged.
+
+**Main success scenario:**
+
+1. Recruiter identifies a candidate by their displayed candidate index and supplies the intended role title,
+   optionally with other candidate-detail corrections.
+2. RecruiterBuddy finds the role, ignoring case and surrounding spaces, and validates the complete edit.
+   A transfer may leave an open or closed role, but its destination must be open. If the candidate is
+   hired, the destination must not already have another hired candidate, including one hidden by a filter.
+3. RecruiterBuddy updates the candidate using the destination role's saved spelling, displays all candidates,
+   and saves the records.
+4. RecruiterBuddy confirms the edit using the candidate's updated name and details.
+
+Use case ends.
+
+**Extensions:**
+
+* 1a. The candidate index or a supplied field is invalid, or a non-repeatable field is repeated.
+  * 1a1. RecruiterBuddy reports the input error without changing records or filters.
+  * Use case ends.
+* 2a. The requested role does not exist.
+  * 2a1. RecruiterBuddy asks the recruiter to add the role before editing the candidate.
+  * Use case ends.
+* 2b. A transfer targets a closed role, or a hired candidate's destination already has another hire.
+  * 2b1. RecruiterBuddy explains the failed recruitment rule and rejects the complete edit.
+  * Use case ends.
+* 2c. The requested title identifies the candidate's existing role, even if it is closed.
+  * 2c1. RecruiterBuddy retains that role and validates any other supplied corrections.
+  * Use case resumes at step 3.
+* 2d. Other supplied corrections duplicate another candidate's email or phone number.
+  * 2d1. RecruiterBuddy reports the duplicate and rejects the complete edit.
+  * Use case ends.
+* 3a. The updated records cannot be saved.
+  * 3a1. RecruiterBuddy reports the save error instead of the normal confirmation; changes may remain
+    in the current session.
   * Use case ends.
 
 *{More to be added}*
