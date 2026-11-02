@@ -17,6 +17,7 @@
   [SE-EDU initiative](https://se-education.org). Its existing architecture and documentation form the
   starting point for RecruiterBuddy.
 * Kavin Parthipan (`kpkavin04`) used OpenAI Codex to assist with requirements analysis, implementation, tests, review, and documentation for candidate role reassignment, the persistent role model, role commands, role-card summaries, role workflow diagnostics, and associated candidate-status safeguards, and safe startup after recruitment-data loading failures, the offline command guide, candidate-input diagnostics, and Developer Guide maintenance. This acknowledgement covers that contribution, not other team members' tool usage.
+* Wang Yixuan (`wangyixuan818`) used Claude Code to assist with requirements analysis, implementation, tests, code-quality refactoring, code review, and documentation for the `add` command (name, phone and email validation, duplicate detection, the link to an open role, and the default status), duplicate and contact warnings in `edit`, the `note` and `interview` commands and their display on candidate cards, varied sample data, command error and warning messages, User Guide and Developer Guide updates, and the UML diagrams for these features. This acknowledgement covers that contribution, not other team members' tool usage.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -862,7 +863,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *` | department recruiter | remove a candidate | correct an erroneous entry or remove a record that is no longer required |
 | `* * *` | user | have successful changes saved automatically and restored when RecruiterBuddy starts | avoid losing candidate and role information |
 | `* * *` | user | access a guide covering all supported commands and their formats | understand and correctly use RecruiterBuddy's features |
-| `* *` | department recruiter | be warned when a new candidate's email address or phone number matches an existing candidate | catch the same person entered under a different or misspelled name |
+| `* *` | department recruiter | be warned when a candidate's phone number may match another candidate's number in a different format | spot a likely duplicate without being blocked when two different people's numbers only look alike |
 | `* *` | department recruiter | have an interview's date and time checked when I record or reschedule it | avoid saving an impossible or mistyped interview slot |
 | `* *` | potential user | see sample roles and candidates | understand how RecruiterBuddy looks when populated with department-specific information |
 | `* *` | first-time user | be greeted with a brief guide to key commands | begin using the most important features without feeling lost or overwhelmed |
@@ -894,9 +895,9 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 (For all use cases below, the **System** is `RecruiterBuddy` and the **Actor** is the `Recruiter`, unless specified otherwise)
 
-## Must-have
+#### Must-have
 
-#### UC01 — Create Role Opening
+##### UC01 — Create Role Opening
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter
@@ -915,7 +916,7 @@ Use case ends.
   * 2a1. RecruiterBuddy reports the error without adding a role.
   * Use case ends.
 
-#### UC02 — Add Candidate to Role
+##### UC02 — Add Candidate to Role
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter<br>
@@ -943,13 +944,13 @@ Use case ends.
   * 3c1. RecruiterBuddy reports that no new candidates can be added to the role.
   * Use case ends.
 * 3d. RecruiterBuddy detects a candidate with the same email address or phone number.
-  * 3d1. RecruiterBuddy warns the recruiter that a matching candidate record exists.
-  * 3d2. Recruiter chooses to proceed with adding the candidate.
-  * Use case resumes at step 4.
-  * 3d2a. Recruiter chooses to cancel adding the candidate.
-    * Use case ends.
+  * 3d1. RecruiterBuddy reports that the candidate already exists without adding the candidate.
+  * Use case ends.
+* 4a. RecruiterBuddy detects that the phone number may be another candidate's number written differently.
+  * 4a1. RecruiterBuddy confirms that the candidate has been added, with a warning naming the matching candidates.
+  * Use case ends.
 
-#### UC03 — View Command Guide
+##### UC03 — View Command Guide
 
 **System:** RecruiterBuddy<br>
 **Actor:** User
@@ -962,7 +963,7 @@ Use case ends.
 
 Use case ends.
 
-#### UC04 — Record Interview Details
+##### UC04 — Record Interview Details
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter
@@ -998,7 +999,7 @@ Use case ends.
   * 4b1. RecruiterBuddy records the interview, and points out each possible mistake when confirming it.
   * Use case ends.
 
-#### UC05 — Save and Load Data
+##### UC05 — Save and Load Data
 
 **System:** RecruiterBuddy<br>
 **Actor:** User
@@ -1013,7 +1014,7 @@ Use case ends.
 
 Use case ends.
 
-#### UC06 — Set or Clear a Candidate's Note
+##### UC06 — Set or Clear a Candidate's Note
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter
@@ -1043,7 +1044,7 @@ Use case ends.
   * 4a1. RecruiterBuddy replaces the existing note with the new one, and informs the recruiter that the note was replaced.
   * Use case resumes at step 5.
 
-#### UC07 — Close Role Opening
+##### UC07 — Close Role Opening
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter
@@ -1067,7 +1068,7 @@ Use case ends.
   * 2a1. RecruiterBuddy reports the error, including the pending count where applicable, without changing records.
   * Use case ends.
 
-#### UC08 — Delete Role Opening
+##### UC08 — Delete Role Opening
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter
@@ -1089,7 +1090,7 @@ Use case ends.
   * 2a1. RecruiterBuddy reports their count without changing records.
   * Use case ends.
 
-#### UC09 — Delete Candidate Record
+##### UC09 — Delete Candidate Record
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter
@@ -1108,9 +1109,9 @@ Use case ends.
   * 1a1. RecruiterBuddy reports the error without changing records.
   * Use case ends.
 
-## Optional
+#### Optional
 
-#### UC10 — View Sample Data
+##### UC10 — View Sample Data
 
 **System:** RecruiterBuddy<br>
 **Actor:** User
@@ -1130,7 +1131,7 @@ Use case ends.
   * 2a2. RecruiterBuddy confirms that the sample data has been removed.
   * Use case ends.
 
-#### UC11 — View Key Command Introduction
+##### UC11 — View Key Command Introduction
 
 **System:** RecruiterBuddy<br>
 **Actor:** User
@@ -1143,7 +1144,7 @@ Use case ends.
 
 Use case ends.
 
-#### UC12 — View Status Definitions
+##### UC12 — View Status Definitions
 
 **System:** RecruiterBuddy<br>
 **Actor:** User
@@ -1156,7 +1157,7 @@ Use case ends.
 
 Use case ends.
 
-#### UC13 — Get Guidance for Invalid Command
+##### UC13 — Get Guidance for Invalid Command
 
 **System:** RecruiterBuddy<br>
 **Actor:** User
@@ -1176,7 +1177,7 @@ Use case ends.
   * 1a2. User corrects and resubmits the command.
   * Use case resumes at step 2.
 
-#### UC14 — Undo Changes
+##### UC14 — Undo Changes
 
 **System:** RecruiterBuddy<br>
 **Actor:** User
@@ -1189,7 +1190,7 @@ Use case ends.
 
 Use case ends.
 
-#### UC15 — Update Candidate Status
+##### UC15 — Update Candidate Status
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter
@@ -1210,7 +1211,7 @@ Use case ends.
   * 2a2. RecruiterBuddy confirms that the statuses have been updated.
   * Use case ends.
 
-#### UC16 — Update Candidate Details
+##### UC16 — Update Candidate Details
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter
@@ -1224,7 +1225,7 @@ Use case ends.
 
 Use case ends.
 
-#### UC17 — Filter Candidates
+##### UC17 — Filter Candidates
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter
@@ -1244,7 +1245,7 @@ Use case ends.
   * 3a1. RecruiterBuddy displays the candidates associated with the selected role.
   * Use case ends.
 
-#### UC18 — Search for Candidate
+##### UC18 — Search for Candidate
 
 **System:** RecruiterBuddy<br>
 **Actor:** User
@@ -1258,7 +1259,7 @@ Use case ends.
 
 Use case ends.
 
-#### UC19 — Create Custom Candidate Status
+##### UC19 — Create Custom Candidate Status
 
 **System:** RecruiterBuddy<br>
 **Actor:** User
@@ -1273,7 +1274,7 @@ Use case ends.
 
 Use case ends.
 
-#### UC20 — View Past Applicant Contact Information
+##### UC20 — View Past Applicant Contact Information
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter
@@ -1287,7 +1288,7 @@ Use case ends.
 
 Use case ends.
 
-#### UC21 — Add Multiple Candidate Applications
+##### UC21 — Add Multiple Candidate Applications
 
 **System:** RecruiterBuddy<br>
 **Actor:** User
@@ -1302,7 +1303,7 @@ Use case ends.
 
 Use case ends.
 
-#### UC22 — Create Shortcut
+##### UC22 — Create Shortcut
 
 **System:** RecruiterBuddy<br>
 **Actor:** User
@@ -1317,7 +1318,7 @@ Use case ends.
 
 Use case ends.
 
-#### UC23 — Export All Data
+##### UC23 — Export All Data
 
 **System:** RecruiterBuddy<br>
 **Actor:** User
@@ -1338,7 +1339,7 @@ Use case ends.
   * 1a3. RecruiterBuddy informs the user where the file has been saved.
   * Use case ends.
 
-#### UC24 — Import Data
+##### UC24 — Import Data
 
 **System:** RecruiterBuddy<br>
 **Actor:** User
@@ -1353,7 +1354,7 @@ Use case ends.
 
 Use case ends.
 
-#### UC25 — View Candidate Status Audit Trail
+##### UC25 — View Candidate Status Audit Trail
 
 **System:** RecruiterBuddy<br>
 **Actor:** User
@@ -1366,7 +1367,7 @@ Use case ends.
 
 Use case ends.
 
-#### UC26 — Correct Role Details
+##### UC26 — Correct Role Details
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter<br>
@@ -1402,17 +1403,17 @@ Use case ends.
 4.  With Java 25 installed, a user should be able to launch RecruiterBuddy without running an application installer or separately installing additional runtime dependencies. Extracting a ZIP file is permitted.
 5.  RecruiterBuddy should be distributed as a single JAR file or, if additional files are necessary, a single ZIP file containing the JAR and those files. The distribution should not exceed 100 MB.
 6.  All documented functions that operate on locally stored application data should remain usable without an Internet connection. Following links to external websites is excluded.
-3.  GUI elements should be fully visible and work well on screen resolutions 1920x1080 and higher, and screen scales 100% - 125%.
-4.  GUI elements should be usable on screen resolutions 1280x720 and higher, and screen scales 150%.
-8.  After application data has been successfully saved, closing RecruiterBuddy normally and reopening it with the same unchanged data files should restore the saved data, including all saved additions, modifications, and deletions.
-9.  A new user should be able to learn all basic commands (adding, updating and deleting candidates and roles) within 30 minutes
-10.  The application should carry out a user action and give visual confirmation within 1 second of input.
-11.  A command rejected because of invalid syntax or invalid input values should leave recruitment records and user-defined configuration unchanged, both in memory and in saved data file.
-12.  Command syntax should be simple and intuitive, such that an experienced user (has spent > 1 hour using the application) can memorize the syntax for all basic commands.
-13.  Upon rejecting a command, the issue and its fixes should be identified, such that the user can achieve a valid input within n successive tries, where n is the number of errors in the initial input.
-14.  If recruitment data cannot be read or fails validation during startup, preserve its original contents in a non-overwriting sibling backup before creating an empty replacement. If safe recovery fails, do not expose commands; identify the preserved data location and recovery steps.
-15.  All persistent RecruiterBuddy data should be stored locally in human-readable text files that can be inspected and modified using a plain-text editor. This includes recruitment records, saved candidate status history, and user-defined configuration such as command shortcuts.
-16.  If writing updated data fails while the previously saved file remains accessible, RecruiterBuddy should leave that file's contents unchanged.
+7.  GUI elements should be fully visible and work well on screen resolutions 1920x1080 and higher, and screen scales 100% - 125%.
+8.  GUI elements should be usable on screen resolutions 1280x720 and higher, and screen scales 150%.
+9.  After application data has been successfully saved, closing RecruiterBuddy normally and reopening it with the same unchanged data files should restore the saved data, including all saved additions, modifications, and deletions.
+10.  A new user should be able to learn all basic commands (adding, updating and deleting candidates and roles) within 30 minutes
+11.  The application should carry out a user action and give visual confirmation within 1 second of input.
+12.  A command rejected because of invalid syntax or invalid input values should leave recruitment records and user-defined configuration unchanged, both in memory and in saved data file.
+13.  Command syntax should be simple and intuitive, such that an experienced user (has spent > 1 hour using the application) can memorize the syntax for all basic commands.
+14.  Upon rejecting a command, the issue and its fixes should be identified, such that the user can achieve a valid input within n successive tries, where n is the number of errors in the initial input.
+15.  If recruitment data cannot be read or fails validation during startup, preserve its original contents in a non-overwriting sibling backup before creating an empty replacement. If safe recovery fails, do not expose commands; identify the preserved data location and recovery steps.
+16.  All persistent RecruiterBuddy data should be stored locally in human-readable text files that can be inspected and modified using a plain-text editor. This includes recruitment records, saved candidate status history, and user-defined configuration such as command shortcuts.
+17.  If writing updated data fails while the previously saved file remains accessible, RecruiterBuddy should leave that file's contents unchanged.
 
 *{More to be added}*
 
