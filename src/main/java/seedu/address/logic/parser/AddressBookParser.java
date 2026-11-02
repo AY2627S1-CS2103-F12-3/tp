@@ -74,13 +74,13 @@ public class AddressBookParser {
             case StatusCommand.COMMAND_WORD -> new StatusCommandParser().parse(arguments);
             case UndoCommand.COMMAND_WORD -> {
                 if (!arguments.isBlank()) {
-                    throw new ParseException("undo does not accept arguments. Usage: undo");
+                    throw new ParseException("Undo does not accept arguments. Usage: undo");
                 }
                 yield new UndoCommand();
             }
             case RedoCommand.COMMAND_WORD -> {
                 if (!arguments.isBlank()) {
-                    throw new ParseException("redo does not accept arguments. Usage: redo");
+                    throw new ParseException("Redo does not accept arguments. Usage: redo");
                 }
                 yield new RedoCommand();
             }
