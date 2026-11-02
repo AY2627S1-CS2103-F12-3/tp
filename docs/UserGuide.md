@@ -686,7 +686,7 @@ Action     | Format, Examples
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITLE] [t/TAG]...`<br> e.g.,`edit 2 n/James Lee r/Data Analyst`
-**Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
+**Find**   | `find [KEYWORD ...] [r/ROLE_KEYWORD ...] [st/CANDIDATE_STATUS ...]`<br> e.g., `find James Jake`
 **List**   | `list`
 **List roles** | `list role`
 **Undo**   | `undo`
