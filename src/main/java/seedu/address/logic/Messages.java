@@ -123,8 +123,12 @@ public class Messages {
                 .append(person.getStatus());
         appendIfPresent(builder, "Note", person.getNote().toString());
         appendIfPresent(builder, "Interview", person.getInterview().toString());
-        builder.append("; Tags: ");
-        person.getTags().forEach(builder::append);
+
+        if (!person.getTags().isEmpty()) {
+            builder.append("; Tags: ");
+            person.getTags().forEach(builder::append);
+        }
+
         return builder.toString();
     }
 
