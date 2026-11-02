@@ -154,7 +154,7 @@ recognized only when it starts at a whitespace-delimited token, so a standalone 
   * Must contain one or more of the following: any letter from any language, any digit, `'`, `-`, `_`, `.`, `#`, or `+`.
   * Is displayed with the same capitalization as entered.
   * If supplied tags are identical, only one is kept.
-  * If supplied tags differ only in capitalization, only the first is kept. For example, entering `t/friends t/FRIENDS` displays only `friends`.
+  * If supplied tags differ only in capitalization, only the first is kept. For example, entering `t/referral t/REFERRAL` displays only `referral`.
 * `ROLE` must be the title of an existing role that is `OPEN`. Use [`role add`](#adding-a-role-role-add) to create the role first.
 * `ROLE` is matched ignoring case; for example, `r/software engineer` matches the role `Software Engineer`. The candidate is saved with the role's own spelling of the title.
 * Each candidate needs their own email and phone number. A candidate cannot be added if another candidate already uses the same email or the same phone number, and the error message names that candidate.
