@@ -48,7 +48,7 @@ public class RoleCandidateCountsIntegrationTest {
         model.addPerson(new PersonBuilder().withName("Carol").withPhone("91234563")
                 .withEmail("carol@example.com").withRole(CLOSED_DESIGNER.getTitle().value)
                 .withStatus(Status.WITHDRAWN).build());
-        addressBookStorage = new JsonAddressBookStorage(testFolder.resolve("addressbook.json"));
+        addressBookStorage = new JsonAddressBookStorage(testFolder.resolve("recruiterbuddy.json"));
         logic = new LogicManager(model, new StorageManager(addressBookStorage,
                 new JsonUserPrefsStorage(testFolder.resolve("preferences.json"))));
     }

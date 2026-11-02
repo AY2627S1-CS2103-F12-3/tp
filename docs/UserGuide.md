@@ -24,8 +24,8 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
 
 3. Copy the file to an empty folder you want to use for RecruiterBuddy.
 
-4. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar "[JARName]"`, where `JARName` is the name and extension of the JAR file. For example, run `java -jar "[CS2103-F12-3][RecruiterBuddy].jar"` for `[CS2103-F12-3][RecruiterBuddy].jar`. <br>
-   The quotes are needed for names containing `[` or `]`.
+4. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar "[JARName]"`, where `JARName` is the name and extension of the JAR file, e.g. `java -jar "recruiterbuddy.jar"`. <br>
+   If your file has a different name (e.g. `[CS2103-F12-3][RecruiterBuddy].jar`) then use that name instead. The quotes are needed for names containing `[` or `]`. <br>
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
 
@@ -353,7 +353,7 @@ zeros. For example: `Pending: 3`, `Hired: 1`, `Rejected: 2`, `Withdrawn: 0`.
 
 ### Undoing a change: `undo`
 
-Undoes the most recent successful command that changed the address book. Undo can be used repeatedly to return to the address-book state at the beginning of the current session.
+Undoes the most recent successful command that changed candidate or role data. Undo can be used repeatedly to return to RecruiterBuddy's state at the beginning of the current session.
 
 Format: `undo`
 
@@ -381,7 +381,7 @@ Redoes the most recently undone change.
 
 Format: `redo`
 
-Redo is available only after an `undo`. Executing a new address-book change after an undo clears the redo history. Like all address-book changes, a redo is saved automatically.
+Redo is available only after an `undo`. Changing candidate or role data after an undo clears the redo history. Like all candidate and role data changes, a redo is saved automatically.
 For example, after undoing `role delete 1` or `role close 1`, `redo` deletes or closes the role again.
 Run `list role` to view the result.
 
@@ -559,7 +559,7 @@ Format: `delete INDEX`
   `The delete command takes only a candidate index.` No candidate is deleted.
 
 Examples:
-* `list` followed by `delete 2` deletes the 2nd candidate in RecruiterBuddy.
+* `list` followed by `delete 2` deletes the 2nd candidate in the displayed candidates\ list.
 * `find Betsy` followed by `delete 1` deletes the 1st candidate in the results of the `find` command.
 
 ### Clearing all entries: `clear`
@@ -576,7 +576,7 @@ Format: `exit`
 
 ### Saving the data
 
-RecruiterBuddy automatically stores `data/addressbook.json` (containing candidate and role data),
+RecruiterBuddy automatically stores `data/recruiterbuddy.json` (containing candidate and role data),
 `preferences.json`, and log files in the folder containing the JAR file, regardless of the terminal's
 working directory. Candidate and role data is saved automatically after every successful command
 except `help`, including commands such as `list` that do not change records. You do not need to save
@@ -595,7 +595,7 @@ problem and run `list` successfully to retry saving before exiting. Viewing help
 
 ### Editing the data file
 
-RecruiterBuddy saves data in `data/addressbook.json`, relative to the folder containing the JAR file, regardless of the terminal's working directory.
+RecruiterBuddy saves data in `data/recruiterbuddy.json`, relative to the folder containing the JAR file, regardless of the terminal's working directory.
 If no data file exists on startup, the first successful command other than `help` creates it.
 Viewing help does not create the recruitment data file.
 Advanced users may edit this JSON file while the application is closed. Back it up first.
@@ -649,9 +649,9 @@ number, or a candidate referring to a nonexistent role prevent the whole file fr
 records are not loaded separately. If two objects are accidentally joined together, neither is
 imported and the entire file is preserved in the backup.
 If a regular data file cannot be read or validated, RecruiterBuddy first renames it to
-`addressbook.json.bak` in the same folder, preserving its contents. Existing backups are never
+`recruiterbuddy.json.bak` in the same folder, preserving its contents. Existing backups are never
 overwritten: if that name is taken, a timestamp is appended, for example
-`addressbook.json.bak.20261018-160000-123`. A numbered suffix resolves further collisions.
+`recruiterbuddy.json.bak.20261018-160000-123`. A numbered suffix resolves further collisions.
 
 After preserving the original, RecruiterBuddy saves a new file containing empty candidate and role
 lists. A **Recruitment data backed up** warning shows the backup's full path and restoration
@@ -660,7 +660,7 @@ any commands also keeps those lists empty; it does not load sample data.
 
 To restore your records, close RecruiterBuddy and save a separate copy of any new data you entered.
 Correct the backup's JSON or file permissions, then copy the corrected file to the original
-`data/addressbook.json` path and restart. Backups are not repaired, imported or merged automatically.
+`data/recruiterbuddy.json` path and restart. Backups are not repaired, imported or merged automatically.
 Keep your backup until you have checked that restoration succeeded.
 
 If the backup or replacement cannot be created, an **Unable to load recruitment data** error
@@ -679,7 +679,7 @@ empty lists stays empty. There is no automatic migration of old contact-only fil
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with `data/addressbook.json` from the folder containing your previous RecruiterBuddy JAR file.
+**A**: Install the app on the other computer and overwrite the data file it creates with `data/recruiterbuddy.json` from the folder containing your previous RecruiterBuddy JAR file.
 
 --------------------------------------------------------------------------------------------------------------------
 

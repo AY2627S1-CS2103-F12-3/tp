@@ -53,7 +53,7 @@ public class RoleUndoIntegrationTest {
                 .withInterview("2026-10-20 14:30").build());
         model.addPerson(new PersonBuilder().withNameAndDistinctContacts("Bob")
                 .withStatus(Status.REJECTED).build());
-        addressBookStorage = new JsonAddressBookStorage(testFolder.resolve("addressbook.json"));
+        addressBookStorage = new JsonAddressBookStorage(testFolder.resolve("recruiterbuddy.json"));
         storage = new StorageManager(addressBookStorage,
                 new JsonUserPrefsStorage(testFolder.resolve("preferences.json")));
         logic = new LogicManager(model, storage);

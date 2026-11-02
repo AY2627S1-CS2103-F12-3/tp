@@ -50,14 +50,14 @@ public class MainAppTest {
     @BeforeEach
     public void setUp() {
         prefsPath = testFolder.resolve("preferences.json");
-        dataPath = testFolder.resolve("addressbook.json");
+        dataPath = testFolder.resolve("recruiterbuddy.json");
     }
 
     private MainApp createApp(PrefsStorageStub prefsStorage) {
         MainApp app = new MainApp();
         app.model = new ModelManager();
         app.model.setGuiSettings(getTypicalPrefs().getGuiSettings());
-        app.storage = new StorageManager(new JsonAddressBookStorage(testFolder.resolve("addressbook.json")),
+        app.storage = new StorageManager(new JsonAddressBookStorage(testFolder.resolve("recruiterbuddy.json")),
                 prefsStorage);
         return app;
     }
@@ -221,7 +221,7 @@ public class MainAppTest {
 
             assertLoadWarning(logs);
             logs.assertContains(RecruitmentDataRecovery.class, Level.INFO,
-                    "Preserved unreadable recruitment data at " + dataPath.resolveSibling("addressbook.json.bak"));
+                    "Preserved unreadable recruitment data at " + dataPath.resolveSibling("recruiterbuddy.json.bak"));
             logs.assertContains(RecruitmentDataRecovery.class, Level.INFO,
                     "Created empty recruitment data at " + dataPath);
             assertEquals(2, logs.getRecords(RecruitmentDataRecovery.class).size());
@@ -257,7 +257,7 @@ public class MainAppTest {
         assertEquals(recoveredApp.model.getAddressBook(), restartedApp.model.getAddressBook());
         assertEquals(1, restartedApp.model.getAddressBook().getRoleList().size());
         assertTrue(restartedApp.model.getAddressBook().getPersonList().isEmpty());
-        assertArrayEquals(original, Files.readAllBytes(dataPath.resolveSibling("addressbook.json.bak")));
+        assertArrayEquals(original, Files.readAllBytes(dataPath.resolveSibling("recruiterbuddy.json.bak")));
     }
 
     @Test
@@ -306,7 +306,7 @@ public class MainAppTest {
         }
 
         assertEquals("{", Files.readString(dataPath));
-        assertFalse(Files.exists(dataPath.resolveSibling("addressbook.json.bak")));
+        assertFalse(Files.exists(dataPath.resolveSibling("recruiterbuddy.json.bak")));
     }
 
     @Test
@@ -325,11 +325,11 @@ public class MainAppTest {
 
             assertRecoveryFailure(logs, "java.io.IOException: Replacement denied");
             logs.assertContains(RecruitmentDataRecovery.class, Level.INFO,
-                    "Preserved unreadable recruitment data at " + dataPath.resolveSibling("addressbook.json.bak"));
+                    "Preserved unreadable recruitment data at " + dataPath.resolveSibling("recruiterbuddy.json.bak"));
             assertEquals(1, logs.getRecords(RecruitmentDataRecovery.class).size());
         }
 
-        assertEquals("{", Files.readString(dataPath.resolveSibling("addressbook.json.bak")));
+        assertEquals("{", Files.readString(dataPath.resolveSibling("recruiterbuddy.json.bak")));
         assertFalse(Files.exists(dataPath));
     }
 
@@ -347,10 +347,10 @@ public class MainAppTest {
 
         assertBlockedStartup(app);
 
-        assertEquals("{", Files.readString(dataPath.resolveSibling("addressbook.json.bak")));
+        assertEquals("{", Files.readString(dataPath.resolveSibling("recruiterbuddy.json.bak")));
         assertEquals("Unexpected replacement", Files.readString(dataPath));
         assertTrue(app.notices.latestNotice.message().contains(
-                dataPath.resolveSibling("addressbook.json.bak").toAbsolutePath().normalize().toString()));
+                dataPath.resolveSibling("recruiterbuddy.json.bak").toAbsolutePath().normalize().toString()));
     }
 
     @Test
@@ -388,7 +388,7 @@ public class MainAppTest {
         assertEquals(new AddressBook(), restartedApp.model.getAddressBook());
         assertFalse(restartedApp.notices.wasRecoveryWarningShown);
         assertFalse(restartedApp.notices.wasStartupErrorShown);
-        assertEquals("{", Files.readString(dataPath.resolveSibling("addressbook.json.bak")));
+        assertEquals("{", Files.readString(dataPath.resolveSibling("recruiterbuddy.json.bak")));
     }
 
     @Test
@@ -404,7 +404,7 @@ public class MainAppTest {
 
         assertEquals(recoveredApp.model.getAddressBook(), restartedApp.model.getAddressBook());
         assertEquals(1, restartedApp.model.getAddressBook().getRoleList().size());
-        assertEquals("{", Files.readString(dataPath.resolveSibling("addressbook.json.bak")));
+        assertEquals("{", Files.readString(dataPath.resolveSibling("recruiterbuddy.json.bak")));
     }
 
     @Test
@@ -570,7 +570,7 @@ public class MainAppTest {
 
     private List<Path> getBackupPaths() throws IOException {
         try (var files = Files.list(testFolder)) {
-            return files.filter(path -> path.getFileName().toString().startsWith("addressbook.json.bak")).toList();
+            return files.filter(path -> path.getFileName().toString().startsWith("recruiterbuddy.json.bak")).toList();
         }
     }
 

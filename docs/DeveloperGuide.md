@@ -203,7 +203,7 @@ The `Model` component,
 <puml src="diagrams/StorageClassDiagram.puml" width="550" />
 
 The `Storage` component,
-* saves candidates and roles together in the address book JSON file, and user preferences in a
+* saves candidates and roles together in the RecruiterBuddy JSON file, and user preferences in a
   separate JSON file. It reads them back into corresponding model objects.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * uses `JsonSerializableAddressBook` with `JsonAdaptedPerson`, `JsonAdaptedTag`, and `JsonAdaptedRole`
@@ -253,7 +253,7 @@ no network connection or additional files.
 The 'Status' enum defines seven candidate statuses: `RESUME`, `INTERVIEW`, `OFFER`, `DECISION`, `HIRED`, `REJECTED`, and `WITHDRAWN`. The first four are _pending_ statuses; the remaining three are _final_ statuses. New candidates are assigned the `RESUME` status by default.
 
 When stored candidate data has no status, loading it defaults to `RESUME`. Upon successful execution
-of any command except `HelpCommand`, `LogicManager` saves the complete address book, and
+of any command except `HelpCommand`, `LogicManager` saves the candidates and roles lists, and
 `JsonAdaptedPerson` writes each status using its exact enum name. Viewing help does not trigger a save.
 
 An unrecognized stored value causes data loading to fail and invokes the recovery process described in [Protecting unreadable recruitment data](#protecting-unreadable-recruitment-data).
@@ -340,13 +340,12 @@ Saving occurs in `LogicManager` after the command returns successfully, as descr
 
 #### Saving and restoring associations
 
-After a command other than `HelpCommand` executes successfully, `LogicManager#execute` asks `Storage` to save the complete
-address book, including both collections. This also happens for successful read-only commands such as `list`.
+After a command other than `HelpCommand` executes successfully, `LogicManager#execute` asks `Storage` to save the candidates and roles lists, including both collections. This also happens for successful read-only commands such as `list`.
 `HelpCommand` returns before the save call, so viewing help neither
 creates the recruitment data file nor retries a failed save. After resolving a file-access problem,
 the user can run `list` successfully to retry saving.
 
-When running AddressBook from a JAR file, `data/addressbook.json`, `preferences.json`, and the log files
+When running RecruiterBuddy from a JAR file, `data/recruiterbuddy.json`, `preferences.json`, and the log files
 are saved in the directory containing the JAR. When running from compiled classes, they are saved in
 the process's working directory.
 
@@ -407,7 +406,7 @@ JSON check; invalid preferences retain the existing default-settings fallback ra
 recruitment-data backup recovery.
 
 The activity diagram below follows the failed-loading path after preferences and storage have been
-initialized. `FILE` denotes the original data filename (normally `addressbook.json`), and `TIMESTAMP`
+initialized. `FILE` denotes the original data filename (normally `recruiterbuddy.json`), and `TIMESTAMP`
 is captured once for the recovery attempt. A move that reports an existing destination selects
 the timestamped name, then `-1`, `-2`, and so on.
 The loop retries the move itself rather than relying on an earlier existence check. Source-check
@@ -482,7 +481,7 @@ hard-coded pending-status names. Each candidate contributes once, and an absent 
 zero. The summary reports actual records, including any inconsistent hand-edited hire counts;
 it never changes statuses or enforces command-level recruitment rules.
 
-`Logic#getPersonList` exposes the address book's unmodifiable observable candidate list, not the
+`Logic#getPersonList` exposes RecruiterBuddy's unmodifiable observable candidate list, not the
 filtered list used by the candidate panel. `MainWindow` passes it to `RoleListPanel` alongside the
 existing observable role list. A panel-lifetime candidate listener refreshes the role list after
 additions, replacements, removals, and resets. List cells construct fresh summaries when rendering
@@ -546,11 +545,11 @@ Assertions check programmer assumptions rather than user input. `CandidateRoleCh
 
 Undo and redo are implemented in `ModelManager` using two in-memory stacks of complete
 `AddressBook` snapshots: `undoStack` and `redoStack`. The history is session-scoped and
-is not persisted in `addressbook.json`; restarting the application clears both stacks.
+is not persisted in `recruiterbuddy.json`; restarting the application clears both stacks.
 
 #### Implementation
 
-`Command#isUndoable()` identifies commands that can change address-book data. In
+`Command#isUndoable()` identifies commands that can change candidate and role data. In
 `LogicManager#execute(String)`, an undoable command first calls
 `Model#recordAddressBookState()`, which pushes a defensive copy onto the undo stack.
 After successful execution, `LogicManager` compares the stored values before and after the command.
@@ -562,20 +561,19 @@ execution fails with a `CommandException` or runtime exception,
 consume undo history.
 
 `UndoCommand` calls `Model#undoAddressBook()`. If a snapshot exists, the current state is
-copied to the redo stack and the latest undo snapshot is restored. If none exists, the
-address book is unchanged and the user sees `There is no change to undo.`
+copied to the redo stack and the latest undo snapshot is restored. If none exists, the candidates and roles lists are unchanged and the user sees `There is no change to undo.`
 
 `RedoCommand` performs the inverse operation through `Model#redoAddressBook()`. If no
-redo snapshot exists, the address book is unchanged and the user sees
+redo snapshot exists, the candidates and roles lists are unchanged and the user sees
 `There is no change to redo.` A new successful command that changes stored data after an undo clears redo
 history. Successful commands that leave stored values unchanged preserve both histories. Successful undo and redo operations are saved through the normal storage step,
 but the history itself remains in memory only. Read-only commands such as `list`, `find`
 and `help` do not affect either stack.
 
-The implementation stores complete address-book snapshots rather than requiring each
+The implementation stores complete RecruiterBuddy snapshots rather than requiring each
 mutating command to implement its own inverse operation. This centralises the feature and
 makes new mutating commands undoable through the `Command#isUndoable()` contract, at the
-cost of higher memory usage for large address books.
+cost of higher memory usage for large candidates or roles lists.
 
 ### Candidate email validation
 
@@ -689,7 +687,7 @@ After saving a new interview, `InterviewCommand` checks whether it might be a mi
 
 * The candidate's status is final (`HIRED`, `REJECTED` or `WITHDRAWN`), using `Status#isPending`, and the interview is today or later. This line comes first, as it suggests the interview may not be needed at all. A past interview is not checked, as recording one is how a recruiter keeps the history of a candidate who already has an outcome.
 * The date is before today, or more than a year after today. The interview is still saved so that historical interviews can be recorded, but the warning helps catch a mistyped year. Today's date comes from a `Clock`, which is the system clock in the app and a fixed clock in tests.
-* Other candidates in the whole address book, including those hidden by the filter, have an interview at the same date and time. The line `Also at this time:` shows at most two names, shortens names longer than 30 characters, and reports how many additional candidates share the slot.
+* Other candidates in the full candidates list, including those hidden by the filter, have an interview at the same date and time. The line `Also at this time:` shows at most two names, shortens names longer than 30 characters, and reports how many additional candidates share the slot.
 
 Clearing an interview is never checked.
 
@@ -1420,9 +1418,10 @@ testers are expected to do more *exploratory* testing.
 
    1. Download the JAR file and copy it into an empty folder.
 
-   1. Open a terminal in that folder and run `java -jar addressbook.jar`.<br>
+   1. Open a terminal in that folder and run `java -jar "[JARName]"`, where `JARName` is the name and extension of the JAR file. For example, run `java -jar "[CS2103-F12-3][RecruiterBuddy].jar"` for `[CS2103-F12-3][RecruiterBuddy].jar`. <br>
+      The quotes are needed for names containing `[` or `]`.
       Expected: The GUI opens with sample candidates and roles. The window size may not be optimal.
-      `preferences.json` and `addressbook.log` are created in that folder.
+      `preferences.json` and `recruiterbuddy.log.0` are created in that folder.
 
 1. Saving window preferences
 
@@ -1892,16 +1891,16 @@ Close the application window before editing or moving data files.
    Expected: Only the open engineer role and its two pending candidates remain. Recreate the analyst
    role and restart again; the new role is restored with its new experience level and `OPEN` status.
 
-1. Missing file: while the app is closed, move `data/addressbook.json` to a backup location within the
+1. Missing file: while the app is closed, move `data/recruiterbuddy.json` to a backup location within the
    test folder. Restart.<br>
    Expected: Sample roles and candidates appear, not empty lists. Run `help`, use the Help menu and
-   press F1: instructions appear, but `data/addressbook.json` is not created. Run `list` successfully:
+   press F1: instructions appear, but `data/recruiterbuddy.json` is not created. Run `list` successfully:
    the file is created with the displayed sample data. Close the window and restore the backup
    before continuing with the other scenarios.
 
 1. Invalid file: back up the fixture file while the app is closed. Replace the JSON with `{` and restart.<br>
    Expected: A `Recruitment data backed up` warning identifies the full backup and replacement paths
-   and restoration steps. The original is renamed to `addressbook.json.bak` with identical bytes.
+   and restoration steps. The original is renamed to `recruiterbuddy.json.bak` with identical bytes.
    Dismiss the warning: the command window opens with empty lists and a valid empty data file.
    Exit without a command and restart: the lists stay empty without another warning. Restore your
    fixture while the app is closed. Repeat separately
@@ -1915,7 +1914,7 @@ Close the application window before editing or moving data files.
    the new role persists and the backup stays unchanged. Restore your fixture between attempts.
 
 1. Unreadable path: move the fixture file to your backup location, then create a directory named
-   `data/addressbook.json` containing a small marker file. Restart.<br>
+   `data/recruiterbuddy.json` containing a small marker file. Restart.<br>
    Expected: The startup error identifies the data path and the app closes after dismissal. The
    directory and marker file are unchanged. Remove only the disposable marker and directory, then
    restore the fixture file. With a regular file without read permission, recovery can still succeed
@@ -1923,8 +1922,8 @@ Close the application window before editing or moving data files.
    error and the original remains untouched. Test permission failures under an account that cannot
    bypass the restrictions.
 
-1. Backup collision: while the app is closed, retain a marker file at `addressbook.json.bak`, then
-   make `addressbook.json` invalid and restart.<br>
+1. Backup collision: while the app is closed, retain a marker file at `recruiterbuddy.json.bak`, then
+   make `recruiterbuddy.json` invalid and restart.<br>
    Expected: The marker backup is unchanged; the notice identifies a different timestamped backup
    containing the invalid file's original bytes. The application opens with empty lists.
 
