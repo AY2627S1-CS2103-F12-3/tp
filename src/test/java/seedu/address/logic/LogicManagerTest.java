@@ -81,6 +81,29 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_findCandidateStatus_combinesFieldsWithOrAndTracksChanges() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
+        model.addPerson(new PersonBuilder(AMY).withStatus(Status.INTERVIEW).build());
+        model.addPerson(new PersonBuilder().withNameAndDistinctContacts("Other Candidate").build());
+        logic.execute("find st/interview");
+        assertEquals(1, model.getFilteredPersonList().size());
+        assertEquals(Status.INTERVIEW, model.getFilteredPersonList().getFirst().getStatus());
+        logic.execute("find Other st/INTERVIEW");
+        assertEquals(2, model.getFilteredPersonList().size());
+        logic.execute("find st/INTERVIEW");
+        logic.execute("status 1 st/REJECTED");
+        logic.execute("find st/INTERVIEW");
+        assertTrue(model.getFilteredPersonList().isEmpty());
+        logic.execute("undo");
+        logic.execute("find st/INTERVIEW");
+        assertEquals(1, model.getFilteredPersonList().size());
+        logic.execute("redo");
+        logic.execute("find st/REJECTED");
+        assertEquals(1, model.getFilteredPersonList().size());
+        assertEquals(model.getAddressBook(), addressBookStorage.readAddressBook().orElseThrow());
+    }
+
+    @Test
     public void execute_invalidCommandFormat_throwsParseException() {
         String invalidCommand = "uicfhmowqewca";
         assertParseException(invalidCommand, MESSAGE_UNKNOWN_COMMAND);

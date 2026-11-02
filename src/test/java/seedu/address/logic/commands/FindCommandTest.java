@@ -18,6 +18,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.person.Status;
 import seedu.address.model.role.RoleStatus;
 import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.RoleBuilder;
@@ -91,10 +92,11 @@ public class FindCommandTest {
         roleModel.addRole(new RoleBuilder().withTitle("Software Engineer").withStatus(RoleStatus.OPEN).build());
         roleModel.addPerson(new PersonBuilder().withName("Alice").withTags("SoftwareEngineer").build());
         NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(
-                List.of("Alice"), List.of("Software"), java.util.Set.of(RoleStatus.OPEN), List.of());
+                List.of("Alice"), List.of("Software"), java.util.Set.of(Status.RESUME));
         CommandResult result = new FindCommand(predicate).execute(roleModel);
         assertEquals(1, roleModel.getFilteredPersonList().size());
-        assertTrue(result.getFeedbackToUser().contains("List filter: Name: Alice; Role: Software; Role status: OPEN"));
+        assertTrue(result.getFeedbackToUser().contains(
+                "List filter: Name: Alice; Role: Software; Candidate status: RESUME"));
     }
 
     /**
