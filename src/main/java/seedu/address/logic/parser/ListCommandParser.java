@@ -22,11 +22,11 @@ public class ListCommandParser implements Parser<ListCommand> {
     public ListCommand parse(String args) throws ParseException {
         requireNonNull(args);
         String trimmedArgs = args.trim();
-        if (!trimmedArgs.isEmpty() && !trimmedArgs.equals("role")) {
+        if (!trimmedArgs.isEmpty() && !trimmedArgs.equalsIgnoreCase("role")) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT,
                     ListCommand.MESSAGE_USAGE));
         }
 
-        return new ListCommand(trimmedArgs.equals("role"));
+        return new ListCommand(trimmedArgs.equalsIgnoreCase("role"));
     }
 }

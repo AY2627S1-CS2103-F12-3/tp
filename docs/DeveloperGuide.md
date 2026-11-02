@@ -224,8 +224,11 @@ This section describes some noteworthy details on how certain features are imple
 ### Offline command guide
 
 `HelpCommandParser` accepts zero or one command name. More than one token is rejected with the
-dedicated extra-argument message. `AddressBookParser` recognizes the help keyword without case
-sensitivity, without changing dispatch for other commands.
+dedicated extra-argument message. `AddressBookParser` normalizes all command words with
+`Locale.ROOT` before dispatch, so commands such as `HELP`, `LIST`, and `Find` are case-insensitive.
+`RoleCommandParser` applies the same normalization to role subcommands, and `ListCommandParser`
+accepts `role` without case sensitivity. Argument values retain their original casing, and
+prefixes such as `n/` remain case-sensitive.
 
 `HelpCommand` returns a non-undoable `CommandResult` containing `CommandGuide#getOverview()` when
 no topic is supplied, or `CommandGuide#findHelp()` for a single topic. Lookup uses `Locale.ROOT` so
