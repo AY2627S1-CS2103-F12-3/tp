@@ -315,7 +315,8 @@ public class LogicManagerTest {
         logic.execute("edit 1 n/Alicia");
         logic.execute("undo");
 
-        assertEquals("Status of candidate: Resume", logic.execute("status 1 st/RESUME").getFeedbackToUser());
+        assertEquals("Status \"Resume\" assigned to: Alice Tan (alice@example.com)",
+                logic.execute("status 1 st/RESUME").getFeedbackToUser());
         assertEquals("Redid the previous change.", logic.execute("redo").getFeedbackToUser());
         assertEquals("Alicia", model.getAddressBook().getPersonList().getFirst().getName().fullName);
     }

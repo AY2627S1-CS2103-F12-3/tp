@@ -524,6 +524,8 @@ Format: `status INDEX... st/STATUS`
 
 * Updates the status of the candidates at the specified indices. Each index refers to the index number shown in the displayed candidate list. The index **must be a positive integer** 1, 2, 3, ... and cannot exceed the length of the _displayed_ candidate list.
 * Each candidate's original status is replaced with the one specified in `STATUS`.
+* Upon successful execution, a success message is returned: `Status "STATUS" assigned to: NAME (EMAIL)...`.
+  * Each updated candidate's name and email is listed; candidates appear in no particular order.
 * `STATUS` must be one of the following: `RESUME`, `INTERVIEW`, `OFFER`, `DECISION`, `HIRED`, `REJECTED`, or `WITHDRAWN`.
 * `STATUS` is not case-sensitive; for example, `hired`, `Hired` and `hiRED` are treated as the same as `HIRED`.
 * Each role has exactly one vacancy. If another candidate for the same role is already `HIRED`, assigning the `HIRED` status fails with error message `ROLE_TITLE already has a hired candidate`. Candidates hidden by filters are considered for this, and role titles are compared without case sensitivity.
