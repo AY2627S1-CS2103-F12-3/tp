@@ -1439,8 +1439,6 @@ Use case ends.
     in the current session.
   * Use case ends.
 
-*{More to be added}*
-
 ### Non-Functional Requirements
 
 1.  RecruiterBuddy should support all its documented functions on Windows, macOS, and Linux with Java 25 as the only installed Java version.
@@ -1460,8 +1458,6 @@ Use case ends.
 15.  If recruitment data cannot be read or fails validation during startup, preserve its original contents in a non-overwriting sibling backup before creating an empty replacement. If safe recovery fails, do not expose commands; identify the preserved data location and recovery steps.
 16.  All persistent RecruiterBuddy data should be stored locally in human-readable text files that can be inspected and modified using a plain-text editor. This includes recruitment records, saved candidate status history, and user-defined configuration such as command shortcuts.
 17.  If writing updated data fails while the previously saved file remains accessible, RecruiterBuddy should leave that file's contents unchanged.
-
-*{More to be added}*
 
 ### Glossary
 
