@@ -43,7 +43,7 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
    * `list role` : Lists all unique roles, with each role shown in its own box.
    * `undo` : Undoes the most recent data-changing command in this session.
    * `redo` : Redoes the most recently undone data-changing command.
-   * `role add r/Software Engineer x/2 years` : Adds an open role.
+   * `role add r/QA Engineer x/2 years` : Adds an open role.
 
    * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 r/Data Analyst` : Adds a candidate named `John Doe` who is applying for the sample `Data Analyst` role.
 
@@ -69,7 +69,7 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
   For example, in `add n/NAME`, replace `NAME` with a value such as `John Doe`.
 
 * Command words and role subcommands are case-insensitive.<br>
-  For example, `LIST ROLE`, `Find Alex`, and `ROLE ADD r/Software Engineer x/Senior` are accepted.
+  For example, `LIST ROLE`, `Find Alex`, and `ROLE ADD r/QA Engineer x/Senior` are accepted.
   Prefixes such as `n/` remain lowercase.
 
 * Items in square brackets are optional.<br>
@@ -212,7 +212,7 @@ Leading and trailing whitespace is removed from each value before validation and
 
 Examples:
 
-* `role add r/Software Engineer x/2 years`
+* `role add r/QA Engineer x/2 years`
 * `role add x/Entry level r/Product Analyst`
 * `role add r/C++ Developer x/2 years`
 * `role add r/C# Developer x/2 years`
@@ -704,7 +704,7 @@ Action     | Format, Examples
 **Redo**   | `redo`
 **Interview** | `interview INDEX [d/YYYY-MM-DD HH:MM]`<br> e.g., `interview 1 d/2026-10-20 14:00`, `interview 2`
 **Note**   | `note INDEX [NOTE]`<br> e.g., `note 1 Prefers hybrid work`
-**Role add** | `role add r/ROLE_TITLE x/EXPERIENCE_LEVEL`<br> e.g., `role add r/Software Engineer x/2 years`
+**Role add** | `role add r/ROLE_TITLE x/EXPERIENCE_LEVEL`<br> e.g., `role add r/QA Engineer x/2 years`
 **Role edit** | `role edit INDEX [r/ROLE_TITLE] [x/EXPERIENCE_LEVEL]`<br> e.g., `list role` followed by `role edit 1 r/Platform Engineer x/5 years`
 **Role close** | `role close INDEX`<br> e.g., `list role` followed by `role close 1`
 **Role delete** | `role delete INDEX`<br> e.g., `list role` followed by `role delete 1`
