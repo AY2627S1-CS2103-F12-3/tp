@@ -79,8 +79,11 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
 * A parameter may contain text such as `s/o` or `c/o`, as long as it is not one of the command's prefixes.<br>
   For example, in `n/Ravi s/o Kumar` the name is `Ravi s/o Kumar`, because `s/` is not a prefix of `add`.
 
-* Extraneous parameters for `exit` and `clear` are ignored. `help` accepts at most one command name.
-  `list` accepts only `list` or `list role`; anything else is rejected.
+* Extraneous parameters for `undo`, `redo`, `exit` and `clear` will result in a command failure with no changes made to any records. When this happens, `clear` does not remove any records, and `exit` does not exit the app.
+
+* `help` accepts at most one command name.
+
+* `list` accepts only `list` or `list role`; anything else is rejected.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </box>
