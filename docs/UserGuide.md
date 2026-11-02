@@ -135,6 +135,7 @@ recognized only when it starts at a whitespace-delimited token, so a standalone 
 * `PHONE_NUMBER`:
   * Has 8 to 15 digits, with an optional `+` at the start.
   * Can include spaces and hyphens, such as `+65 9123-4567`.
+  * Brackets, extensions and other symbols are not accepted. Write a country code with `+`, such as `+65 9123 4568` instead of `(65) 9123 4568`, and record an extension in the candidate's note instead, such as `note 1 Phone ext 12`.
   * A number without a country code is treated as a Singapore number. If it does not look like one (8 digits starting with 3, 6, 8 or 9), such as `12345678`, the candidate is still added, and the result includes a warning reminding you to include the country code for an overseas number, such as `+60 12-345 6789`.
   * Spaces and hyphens are ignored and removed when the number is saved, so `+65 9123-4567` is shown as `+6591234567`.
 * `EMAIL`:
