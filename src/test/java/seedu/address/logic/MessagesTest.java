@@ -20,7 +20,7 @@ public class MessagesTest {
     }
 
     @Test
-    public void format_noteAndInterview_includesEachOnce() {
+    public void format_noteAndInterview_includesBoth() {
         Person person = new PersonBuilder()
                 .withNote("Prefers mornings")
                 .withInterview("2026-11-20 14:00")
