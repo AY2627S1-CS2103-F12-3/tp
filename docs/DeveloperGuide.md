@@ -16,8 +16,7 @@
 * This project builds on [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) by the
   [SE-EDU initiative](https://se-education.org). Its existing architecture and documentation form the
   starting point for RecruiterBuddy.
-* Kavin Parthipan (`kpkavin04`) used OpenAI Codex to assist with requirements analysis, implementation, tests, review, and documentation for candidate role reassignment, the persistent role model, role commands, role-card summaries, role workflow diagnostics, and associated candidate-status safeguards, and safe startup after recruitment-data loading failures, and the offline command guide. This acknowledgement covers that contribution, not other team members' tool usage.
-  He also used Codex to help correct the candidate deletion sequence diagram and its explanation.
+* Kavin Parthipan (`kpkavin04`) used OpenAI Codex to assist with requirements analysis, implementation, tests, review, and documentation for candidate role reassignment, the persistent role model, role commands, role-card summaries, role workflow diagnostics, and associated candidate-status safeguards, and safe startup after recruitment-data loading failures, the offline command guide, candidate-input diagnostics, and Developer Guide maintenance. This acknowledgement covers that contribution, not other team members' tool usage.
 
 --------------------------------------------------------------------------------------------------------------------
 
