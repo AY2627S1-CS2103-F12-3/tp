@@ -145,7 +145,7 @@ public class MainApp extends Application {
         Optional<ReadOnlyAddressBook> addressBookOptional = storage.readAddressBook();
         if (addressBookOptional.isEmpty()) {
             logger.info("Creating a new data file " + storage.getAddressBookFilePath()
-                    + " populated with a sample RecruiterBuddy.");
+                    + " populated with sample candidate and role data.");
         }
         ReadOnlyAddressBook initialData = addressBookOptional.orElseGet(SampleDataUtil::getSampleAddressBook);
 

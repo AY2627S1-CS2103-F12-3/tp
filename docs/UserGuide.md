@@ -559,7 +559,7 @@ Format: `delete INDEX`
   `The delete command takes only a candidate index.` No candidate is deleted.
 
 Examples:
-* `list` followed by `delete 2` deletes the 2nd candidate in RecruiterBuddy.
+* `list` followed by `delete 2` deletes the 2nd candidate in the displayed candidates\ list.
 * `find Betsy` followed by `delete 1` deletes the 1st candidate in the results of the `find` command.
 
 ### Clearing all entries: `clear`

@@ -549,7 +549,7 @@ is not persisted in `recruiterbuddy.json`; restarting the application clears bot
 
 #### Implementation
 
-`Command#isUndoable()` identifies commands that can change RecruiterBuddy data. In
+`Command#isUndoable()` identifies commands that can change candidate and role data. In
 `LogicManager#execute(String)`, an undoable command first calls
 `Model#recordAddressBookState()`, which pushes a defensive copy onto the undo stack.
 After successful execution, `LogicManager` compares the stored values before and after the command.
