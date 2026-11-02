@@ -161,7 +161,8 @@ public class LogicManagerTest {
     @Test
     public void execute_commandExecutionError_throwsCommandException() {
         String deleteCommand = "delete 9";
-        assertCommandException(deleteCommand, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        assertCommandException(deleteCommand, Messages.getErrorMessageForInvalidPersonIndex(
+                seedu.address.commons.core.index.Index.fromOneBased(9), 0));
     }
 
     @Test
@@ -342,7 +343,8 @@ public class LogicManagerTest {
         logic.execute(addCommand);
         logic.execute("undo");
 
-        assertCommandException("delete 9", MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        assertCommandException("delete 9", Messages.getErrorMessageForInvalidPersonIndex(
+                seedu.address.commons.core.index.Index.fromOneBased(9), 0));
         logic.execute("redo");
         assertEquals(1, model.getAddressBook().getPersonList().size());
     }
