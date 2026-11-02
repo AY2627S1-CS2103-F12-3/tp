@@ -77,7 +77,7 @@ dependencies {
 }
 
 shadowJar {
-    archiveFileName = 'addressbook.jar'
+    archiveFileName = 'recruiterbuddy.jar'
 }
 
 test {

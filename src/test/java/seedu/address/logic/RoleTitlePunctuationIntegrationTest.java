@@ -43,7 +43,7 @@ public class RoleTitlePunctuationIntegrationTest {
 
     @BeforeEach
     public void setUp() {
-        storage = new JsonAddressBookStorage(testFolder.resolve("addressbook.json"));
+        storage = new JsonAddressBookStorage(testFolder.resolve("recruiterbuddy.json"));
         logic = new LogicManager(model, new StorageManager(storage,
                 new JsonUserPrefsStorage(testFolder.resolve("preferences.json"))));
     }

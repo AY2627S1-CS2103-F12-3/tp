@@ -67,13 +67,13 @@ public class FileSavingIntegrationTest {
     public void init_logFileCannotBeOpened_continuesWithoutFileLogging() throws Exception {
         Path jar = copyJar("application");
         // A directory at the log filename forces an IOException even with elevated filesystem permissions.
-        Files.createDirectory(jar.getParent().resolve("addressbook.log.0"));
+        Files.createDirectory(jar.getParent().resolve("recruiterbuddy.log.0"));
         Path workingDirectory = Files.createDirectory(testFolder.resolve("working"));
 
         String output = runDriver(jar.toString(), workingDirectory, "write", jar.getParent());
 
         assertTrue(output.contains("Error adding file handler for logger."), output);
-        assertTrue(Files.isRegularFile(jar.getParent().resolve("data/addressbook.json")));
+        assertTrue(Files.isRegularFile(jar.getParent().resolve("data/recruiterbuddy.json")));
         assertTrue(Files.isRegularFile(jar.getParent().resolve("preferences.json")));
     }
 
@@ -82,9 +82,9 @@ public class FileSavingIntegrationTest {
         Path workingDirectory = Files.createDirectory(testFolder.resolve("working"));
         runDriver(jar.toString(), workingDirectory, "write", jar.getParent());
 
-        assertTrue(Files.isRegularFile(jar.getParent().resolve("data/addressbook.json")));
+        assertTrue(Files.isRegularFile(jar.getParent().resolve("data/recruiterbuddy.json")));
         assertTrue(Files.isRegularFile(jar.getParent().resolve("preferences.json")));
-        assertTrue(Files.readString(jar.getParent().resolve("addressbook.log.0"))
+        assertTrue(Files.readString(jar.getParent().resolve("recruiterbuddy.log.0"))
                 .contains("File-saving integration test marker"));
         try (Stream<Path> files = Files.list(workingDirectory)) {
             assertEquals(0, files.count(), "No application files should be created in the working directory");
@@ -92,7 +92,7 @@ public class FileSavingIntegrationTest {
 
         // Decoy files must neither override saved state beside the JAR nor be overwritten on the next launch.
         Files.createDirectory(workingDirectory.resolve("data"));
-        Path decoyData = workingDirectory.resolve("data/addressbook.json");
+        Path decoyData = workingDirectory.resolve("data/recruiterbuddy.json");
         Path decoyPrefs = workingDirectory.resolve("preferences.json");
         Files.writeString(decoyData, "{}");
         Files.writeString(decoyPrefs, "{}");
@@ -100,7 +100,7 @@ public class FileSavingIntegrationTest {
 
         assertEquals("{}", Files.readString(decoyData));
         assertEquals("{}", Files.readString(decoyPrefs));
-        assertFalse(Files.exists(workingDirectory.resolve("addressbook.log.0")));
+        assertFalse(Files.exists(workingDirectory.resolve("recruiterbuddy.log.0")));
         try (Stream<Path> files = Files.list(jar.getParent())) {
             assertFalse(files.anyMatch(path -> path.toString().endsWith(".lck")), "Log locks must be released");
         }
@@ -108,50 +108,50 @@ public class FileSavingIntegrationTest {
 
     private Path copyJar(String directoryName) throws Exception {
         Path directory = Files.createDirectory(testFolder.resolve(directoryName));
-        return Files.copy(Path.of(System.getProperty("test.appJar")), directory.resolve("addressbook.jar"));
+        return Files.copy(Path.of(System.getProperty("test.appJar")), directory.resolve("recruiterbuddy.jar"));
     }
 
     private void assertDevelopmentSaveAndReload(String directoryName) throws Exception {
         Path classes = copyApplicationClasses();
         Path workingDirectory = Files.createDirectory(testFolder.resolve(directoryName));
-        Path decoyData = classes.getParent().resolve("data/addressbook.json");
+        Path decoyData = classes.getParent().resolve("data/recruiterbuddy.json");
         Path decoyPrefs = classes.getParent().resolve("preferences.json");
         Files.createDirectories(decoyData.getParent());
         Files.writeString(decoyData, "{}");
         Files.writeString(decoyPrefs, "{}");
 
         runDriver(developmentClassPath(classes), workingDirectory, "write", workingDirectory);
-        assertTrue(Files.isRegularFile(workingDirectory.resolve("data/addressbook.json")));
+        assertTrue(Files.isRegularFile(workingDirectory.resolve("data/recruiterbuddy.json")));
         assertTrue(Files.isRegularFile(workingDirectory.resolve("preferences.json")));
-        assertTrue(Files.readString(workingDirectory.resolve("addressbook.log.0"))
+        assertTrue(Files.readString(workingDirectory.resolve("recruiterbuddy.log.0"))
                 .contains("File-saving integration test marker"));
         runDriver(developmentClassPath(classes), workingDirectory, "read", workingDirectory);
 
         assertEquals("{}", Files.readString(decoyData));
         assertEquals("{}", Files.readString(decoyPrefs));
-        assertFalse(Files.exists(classes.getParent().resolve("addressbook.log.0")));
+        assertFalse(Files.exists(classes.getParent().resolve("recruiterbuddy.log.0")));
         assertFalse(Files.exists(classes.resolve("data")));
         assertFalse(Files.exists(classes.resolve("preferences.json")));
     }
 
     private void assertRecovery(String appClassPath, Path workingDirectory, Path expectedDirectory,
             Path decoyDirectory) throws Exception {
-        Path data = expectedDirectory.resolve("data/addressbook.json");
+        Path data = expectedDirectory.resolve("data/recruiterbuddy.json");
         Files.createDirectories(data.getParent());
         Files.writeString(data, "{broken recruitment data");
-        Path decoyData = decoyDirectory.resolve("data/addressbook.json");
+        Path decoyData = decoyDirectory.resolve("data/recruiterbuddy.json");
         Files.createDirectories(decoyData.getParent());
         Files.writeString(decoyData, "{unrelated data");
 
         runDriver(appClassPath, workingDirectory, "recover", expectedDirectory);
         runDriver(appClassPath, workingDirectory, "recover", expectedDirectory);
 
-        assertEquals("{broken recruitment data", Files.readString(data.resolveSibling("addressbook.json.bak")));
+        assertEquals("{broken recruitment data", Files.readString(data.resolveSibling("recruiterbuddy.json.bak")));
         assertEquals("{unrelated data", Files.readString(decoyData));
-        assertFalse(Files.exists(decoyData.resolveSibling("addressbook.json.bak")));
+        assertFalse(Files.exists(decoyData.resolveSibling("recruiterbuddy.json.bak")));
         try (Stream<Path> files = Files.list(data.getParent())) {
             assertEquals(1, files.filter(path -> path.getFileName().toString()
-                    .startsWith("addressbook.json.bak")).count(), "Restart must not create another backup");
+                    .startsWith("recruiterbuddy.json.bak")).count(), "Restart must not create another backup");
         }
     }
 

@@ -70,7 +70,7 @@ public class JsonAddressBookStorageTest {
 
     @Test
     public void readAddressBook_trailingContent_rejectsWithoutChangingFile() throws Exception {
-        Path filePath = testFolder.resolve("addressbook.json");
+        Path filePath = testFolder.resolve("recruiterbuddy.json");
         JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
         storage.saveAddressBook(getTypicalAddressBook());
         String validJson = Files.readString(filePath);
@@ -87,7 +87,7 @@ public class JsonAddressBookStorageTest {
 
     @Test
     public void readAddressBook_trailingWhitespace_loadsWithoutChangingFile() throws Exception {
-        Path filePath = testFolder.resolve("addressbook.json");
+        Path filePath = testFolder.resolve("recruiterbuddy.json");
         AddressBook expected = getTypicalAddressBook();
         JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
         storage.saveAddressBook(expected);

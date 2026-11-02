@@ -36,7 +36,7 @@ public class FileSavingTestDriver {
             init();
             Path dataPath = storage.getAddressBookFilePath();
             Path prefsPath = storage.getUserPrefsFilePath();
-            if (!dataPath.endsWith(Path.of("data", "addressbook.json"))
+            if (!dataPath.endsWith(Path.of("data", "recruiterbuddy.json"))
                     || !dataPath.getParent().getParent().toRealPath().equals(realDirectory)
                     || !prefsPath.getFileName().equals(Path.of("preferences.json"))
                     || !prefsPath.getParent().toRealPath().equals(realDirectory)) {

@@ -60,7 +60,7 @@ public class EditRoleIntegrationTest {
         model.addPerson(new PersonBuilder().withName("Bob").withPhone("91234562")
                 .withEmail("bob@example.com").withRole(CLOSED_DESIGNER.getTitle().value)
                 .withStatus(Status.REJECTED).build());
-        addressBookStorage = new JsonAddressBookStorage(testFolder.resolve("addressbook.json"));
+        addressBookStorage = new JsonAddressBookStorage(testFolder.resolve("recruiterbuddy.json"));
         logic = new LogicManager(model, new StorageManager(addressBookStorage,
                 new JsonUserPrefsStorage(testFolder.resolve("preferences.json"))));
         logic.execute("list role");

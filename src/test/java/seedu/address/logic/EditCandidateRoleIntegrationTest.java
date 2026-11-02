@@ -57,7 +57,7 @@ public class EditCandidateRoleIntegrationTest {
         alice = new PersonBuilder().withName("Alice").withNote("Keep interview details")
                 .withTags("referral").withStatus(Status.HIRED).build();
         addressBook.addPerson(alice);
-        storage = new JsonAddressBookStorage(testFolder.resolve("addressbook.json"));
+        storage = new JsonAddressBookStorage(testFolder.resolve("recruiterbuddy.json"));
         storage.saveAddressBook(addressBook);
         model = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
         logic = new LogicManager(model, new StorageManager(storage,

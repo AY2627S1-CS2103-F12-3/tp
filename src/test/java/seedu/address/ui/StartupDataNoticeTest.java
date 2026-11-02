@@ -10,8 +10,8 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
 public class StartupDataNoticeTest {
-    private static final Path DATA_PATH = Path.of("data", "addressbook.json");
-    private static final Path BACKUP_PATH = Path.of("data", "addressbook.json.bak");
+    private static final Path DATA_PATH = Path.of("data", "recruiterbuddy.json");
+    private static final Path BACKUP_PATH = Path.of("data", "recruiterbuddy.json.bak");
 
     @Test
     public void constructor_nullText_throwsNullPointerException() {

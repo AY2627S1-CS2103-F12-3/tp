@@ -42,22 +42,22 @@ public class RecruitmentDataRecoveryTest {
 
     @Test
     public void backUp_regularFile_movesOriginalBytesToSiblingBackup() throws Exception {
-        Path source = testFolder.resolve("addressbook.json");
+        Path source = testFolder.resolve("recruiterbuddy.json");
         byte[] original = {0, 13, 10, -1, 65};
         Files.write(source, original);
 
         Path backup = recovery.backUp(source);
 
-        assertEquals(testFolder.resolve("addressbook.json.bak"), backup);
+        assertEquals(testFolder.resolve("recruiterbuddy.json.bak"), backup);
         assertArrayEquals(original, Files.readAllBytes(backup));
         assertFalse(Files.exists(source));
     }
 
     @Test
     public void backUp_existingBackups_usesTimestampAndCounterWithoutReplacingFiles() throws Exception {
-        Path source = testFolder.resolve("addressbook.json");
-        Path firstBackup = testFolder.resolve("addressbook.json.bak");
-        Path timestampBackup = testFolder.resolve("addressbook.json.bak." + TIMESTAMP);
+        Path source = testFolder.resolve("recruiterbuddy.json");
+        Path firstBackup = testFolder.resolve("recruiterbuddy.json.bak");
+        Path timestampBackup = testFolder.resolve("recruiterbuddy.json.bak." + TIMESTAMP);
         Files.writeString(firstBackup, "First backup");
         Files.writeString(timestampBackup, "Timestamp backup");
         Files.writeString(source, "Second original");
@@ -67,8 +67,8 @@ public class RecruitmentDataRecoveryTest {
             Files.writeString(source, "Third original");
             Path thirdBackup = recovery.backUp(source);
 
-            assertEquals(testFolder.resolve("addressbook.json.bak." + TIMESTAMP + "-1"), secondBackup);
-            assertEquals(testFolder.resolve("addressbook.json.bak." + TIMESTAMP + "-2"), thirdBackup);
+            assertEquals(testFolder.resolve("recruiterbuddy.json.bak." + TIMESTAMP + "-1"), secondBackup);
+            assertEquals(testFolder.resolve("recruiterbuddy.json.bak." + TIMESTAMP + "-2"), thirdBackup);
             assertEquals("First backup", Files.readString(firstBackup));
             assertEquals("Timestamp backup", Files.readString(timestampBackup));
             assertEquals("Second original", Files.readString(secondBackup));
@@ -84,21 +84,21 @@ public class RecruitmentDataRecoveryTest {
 
     @Test
     public void backUp_directoryAtBackupName_preservesDirectoryAndUsesTimestamp() throws Exception {
-        Path source = testFolder.resolve("addressbook.json");
-        Path existingDirectory = Files.createDirectory(testFolder.resolve("addressbook.json.bak"));
+        Path source = testFolder.resolve("recruiterbuddy.json");
+        Path existingDirectory = Files.createDirectory(testFolder.resolve("recruiterbuddy.json.bak"));
         Path marker = Files.writeString(existingDirectory.resolve("keep.txt"), "Keep this file");
         Files.writeString(source, "{");
 
         Path backup = recovery.backUp(source);
 
-        assertEquals(testFolder.resolve("addressbook.json.bak." + TIMESTAMP), backup);
+        assertEquals(testFolder.resolve("recruiterbuddy.json.bak." + TIMESTAMP), backup);
         assertEquals("{", Files.readString(backup));
         assertEquals("Keep this file", Files.readString(marker));
     }
 
     @Test
     public void backUp_directorySource_throwsWithoutMovingContents() throws Exception {
-        Path source = Files.createDirectory(testFolder.resolve("addressbook.json"));
+        Path source = Files.createDirectory(testFolder.resolve("recruiterbuddy.json"));
         Path marker = Files.writeString(source.resolve("keep.txt"), "Keep this file");
 
         try (LogCapture logs = new LogCapture()) {
@@ -107,12 +107,12 @@ public class RecruitmentDataRecoveryTest {
         }
 
         assertEquals("Keep this file", Files.readString(marker));
-        assertFalse(Files.exists(testFolder.resolve("addressbook.json.bak")));
+        assertFalse(Files.exists(testFolder.resolve("recruiterbuddy.json.bak")));
     }
 
     @Test
     public void backUp_missingSource_throwsWithoutCreatingBackup() throws Exception {
-        Path source = testFolder.resolve("addressbook.json");
+        Path source = testFolder.resolve("recruiterbuddy.json");
 
         assertThrows(IOException.class, () -> recovery.backUp(source));
 
@@ -128,7 +128,7 @@ public class RecruitmentDataRecoveryTest {
 
     @Test
     public void createEmptyDataFile_absentSource_savesValidEmptyRecruitmentData() throws Exception {
-        Path source = testFolder.resolve("addressbook.json");
+        Path source = testFolder.resolve("recruiterbuddy.json");
 
         try (LogCapture logs = new LogCapture()) {
             recovery.createEmptyDataFile(source);
@@ -143,7 +143,7 @@ public class RecruitmentDataRecoveryTest {
 
     @Test
     public void createEmptyDataFile_existingSource_doesNotOverwriteUnexpectedFile() throws Exception {
-        Path source = Files.writeString(testFolder.resolve("addressbook.json"), "New data from another writer");
+        Path source = Files.writeString(testFolder.resolve("recruiterbuddy.json"), "New data from another writer");
 
         try (LogCapture logs = new LogCapture()) {
             assertThrows(FileAlreadyExistsException.class, () -> recovery.createEmptyDataFile(source));
@@ -157,7 +157,7 @@ public class RecruitmentDataRecoveryTest {
     public void createEmptyDataFile_missingParent_throwsWithoutCreatingDirectories() {
         Path parent = testFolder.resolve("missing");
 
-        assertThrows(IOException.class, () -> recovery.createEmptyDataFile(parent.resolve("addressbook.json")));
+        assertThrows(IOException.class, () -> recovery.createEmptyDataFile(parent.resolve("recruiterbuddy.json")));
 
         assertFalse(Files.exists(parent));
     }

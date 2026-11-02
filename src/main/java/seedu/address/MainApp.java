@@ -42,7 +42,7 @@ public class MainApp extends Application {
 
     private static final Logger logger = LogsCenter.getLogger(MainApp.class);
     private static final Path USER_PREFS_FILE_PATH = Paths.get("preferences.json");
-    private static final Path ADDRESS_BOOK_FILE_PATH = Paths.get("data", "addressbook.json");
+    private static final Path ADDRESS_BOOK_FILE_PATH = Paths.get("data", "recruiterbuddy.json");
 
     protected Ui ui;
     protected Logic logic;
@@ -91,7 +91,7 @@ public class MainApp extends Application {
 
     @Override
     public void init() throws Exception {
-        logger.info("=============================[ Initializing AddressBook ]===========================");
+        logger.info("=============================[ Initializing RecruiterBuddy ]===========================");
         super.init();
 
         Path codeDir = FileUtil.getDir();
@@ -145,7 +145,7 @@ public class MainApp extends Application {
         Optional<ReadOnlyAddressBook> addressBookOptional = storage.readAddressBook();
         if (addressBookOptional.isEmpty()) {
             logger.info("Creating a new data file " + storage.getAddressBookFilePath()
-                    + " populated with a sample AddressBook.");
+                    + " populated with a sample RecruiterBuddy.");
         }
         ReadOnlyAddressBook initialData = addressBookOptional.orElseGet(SampleDataUtil::getSampleAddressBook);
 
@@ -186,7 +186,7 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        logger.info("Starting AddressBook " + MainApp.VERSION);
+        logger.info("Starting RecruiterBuddy " + MainApp.VERSION);
         if (startupNotice != null) {
             startupNoticeConsumer.accept(startupNotice);
             if (startupNotice.isFatal()) {
@@ -198,7 +198,7 @@ public class MainApp extends Application {
 
     @Override
     public void stop() {
-        logger.info("============================ [ Stopping AddressBook ] =============================");
+        logger.info("============================ [ Stopping RecruiterBuddy ] =============================");
         if (model == null) {
             return;
         }
