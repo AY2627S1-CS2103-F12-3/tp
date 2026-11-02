@@ -139,7 +139,7 @@ recognized only when it starts at a whitespace-delimited token, so a standalone 
     * For a country code, use `+` instead of brackets, such as `+65 9123 4568` instead of `(65) 9123 4568`.
     * For an extension, such as `ext 12`, you may record it in the candidate's
       [note](#adding-or-clearing-a-note-note) instead. A new note replaces the existing one.
-  * A number without a country code is treated as a Singapore number. If it does not look like one (8 digits starting with 3, 6, 8 or 9), such as `12345678`, the candidate is still added, and the result includes a warning reminding you to include the country code for an overseas number, such as `+60 12-345 6789`.
+  * A number without a country code is checked against the Singapore format (8 digits starting with 3, 6, 8 or 9). If it does not match, such as `12345678`, the candidate is still added, and the result includes a reminder to add the country code if it is an overseas number, such as `+60 12-345 6789`.
   * Spaces and hyphens are ignored and removed when the number is saved, so `+65 9123-4567` is shown as `+6591234567`.
 * `EMAIL`:
   * Looks like `name@example.com`.
