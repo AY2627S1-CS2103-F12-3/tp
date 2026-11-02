@@ -37,9 +37,11 @@ import seedu.address.logic.commands.CommandGuide;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.logic.commands.DeleteRoleCommand;
+import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RedoCommand;
 import seedu.address.logic.commands.StatusCommand;
+import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
@@ -82,6 +84,39 @@ public class LogicManagerTest {
     public void execute_invalidCommandFormat_throwsParseException() {
         String invalidCommand = "uicfhmowqewca";
         assertParseException(invalidCommand, MESSAGE_UNKNOWN_COMMAND);
+    }
+
+    @Test
+    public void execute_unexpectedEditText_preservesSavedDataFiltersAndHistory() throws Exception {
+        model.addRole(SOFTWARE_ENGINEER);
+        model.addPerson(AMY);
+        model.addPerson(new PersonBuilder().withNameAndDistinctContacts("Other Candidate").build());
+        logic.execute("edit 1 n/Amy Corrected");
+        logic.execute("undo");
+        logic.execute("find Amy");
+        ReadOnlyAddressBook saved = addressBookStorage.readAddressBook().orElseThrow();
+        String savedText = Files.readString(addressBookStorage.getAddressBookFilePath());
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE)
+                + "\nUnexpected text after the index. Use the edit fields shown above.";
+
+        for (String command : List.of("edit 1 st/HIRED", "edit 1 st/HIRED n/Accidental Change", "edit 1 extra")) {
+            assertThrows(ParseException.class, expectedMessage, () -> logic.execute(command));
+            assertEquals(saved, model.getAddressBook());
+            assertEquals(savedText, Files.readString(addressBookStorage.getAddressBookFilePath()));
+            assertEquals(List.of(AMY), logic.getFilteredPersonList());
+            assertEquals(List.of(SOFTWARE_ENGINEER), logic.getFilteredRoleList());
+        }
+
+        assertEquals(UndoCommand.MESSAGE_EMPTY, logic.execute("undo").getFeedbackToUser());
+        logic.execute("redo");
+        assertEquals("Amy Corrected", model.getAddressBook().getPersonList().getFirst().getName().fullName);
+    }
+
+    @Test
+    public void execute_unexpectedEditText_doesNotCreateDataFile() {
+        assertParseException("edit 1 st/HIRED", String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE)
+                + "\nUnexpected text after the index. Use the edit fields shown above.");
+        assertFalse(Files.exists(addressBookStorage.getAddressBookFilePath()));
     }
 
     @Test
