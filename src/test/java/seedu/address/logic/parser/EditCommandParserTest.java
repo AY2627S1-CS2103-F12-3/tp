@@ -57,6 +57,8 @@ public class EditCommandParserTest {
 
     private static final String MESSAGE_INVALID_FORMAT =
             String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE);
+    private static final String MESSAGE_UNEXPECTED_TEXT = MESSAGE_INVALID_FORMAT
+            + "\nUnexpected text after the index. Use the edit fields shown above.";
 
     private EditCommandParser parser = new EditCommandParser();
 
@@ -83,13 +85,35 @@ public class EditCommandParserTest {
         assertParseFailureWithReason(parser, "0" + NAME_DESC_AMY, MESSAGE_INVALID_FORMAT,
                 ParserUtil.MESSAGE_INVALID_INDEX);
 
-        // invalid arguments being parsed as preamble
-        assertParseFailureWithReason(parser, "1 some random string", MESSAGE_INVALID_FORMAT,
-                ParserUtil.MESSAGE_INVALID_INDEX);
+        assertParseFailure(parser, "1 some random string", MESSAGE_UNEXPECTED_TEXT);
+        assertParseFailure(parser, "1 i/ string", MESSAGE_UNEXPECTED_TEXT);
+    }
 
-        // invalid prefix being parsed as preamble
-        assertParseFailureWithReason(parser, "1 i/ string", MESSAGE_INVALID_FORMAT,
-                ParserUtil.MESSAGE_INVALID_INDEX);
+    @Test
+    public void parse_unexpectedTextAfterValidIndex_reportsEditFormat() {
+        for (String args : new String[] {"1 st/HIRED", "1 x/Senior", "1 unknown/value", "1 2",
+            "1\tst/HIRED", "1   st/HIRED", "1 st/HIRED" + NAME_DESC_AMY,
+            "1 extra" + PHONE_DESC_AMY}) {
+            assertParseFailure(parser, args, MESSAGE_UNEXPECTED_TEXT);
+        }
+    }
+
+    @Test
+    public void parse_invalidIndexWithUnexpectedText_reportsIndexError() {
+        for (String index : new String[] {"0", "-1", "abc", "+1", "1.5"}) {
+            assertParseFailureWithReason(parser, index + " st/HIRED", MESSAGE_INVALID_FORMAT,
+                    ParserUtil.MESSAGE_INVALID_INDEX);
+        }
+        String oversizedIndex = "2147483648";
+        assertParseFailureWithReason(parser, oversizedIndex + " st/HIRED", MESSAGE_INVALID_FORMAT,
+                String.format(ParserUtil.MESSAGE_INDEX_TOO_LARGE, oversizedIndex));
+    }
+
+    @Test
+    public void parse_prefixLikeTextInAddress_preservesFieldValue() {
+        String address = "Block st/HIRED";
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withAddress(address).build();
+        assertParseSuccess(parser, "1 a/" + address, new EditCommand(INDEX_FIRST_PERSON, descriptor));
     }
 
     @Test

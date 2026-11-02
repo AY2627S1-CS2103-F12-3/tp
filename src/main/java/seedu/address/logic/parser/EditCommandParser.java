@@ -24,6 +24,8 @@ import seedu.address.model.tag.Tag;
  * Parses input arguments and creates a new EditCommand object
  */
 public class EditCommandParser implements Parser<EditCommand> {
+    private static final String MESSAGE_UNEXPECTED_TEXT =
+            "Unexpected text after the index. Use the edit fields shown above.";
 
     /**
      * Parses the given {@code String} of arguments in the context of the EditCommand
@@ -35,12 +37,17 @@ public class EditCommandParser implements Parser<EditCommand> {
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE,
                 PREFIX_EMAIL, PREFIX_ADDRESS, PREFIX_ROLE_TITLE, PREFIX_TAG);
 
+        String[] preambleParts = argMultimap.getPreamble().split("\\s+", 2);
         Index index;
 
         try {
-            index = ParserUtil.parseIndex(argMultimap.getPreamble());
+            index = ParserUtil.parseIndex(preambleParts[0]);
         } catch (ParseException pe) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE), pe);
+        }
+        if (preambleParts.length > 1) {
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE)
+                    + "\n" + MESSAGE_UNEXPECTED_TEXT);
         }
 
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS,
