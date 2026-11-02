@@ -10,6 +10,20 @@ import org.junit.jupiter.api.Test;
 
 public class StringUtilTest {
 
+    @Test
+    public void containsWordIgnoreCase_punctuation_preservesDistinctTechnicalWords() {
+        assertTrue(StringUtil.containsWordIgnoreCase("Engineer (Backend)", "backend"));
+        assertTrue(StringUtil.containsWordIgnoreCase("Tan Ah Kow, Jr.", "Kow"));
+        assertTrue(StringUtil.containsWordIgnoreCase("Jean-Luc", "Luc"));
+        assertTrue(StringUtil.containsWordIgnoreCase("C++ Developer", "C++"));
+        assertTrue(StringUtil.containsWordIgnoreCase("C# Developer", "C#"));
+        assertFalse(StringUtil.containsWordIgnoreCase("C++ Developer", "C"));
+        assertFalse(StringUtil.containsWordIgnoreCase("C# Developer", "C"));
+        assertFalse(StringUtil.containsWordIgnoreCase("Backend", "Back"));
+        assertFalse(StringUtil.containsWordIgnoreCase("C++ Developer", "C#"));
+    }
+
+
     //---------------- Tests for isNonZeroUnsignedInteger --------------------------------------
 
     @Test
