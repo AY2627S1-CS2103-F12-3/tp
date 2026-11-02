@@ -1467,11 +1467,14 @@ Use case ends.
 
 * **Candidate**: A person recorded in RecruiterBuddy who has applied for a role opening, regardless of the current stage or outcome of their job application.
 * **Candidate status**: The recorded stage or outcome of a candidate's recruitment process, as distinct from the status of a role opening.
-* **Candidate status history**: A chronological record of changes to a candidate's status.
-* **Command shortcut**: A user-defined abbreviation that represents a command or sequence of commands, rather than a keyboard key combination.
+* **Candidate status history**: A chronological record of changes to a candidate's status. Not yet implemented; see UC25.
+* **Command shortcut**: A user-defined abbreviation that represents a command or sequence of commands, rather than a keyboard key combination. Not yet implemented; see UC22.
+* **Experience level**: The experience a role opening requires, recorded as free text such as `Entry level` or `2 years`.
+* **Final outcome**: A candidate status recording how the candidate's application ended: `HIRED`, `REJECTED` or `WITHDRAWN`. Also called a final status.
+* **Pending**: Describes a candidate status for an application still in progress: `RESUME`, `INTERVIEW`, `OFFER` or `DECISION`.
 * **Recruitment record**: Stored information about a candidate or role opening, including any associated interview details and candidate notes.
-* **Role opening**: A job vacancy in the recruiter's department tracked in RecruiterBuddy. Here, "role" refers to a job position.
-* **Role status**: The recorded state of recruitment for a role opening, as distinct from an individual candidate's progress.
+* **Role opening**: A job vacancy in the recruiter's department. Also called a role.
+* **Role status**: Whether recruitment for a role opening is `OPEN` or `CLOSED`. Candidates can be added only to an open role; a closed role keeps its existing candidates.
 
 --------------------------------------------------------------------------------------------------------------------
 
