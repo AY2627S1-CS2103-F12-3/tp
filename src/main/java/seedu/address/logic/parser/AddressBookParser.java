@@ -72,8 +72,18 @@ public class AddressBookParser {
             case ExitCommand.COMMAND_WORD -> new ExitCommand();
             case HelpCommand.COMMAND_WORD -> new HelpCommandParser().parse(arguments);
             case StatusCommand.COMMAND_WORD -> new StatusCommandParser().parse(arguments);
-            case UndoCommand.COMMAND_WORD -> new UndoCommand();
-            case RedoCommand.COMMAND_WORD -> new RedoCommand();
+            case UndoCommand.COMMAND_WORD -> {
+                if (!arguments.isBlank()) {
+                    throw new ParseException("Undo does not accept arguments. Usage: undo");
+                }
+                yield new UndoCommand();
+            }
+            case RedoCommand.COMMAND_WORD -> {
+                if (!arguments.isBlank()) {
+                    throw new ParseException("Redo does not accept arguments. Usage: redo");
+                }
+                yield new RedoCommand();
+            }
 
             default -> {
                 logger.finer("This user input caused a ParseException: " + userInput);
