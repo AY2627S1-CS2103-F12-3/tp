@@ -94,6 +94,9 @@ public class LogicManagerTest {
         assertEquals(saved, Files.readString(addressBookStorage.getAddressBookFilePath()));
         logic.execute("redo");
         assertEquals(1, model.getAddressBook().getRoleList().size());
+    }
+    
+    @Test
     public void execute_findCandidateStatus_combinesFieldsWithOrAndTracksChanges() throws Exception {
         model.addRole(SOFTWARE_ENGINEER);
         model.addPerson(new PersonBuilder(AMY).withStatus(Status.INTERVIEW).build());
