@@ -16,7 +16,8 @@
 * This project builds on [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) by the
   [SE-EDU initiative](https://se-education.org). Its existing architecture and documentation form the
   starting point for RecruiterBuddy.
-* Kavin Parthipan (`kpkavin04`) used OpenAI Codex to assist with requirements analysis, implementation, tests, review, and documentation for candidate role reassignment, the persistent role model, role commands, role-card summaries, role workflow diagnostics, and associated candidate-status safeguards, and safe startup after recruitment-data loading failures, and the offline command guide. This acknowledgement covers that contribution, not other team members' tool usage.
+* Kavin Parthipan (`kpkavin04`) used OpenAI Codex to assist with requirements analysis, implementation, tests, review, and documentation for candidate role reassignment, the persistent role model, role commands, role-card summaries, role workflow diagnostics, and associated candidate-status safeguards, and safe startup after recruitment-data loading failures, the offline command guide, candidate-input diagnostics, and Developer Guide maintenance. This acknowledgement covers that contribution, not other team members' tool usage.
+* Wang Yixuan (`wangyixuan818`) used Claude Code to assist with requirements analysis, implementation, tests, code-quality refactoring, code review, and documentation for the `add` command (name, phone and email validation, duplicate detection, the link to an open role, and the default status), duplicate and contact warnings in `edit`, the `note` and `interview` commands and their display on candidate cards, varied sample data, command error and warning messages, User Guide and Developer Guide updates, and the UML diagrams for these features. This acknowledgement covers that contribution, not other team members' tool usage.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -38,7 +39,7 @@ The following provides a quick overview of the main components and their interac
 
 **Main components of the architecture**
 
-**`Main`** (consisting of classes [`Main`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
+**`Main`** (consisting of classes [`Main`](https://github.com/AY2627S1-CS2103-F12-3/tp/blob/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/AY2627S1-CS2103-F12-3/tp/blob/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
 * At app launch, it initializes the other components in the correct sequence, and connects them up with each other.
 * At shut down, it shuts down the other components and invokes cleanup methods where necessary.
 
@@ -70,13 +71,13 @@ The sections below give more details of each component.
 
 ### UI component
 
-The **API** of this component is specified in [`Ui.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/Ui.java)
+The **API** of this component is specified in [`Ui.java`](https://github.com/AY2627S1-CS2103-F12-3/tp/blob/master/src/main/java/seedu/address/ui/Ui.java)
 
 <puml src="diagrams/UiClassDiagram.puml" alt="Structure of the UI Component"/>
 
 The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
 
-The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
+The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/AY2627S1-CS2103-F12-3/tp/blob/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/AY2627S1-CS2103-F12-3/tp/blob/master/src/main/java/seedu/address/ui/MainWindow.java).
 
 The `UI` component,
 
@@ -87,7 +88,7 @@ The `UI` component,
 
 ### Logic component
 
-**API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)
+**API** : [`Logic.java`](https://github.com/AY2627S1-CS2103-F12-3/tp/blob/master/src/main/java/seedu/address/logic/Logic.java)
 
 Here's a (partial) class diagram of the `Logic` component:
 
@@ -107,9 +108,19 @@ How the `Logic` component works:
 
 1. When `Logic` is called upon to execute a command, the command is passed to an `AddressBookParser` object, which in turn creates a parser that matches the command (e.g., `DeleteCommandParser`) and uses it to parse the command.
 1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteCommand`) which is executed by the `LogicManager`.
-1. The command can communicate with the `Model` when it is executed (e.g. to delete a person).<br>
-   Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
+1. The command can communicate with the `Model` when it is executed. For `delete 1`, it retrieves
+   the filtered candidate list, resolves the first displayed candidate with `get(0)`, and passes that
+   `Person` to `Model#deletePerson`, rather than passing the displayed index.
 1. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
+
+The diagram focuses on parsing and successful candidate deletion. Index validation, undo-history
+management, and the subsequent storage save are omitted for clarity.
+
+`DeleteCommandParser` validates the first argument as the candidate index before checking for extra
+text. Missing, invalid, and oversized indices retain their existing errors. A valid index followed
+by extra arguments is rejected with usage and `The delete command takes only a candidate index.`
+Parsing fails before command execution, so records, filters, the saved file, and undo/redo history
+remain unchanged.
 
 Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
 
@@ -439,7 +450,7 @@ or reassigns candidates. Deletion takes effect immediately, but can be undone in
 
 Close and delete inherit `Command#isUndoable` returning `true`. Before execution, `LogicManager`
 asks `ModelManager#recordAddressBookState` to retain a complete `AddressBook` snapshot, including
-roles and candidates. Successful execution clears redo history through `commitAddressBookState`;
+roles and candidates. Successful execution that changes stored values clears redo history through `commitAddressBookState`;
 an execution failure discards the pending snapshot instead.
 
 `undo` and `redo` restore these snapshots in reverse and forward order respectively, and
@@ -491,6 +502,10 @@ rendering and refresh wiring rather than treating excluded UI code as automatica
 `EditCommandParser` accepts `r/` as an optional, non-repeatable edit field. It uses
 `ParserUtil#parseRoleTitle` for the existing title constraints and stores the result in
 `EditPersonDescriptor`, including its copy, equality and diagnostic-string behaviour.
+The parser validates the first preamble token as the index before rejecting any remaining preamble
+text with the edit format and a dedicated unexpected-text message. This distinguishes unsupported
+fields before the first recognised edit field from invalid indices, without changing tokenization
+or the parsing of field values.
 
 `EditCommand` resolves an explicitly requested role through `Model#findRole` before replacing any
 records or changing filters. A missing role is rejected; a different role must be open. The source
@@ -533,7 +548,10 @@ is not persisted in `addressbook.json`; restarting the application clears both s
 `Command#isUndoable()` identifies commands that can change address-book data. In
 `LogicManager#execute(String)`, an undoable command first calls
 `Model#recordAddressBookState()`, which pushes a defensive copy onto the undo stack.
-After successful execution, `Model#commitAddressBookState()` clears the redo stack. If
+After successful execution, `LogicManager` compares the stored values before and after the command.
+If they changed, `Model#commitAddressBookState()` clears the redo stack. Otherwise,
+`Model#discardAddressBookState()` removes the redundant snapshot, preserving redo history.
+For example, editing a phone number to its existing value does not consume undo history or invalidate redo. If
 execution fails with a `CommandException` or runtime exception,
 `Model#discardAddressBookState()` removes the snapshot so the failed command does not
 consume undo history.
@@ -544,8 +562,8 @@ address book is unchanged and the user sees `There is no change to undo.`
 
 `RedoCommand` performs the inverse operation through `Model#redoAddressBook()`. If no
 redo snapshot exists, the address book is unchanged and the user sees
-`There is no change to redo.` A new successful undoable command after an undo clears redo
-history. Successful undo and redo operations are saved through the normal storage step,
+`There is no change to redo.` A new successful command that changes stored data after an undo clears redo
+history. Successful commands that leave stored values unchanged preserve both histories. Successful undo and redo operations are saved through the normal storage step,
 but the history itself remains in memory only. Read-only commands such as `list`, `find`
 and `help` do not affect either stack.
 
@@ -705,11 +723,6 @@ Interviews are stored as the `interview` field of each candidate in the JSON dat
   * Pros: A mistyped year cannot be saved.
   * Cons: Valid interviews would be refused, and the recruiter would need a way to override the check.
 
-### \[Proposed\] Data archiving
-
-_{Explain here how the data archiving feature will be implemented}_
-
-
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Documentation, logging, testing, dev-ops**
@@ -765,7 +778,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *` | department recruiter | remove a candidate | correct an erroneous entry or remove a record that is no longer required |
 | `* * *` | user | have successful changes saved automatically and restored when RecruiterBuddy starts | avoid losing candidate and role information |
 | `* * *` | user | access a guide covering all supported commands and their formats | understand and correctly use RecruiterBuddy's features |
-| `* *` | department recruiter | be warned when a new candidate's email address or phone number matches an existing candidate | catch the same person entered under a different or misspelled name |
+| `* *` | department recruiter | be warned when a candidate's phone number may match another candidate's number in a different format | spot a likely duplicate without being blocked when two different people's numbers only look alike |
 | `* *` | department recruiter | have an interview's date and time checked when I record or reschedule it | avoid saving an impossible or mistyped interview slot |
 | `* *` | potential user | see sample roles and candidates | understand how RecruiterBuddy looks when populated with department-specific information |
 | `* *` | first-time user | be greeted with a brief guide to key commands | begin using the most important features without feeling lost or overwhelmed |
@@ -797,9 +810,9 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 (For all use cases below, the **System** is `RecruiterBuddy` and the **Actor** is the `Recruiter`, unless specified otherwise)
 
-## Must-have
+#### Must-have
 
-#### UC01 — Create Role Opening
+##### UC01 — Create Role Opening
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter
@@ -818,7 +831,7 @@ Use case ends.
   * 2a1. RecruiterBuddy reports the error without adding a role.
   * Use case ends.
 
-#### UC02 — Add Candidate to Role
+##### UC02 — Add Candidate to Role
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter<br>
@@ -846,13 +859,13 @@ Use case ends.
   * 3c1. RecruiterBuddy reports that no new candidates can be added to the role.
   * Use case ends.
 * 3d. RecruiterBuddy detects a candidate with the same email address or phone number.
-  * 3d1. RecruiterBuddy warns the recruiter that a matching candidate record exists.
-  * 3d2. Recruiter chooses to proceed with adding the candidate.
-  * Use case resumes at step 4.
-  * 3d2a. Recruiter chooses to cancel adding the candidate.
-    * Use case ends.
+  * 3d1. RecruiterBuddy reports that the candidate already exists without adding the candidate.
+  * Use case ends.
+* 4a. RecruiterBuddy detects that the phone number may be another candidate's number written differently.
+  * 4a1. RecruiterBuddy confirms that the candidate has been added, with a warning naming the matching candidates.
+  * Use case ends.
 
-#### UC03 — View Command Guide
+##### UC03 — View Command Guide
 
 **System:** RecruiterBuddy<br>
 **Actor:** User
@@ -865,7 +878,7 @@ Use case ends.
 
 Use case ends.
 
-#### UC04 — Record Interview Details
+##### UC04 — Record Interview Details
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter
@@ -901,7 +914,7 @@ Use case ends.
   * 4b1. RecruiterBuddy records the interview, and points out each possible mistake when confirming it.
   * Use case ends.
 
-#### UC05 — Save and Load Data
+##### UC05 — Save and Load Data
 
 **System:** RecruiterBuddy<br>
 **Actor:** User
@@ -916,7 +929,7 @@ Use case ends.
 
 Use case ends.
 
-#### UC06 — Set or Clear a Candidate's Note
+##### UC06 — Set or Clear a Candidate's Note
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter
@@ -946,7 +959,7 @@ Use case ends.
   * 4a1. RecruiterBuddy replaces the existing note with the new one, and informs the recruiter that the note was replaced.
   * Use case resumes at step 5.
 
-#### UC07 — Close Role Opening
+##### UC07 — Close Role Opening
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter
@@ -970,7 +983,7 @@ Use case ends.
   * 2a1. RecruiterBuddy reports the error, including the pending count where applicable, without changing records.
   * Use case ends.
 
-#### UC08 — Delete Role Opening
+##### UC08 — Delete Role Opening
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter
@@ -992,7 +1005,7 @@ Use case ends.
   * 2a1. RecruiterBuddy reports their count without changing records.
   * Use case ends.
 
-#### UC09 — Delete Candidate Record
+##### UC09 — Delete Candidate Record
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter
@@ -1011,88 +1024,8 @@ Use case ends.
   * 1a1. RecruiterBuddy reports the error without changing records.
   * Use case ends.
 
-## Optional
 
-#### UC10 — View Sample Data
-
-**System:** RecruiterBuddy<br>
-**Actor:** User
-
-**Main success scenario:**
-
-1. User requests to view sample data.
-2. RecruiterBuddy displays sample roles and candidate records.
-3. User reviews the sample data.
-
-Use case ends.
-
-**Extensions:**
-
-* 2a. User requests to clear the sample data.
-  * 2a1. RecruiterBuddy removes all sample records.
-  * 2a2. RecruiterBuddy confirms that the sample data has been removed.
-  * Use case ends.
-
-#### UC11 — View Key Command Introduction
-
-**System:** RecruiterBuddy<br>
-**Actor:** User
-
-**Main success scenario:**
-
-1. User requests an introduction to key commands.
-2. RecruiterBuddy displays an introduction to the main commands.
-3. User reviews the introduction.
-
-Use case ends.
-
-#### UC12 — View Status Definitions
-
-**System:** RecruiterBuddy<br>
-**Actor:** User
-
-**Main success scenario:**
-
-1. User requests candidate and role status definitions.
-2. RecruiterBuddy displays the status definitions.
-3. User reviews the definitions.
-
-Use case ends.
-
-#### UC13 — Get Guidance for Invalid Command
-
-**System:** RecruiterBuddy<br>
-**Actor:** User
-
-**Main success scenario:**
-
-1. User enters a command.
-2. RecruiterBuddy processes the command.
-3. RecruiterBuddy displays the result.
-
-Use case ends.
-
-**Extensions:**
-
-* 1a. User enters an invalid command.
-  * 1a1. RecruiterBuddy explains why the command is invalid and provides guidance for correcting it.
-  * 1a2. User corrects and resubmits the command.
-  * Use case resumes at step 2.
-
-#### UC14 — Undo Changes
-
-**System:** RecruiterBuddy<br>
-**Actor:** User
-
-**Main success scenario:**
-
-1. User requests to undo the most recent n changes.
-2. RecruiterBuddy reverses the requested changes.
-3. RecruiterBuddy confirms that the changes have been undone.
-
-Use case ends.
-
-#### UC15 — Update Candidate Status
+##### UC10 — Update Candidate Status
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter
@@ -1113,7 +1046,88 @@ Use case ends.
   * 2a2. RecruiterBuddy confirms that the statuses have been updated.
   * Use case ends.
 
-#### UC16 — Update Candidate Details
+#### Optional
+
+##### UC11 — View Sample Data
+
+**System:** RecruiterBuddy<br>
+**Actor:** User
+
+**Main success scenario:**
+
+1. User requests to view sample data.
+2. RecruiterBuddy displays sample roles and candidate records.
+3. User reviews the sample data.
+
+Use case ends.
+
+**Extensions:**
+
+* 2a. User requests to clear the sample data.
+  * 2a1. RecruiterBuddy removes all sample records.
+  * 2a2. RecruiterBuddy confirms that the sample data has been removed.
+  * Use case ends.
+
+##### UC12 — View Key Command Introduction
+
+**System:** RecruiterBuddy<br>
+**Actor:** User
+
+**Main success scenario:**
+
+1. User requests an introduction to key commands.
+2. RecruiterBuddy displays an introduction to the main commands.
+3. User reviews the introduction.
+
+Use case ends.
+
+##### UC13 — View Status Definitions
+
+**System:** RecruiterBuddy<br>
+**Actor:** User
+
+**Main success scenario:**
+
+1. User requests candidate and role status definitions.
+2. RecruiterBuddy displays the status definitions.
+3. User reviews the definitions.
+
+Use case ends.
+
+##### UC14 — Get Guidance for Invalid Command
+
+**System:** RecruiterBuddy<br>
+**Actor:** User
+
+**Main success scenario:**
+
+1. User enters a command.
+2. RecruiterBuddy processes the command.
+3. RecruiterBuddy displays the result.
+
+Use case ends.
+
+**Extensions:**
+
+* 1a. User enters an invalid command.
+  * 1a1. RecruiterBuddy explains why the command is invalid and provides guidance for correcting it.
+  * 1a2. User corrects and resubmits the command.
+  * Use case resumes at step 2.
+
+##### UC15 — Undo Changes
+
+**System:** RecruiterBuddy<br>
+**Actor:** User
+
+**Main success scenario:**
+
+1. User requests to undo the most recent n changes.
+2. RecruiterBuddy reverses the requested changes.
+3. RecruiterBuddy confirms that the changes have been undone.
+
+Use case ends.
+
+##### UC16 — Update Candidate Details
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter
@@ -1127,7 +1141,10 @@ Use case ends.
 
 Use case ends.
 
-#### UC17 — Filter Candidates
+For role-specific corrections and their additional checks, see
+[UC27 — Correct Candidate Role](#uc27-correct-candidate-role).
+
+##### UC17 — Filter Candidates
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter
@@ -1147,7 +1164,7 @@ Use case ends.
   * 3a1. RecruiterBuddy displays the candidates associated with the selected role.
   * Use case ends.
 
-#### UC18 — Search for Candidate
+##### UC18 — Search for Candidate
 
 **System:** RecruiterBuddy<br>
 **Actor:** User
@@ -1161,7 +1178,7 @@ Use case ends.
 
 Use case ends.
 
-#### UC19 — Create Custom Candidate Status
+##### UC19 — Create Custom Candidate Status
 
 **System:** RecruiterBuddy<br>
 **Actor:** User
@@ -1176,7 +1193,7 @@ Use case ends.
 
 Use case ends.
 
-#### UC20 — View Past Applicant Contact Information
+##### UC20 — View Past Applicant Contact Information
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter
@@ -1190,7 +1207,7 @@ Use case ends.
 
 Use case ends.
 
-#### UC21 — Add Multiple Candidate Applications
+##### UC21 — Add Multiple Candidate Applications
 
 **System:** RecruiterBuddy<br>
 **Actor:** User
@@ -1205,7 +1222,7 @@ Use case ends.
 
 Use case ends.
 
-#### UC22 — Create Shortcut
+##### UC22 — Create Shortcut
 
 **System:** RecruiterBuddy<br>
 **Actor:** User
@@ -1220,7 +1237,7 @@ Use case ends.
 
 Use case ends.
 
-#### UC23 — Export All Data
+##### UC23 — Export All Data
 
 **System:** RecruiterBuddy<br>
 **Actor:** User
@@ -1241,7 +1258,7 @@ Use case ends.
   * 1a3. RecruiterBuddy informs the user where the file has been saved.
   * Use case ends.
 
-#### UC24 — Import Data
+##### UC24 — Import Data
 
 **System:** RecruiterBuddy<br>
 **Actor:** User
@@ -1256,7 +1273,7 @@ Use case ends.
 
 Use case ends.
 
-#### UC25 — View Candidate Status Audit Trail
+##### UC25 — View Candidate Status Audit Trail
 
 **System:** RecruiterBuddy<br>
 **Actor:** User
@@ -1269,7 +1286,7 @@ Use case ends.
 
 Use case ends.
 
-#### UC26 — Correct Role Details
+##### UC26 — Correct Role Details
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter<br>
@@ -1295,7 +1312,48 @@ Use case ends.
   * 2b1. RecruiterBuddy reports the save error instead of the normal confirmation; changes may remain in the current session.
   * Use case ends.
 
-*{More to be added}*
+##### UC27 — Correct Candidate Role
+
+**System:** RecruiterBuddy<br>
+**Actor:** Recruiter<br>
+**Guarantees:** The candidate's status, note, interview, and fields not explicitly edited are
+preserved. Neither role opens or closes automatically. Validation failures leave records and
+filters unchanged.
+
+**Main success scenario:**
+
+1. Recruiter identifies a candidate by their displayed candidate index and supplies the intended role title,
+   optionally with other candidate-detail corrections.
+2. RecruiterBuddy finds the role, ignoring case and surrounding spaces, and validates the complete edit.
+   A transfer may leave an open or closed role, but its destination must be open. If the candidate is
+   hired, the destination must not already have another hired candidate, including one hidden by a filter.
+3. RecruiterBuddy updates the candidate using the destination role's saved spelling, displays all candidates,
+   and saves the records.
+4. RecruiterBuddy confirms the edit using the candidate's updated name and details.
+
+Use case ends.
+
+**Extensions:**
+
+* 1a. The candidate index or a supplied field is invalid, or a non-repeatable field is repeated.
+  * 1a1. RecruiterBuddy reports the input error without changing records or filters.
+  * Use case ends.
+* 2a. The requested role does not exist.
+  * 2a1. RecruiterBuddy asks the recruiter to add the role before editing the candidate.
+  * Use case ends.
+* 2b. A transfer targets a closed role, or a hired candidate's destination already has another hire.
+  * 2b1. RecruiterBuddy explains the failed recruitment rule and rejects the complete edit.
+  * Use case ends.
+* 2c. The requested title identifies the candidate's existing role, even if it is closed.
+  * 2c1. RecruiterBuddy retains that role and validates any other supplied corrections.
+  * Use case resumes at step 3.
+* 2d. Other supplied corrections duplicate another candidate's email or phone number.
+  * 2d1. RecruiterBuddy reports the duplicate and rejects the complete edit.
+  * Use case ends.
+* 3a. The updated records cannot be saved.
+  * 3a1. RecruiterBuddy reports the save error instead of the normal confirmation; changes may remain
+    in the current session.
+  * Use case ends.
 
 ### Non-Functional Requirements
 
@@ -1305,29 +1363,30 @@ Use case ends.
 4.  With Java 25 installed, a user should be able to launch RecruiterBuddy without running an application installer or separately installing additional runtime dependencies. Extracting a ZIP file is permitted.
 5.  RecruiterBuddy should be distributed as a single JAR file or, if additional files are necessary, a single ZIP file containing the JAR and those files. The distribution should not exceed 100 MB.
 6.  All documented functions that operate on locally stored application data should remain usable without an Internet connection. Following links to external websites is excluded.
-3.  GUI elements should be fully visible and work well on screen resolutions 1920x1080 and higher, and screen scales 100% - 125%.
-4.  GUI elements should be usable on screen resolutions 1280x720 and higher, and screen scales 150%.
-8.  After application data has been successfully saved, closing RecruiterBuddy normally and reopening it with the same unchanged data files should restore the saved data, including all saved additions, modifications, and deletions.
-9.  A new user should be able to learn all basic commands (adding, updating and deleting candidates and roles) within 30 minutes
-10.  The application should carry out a user action and give visual confirmation within 1 second of input.
-11.  A command rejected because of invalid syntax or invalid input values should leave recruitment records and user-defined configuration unchanged, both in memory and in saved data file.
-12.  Command syntax should be simple and intuitive, such that an experienced user (has spent > 1 hour using the application) can memorize the syntax for all basic commands.
-13.  Upon rejecting a command, the issue and its fixes should be identified, such that the user can achieve a valid input within n successive tries, where n is the number of errors in the initial input.
-14.  If recruitment data cannot be read or fails validation during startup, preserve its original contents in a non-overwriting sibling backup before creating an empty replacement. If safe recovery fails, do not expose commands; identify the preserved data location and recovery steps.
-15.  All persistent RecruiterBuddy data should be stored locally in human-readable text files that can be inspected and modified using a plain-text editor. This includes recruitment records, saved candidate status history, and user-defined configuration such as command shortcuts.
-16.  If writing updated data fails while the previously saved file remains accessible, RecruiterBuddy should leave that file's contents unchanged.
-
-*{More to be added}*
+7.  GUI elements should be fully visible and work well on screen resolutions 1920x1080 and higher, and screen scales 100% - 125%.
+8.  GUI elements should be usable on screen resolutions 1280x720 and higher, and screen scales 150%.
+9.  After application data has been successfully saved, closing RecruiterBuddy normally and reopening it with the same unchanged data files should restore the saved data, including all saved additions, modifications, and deletions.
+10.  A new user should be able to learn all basic commands (adding, updating and deleting candidates and roles) within 30 minutes
+11.  The application should carry out a user action and give visual confirmation within 1 second of input.
+12.  A command rejected because of invalid syntax or invalid input values should leave recruitment records and user-defined configuration unchanged, both in memory and in saved data file.
+13.  Command syntax should be simple and intuitive, such that an experienced user (has spent > 1 hour using the application) can memorize the syntax for all basic commands.
+14.  Upon rejecting a command, the issue and its fixes should be identified, such that the user can achieve a valid input within n successive tries, where n is the number of errors in the initial input.
+15.  If recruitment data cannot be read or fails validation during startup, preserve its original contents in a non-overwriting sibling backup before creating an empty replacement. If safe recovery fails, do not expose commands; identify the preserved data location and recovery steps.
+16.  All persistent RecruiterBuddy data should be stored locally in human-readable text files that can be inspected and modified using a plain-text editor. This includes recruitment records, saved candidate status history, and user-defined configuration such as command shortcuts.
+17.  If writing updated data fails while the previously saved file remains accessible, RecruiterBuddy should leave that file's contents unchanged.
 
 ### Glossary
 
 * **Candidate**: A person recorded in RecruiterBuddy who has applied for a role opening, regardless of the current stage or outcome of their job application.
 * **Candidate status**: The recorded stage or outcome of a candidate's recruitment process, as distinct from the status of a role opening.
-* **Candidate status history**: A chronological record of changes to a candidate's status.
-* **Command shortcut**: A user-defined abbreviation that represents a command or sequence of commands, rather than a keyboard key combination.
+* **Candidate status history**: A chronological record of changes to a candidate's status. Not yet implemented; see UC25.
+* **Command shortcut**: A user-defined abbreviation that represents a command or sequence of commands, rather than a keyboard key combination. Not yet implemented; see UC22.
+* **Experience level**: The experience a role opening requires, recorded as free text such as `Entry level` or `2 years`.
+* **Final outcome**: A candidate status recording how the candidate's application ended: `HIRED`, `REJECTED` or `WITHDRAWN`. Also called a final status.
+* **Pending**: Describes a candidate status for an application still in progress: `RESUME`, `INTERVIEW`, `OFFER` or `DECISION`.
 * **Recruitment record**: Stored information about a candidate or role opening, including any associated interview details and candidate notes.
-* **Role opening**: A job vacancy in the recruiter's department tracked in RecruiterBuddy. Here, "role" refers to a job position.
-* **Role status**: The recorded state of recruitment for a role opening, as distinct from an individual candidate's progress.
+* **Role opening**: A job vacancy in the recruiter's department. Also called a role.
+* **Role status**: Whether recruitment for a role opening is `OPEN` or `CLOSED`. Candidates can be added only to an open role; a closed role keeps its existing candidates.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -1614,6 +1673,19 @@ Candidates list shows Alice at index 1 and Ben at index 2, both `Resume`.
 
 ### Editing a candidate
 
+1. Rejecting unexpected text after a valid index
+
+   1. With a candidate displayed, run `edit 1 st/HIRED`, then `edit 1 extra n/Accidental Change`.<br>
+      Expected: Each command shows the edit format and
+      `Unexpected text after the index. Use the edit fields shown above.` Records, filters and the
+      saved data remain unchanged. Neither command creates an undo entry or discards redo history.
+   1. Run `edit 0 st/HIRED`, then `edit 2147483648 st/HIRED`.<br>
+      Expected: The first reports that the index must be a positive whole number; the second reports
+      that the index is larger than any list. Both include the edit format and leave records unchanged.
+   1. Run `edit 1 a/Block st/HIRED`.<br>
+      Expected: The address becomes `Block st/HIRED`. Text inside an existing field is still parsed
+      as its value, not as an extra edit field. Use `undo` to restore the address.
+
 1. Editing a candidate's details
 
    1. Prerequisites: Start with the sample data. The 1st candidate, Alex Yeoh, has a role, a status, a note and an interview.
@@ -1786,6 +1858,13 @@ Candidates list shows Alice at index 1 and Ben at index 2, both `Resume`.
 
    1. Test case: `delete 0`<br>
       Expected: No candidate is deleted. The status message shows error details.
+
+   1. Test case: `delete 1 extra`<br>
+      Expected: No candidate is deleted. The result shows the delete usage followed by
+      `The delete command takes only a candidate index.`, rather than blaming index `1`.
+      The current candidate filter and saved records remain unchanged. Also try `delete 1 2`
+      and `delete 1 n/Alice`; both are rejected in the same way. `delete 0 extra` still reports
+      an invalid index, and `delete 2147483648 extra` reports that the index is too large.
 
    1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
       Expected: Similar to previous.

@@ -2,7 +2,6 @@ package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
-import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailureWithReason;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 
 import java.util.List;
@@ -12,11 +11,22 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
-import seedu.address.model.role.RoleStatus;
+import seedu.address.model.person.Status;
 
 public class FindCommandParserTest {
 
     private FindCommandParser parser = new FindCommandParser();
+
+    @Test
+    public void parse_allCandidateStatuses_acceptsMixedCaseAndRepeatedPrefixes() {
+        for (Status status : Status.values()) {
+            assertParseSuccess(parser, " st/" + status.name().toLowerCase(java.util.Locale.ROOT),
+                    new FindCommand(new NameContainsKeywordsPredicate(List.of(), List.of(), Set.of(status))));
+        }
+        assertParseSuccess(parser, " st/interview HIRED st/resume",
+                new FindCommand(new NameContainsKeywordsPredicate(List.of(), List.of(),
+                        Set.of(Status.INTERVIEW, Status.HIRED, Status.RESUME))));
+    }
 
     @Test
     public void parse_emptyArg_returnsFindCommand() {
@@ -37,37 +47,36 @@ public class FindCommandParserTest {
     @Test
     public void parse_roleAndStatusFilters_returnsFindCommand() throws Exception {
         FindCommand expected = new FindCommand(new NameContainsKeywordsPredicate(
-                List.of("Alice"), List.of("Software", "Engineer"), Set.of(RoleStatus.OPEN), List.of()));
-        assertParseSuccess(parser, "Alice r/Software Engineer st/open", expected);
+                List.of("Alice"), List.of("Software", "Engineer"), Set.of(Status.INTERVIEW)));
+        assertParseSuccess(parser, "Alice r/Software Engineer st/interview", expected);
     }
 
     @Test
     public void parse_roleAndStatusWithoutName_returnsFindCommand() throws Exception {
         FindCommand expected = new FindCommand(new NameContainsKeywordsPredicate(
-                List.of(), List.of("Software"), Set.of(RoleStatus.OPEN), List.of()));
-        assertEquals(expected.toString(), parser.parse(" r/Software st/open").toString());
+                List.of(), List.of("Software"), Set.of(Status.INTERVIEW)));
+        assertEquals(expected, parser.parse(" r/Software st/interview"));
     }
 
     @Test
     public void parse_statusOnly_returnsFindCommand() throws Exception {
         FindCommand expected = new FindCommand(new NameContainsKeywordsPredicate(
-                List.of(), List.of(), Set.of(RoleStatus.CLOSED), List.of()));
-        assertEquals(expected.toString(), parser.parse(" st/closed").toString());
+                List.of(), List.of(), Set.of(Status.HIRED)));
+        assertEquals(expected, parser.parse(" st/hired"));
     }
 
     @Test
     public void parse_invalidStatus_throwsParseException() {
-        assertParseFailureWithReason(parser, "Alice st/INVALID",
-                "Invalid role status. Use one of: [OPEN, CLOSED].",
-                "No enum constant seedu.address.model.role.RoleStatus.INVALID");
-        assertParseFailure(parser, "Alice st/   ", "Invalid role status. Use one of: [OPEN, CLOSED].");
+        for (String input : List.of("Alice st/INVALID", " st/OPEN", " st/CLOSED", " st/", " st/hired INVALID")) {
+            assertParseFailure(parser, input, Status.getConstraintsMessage());
+        }
     }
 
     @Test
     public void parse_blankRoleFilter_ignoresBlankKeyword() throws Exception {
         FindCommand expected = new FindCommand(new NameContainsKeywordsPredicate(
-                List.of("Alice"), List.of(), Set.of(RoleStatus.OPEN), List.of()));
-        assertEquals(expected.toString(), parser.parse("Alice r/   st/open").toString());
+                List.of("Alice"), List.of(), Set.of(Status.INTERVIEW)));
+        assertEquals(expected, parser.parse("Alice r/   st/interview"));
     }
 
 }
