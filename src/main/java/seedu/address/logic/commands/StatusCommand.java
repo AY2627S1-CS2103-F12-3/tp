@@ -98,16 +98,17 @@ public class StatusCommand extends Command {
 
         assert peopleToEdit.size() == indices.size() : "Each distinct index must resolve to a distinct candidate";
 
-        List<String> editedPeopleNames = new ArrayList<>();
         for (Person p : peopleToEdit) {
             Person editedPerson = createNewStatusPerson(p, status);
             model.setPerson(p, editedPerson);
-            editedPeopleNames.add(p.getName().toString());
         }
 
+        String editedPeopleNamesAndEmails = peopleToEdit.stream()
+                .map(p -> String.format("%1$s (%2$s)", p.getName(), p.getEmail()))
+                .collect(Collectors.joining(", "));
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
         return new CommandResult(
-                String.format(MESSAGE_ADD_STATUS_SUCCESS, status, String.join(", ", editedPeopleNames)));
+                String.format(MESSAGE_ADD_STATUS_SUCCESS, status, String.join(", ", editedPeopleNamesAndEmails)));
     }
 
     /**
