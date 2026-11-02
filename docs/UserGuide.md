@@ -24,7 +24,8 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
 
 3. Copy the file to an empty folder you want to use for RecruiterBuddy.
 
-4. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
+4. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar "[JARName]"`, where `JARName` is the name and extension of the JAR file. For example, run `java -jar "[CS2103-F12-3][RecruiterBuddy].jar"` for `[CS2103-F12-3][RecruiterBuddy].jar`. <br>
+   The quotes are needed for names containing `[` or `]`.
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
 
