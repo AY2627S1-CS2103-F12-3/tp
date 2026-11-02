@@ -116,6 +116,12 @@ How the `Logic` component works:
 The diagram focuses on parsing and successful candidate deletion. Index validation, undo-history
 management, and the subsequent storage save are omitted for clarity.
 
+`DeleteCommandParser` validates the first argument as the candidate index before checking for extra
+text. Missing, invalid, and oversized indices retain their existing errors. A valid index followed
+by extra arguments is rejected with usage and `The delete command takes only a candidate index.`
+Parsing fails before command execution, so records, filters, the saved file, and undo/redo history
+remain unchanged.
+
 Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
 
 <puml src="diagrams/ParserClasses.puml" width="600"/>
@@ -1946,6 +1952,13 @@ Candidates list shows Alice at index 1 and Ben at index 2, both `Resume`.
 
    1. Test case: `delete 0`<br>
       Expected: No candidate is deleted. The status message shows error details.
+
+   1. Test case: `delete 1 extra`<br>
+      Expected: No candidate is deleted. The result shows the delete usage followed by
+      `The delete command takes only a candidate index.`, rather than blaming index `1`.
+      The current candidate filter and saved records remain unchanged. Also try `delete 1 2`
+      and `delete 1 n/Alice`; both are rejected in the same way. `delete 0 extra` still reports
+      an invalid index, and `delete 2147483648 extra` reports that the index is too large.
 
    1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
       Expected: Similar to previous.

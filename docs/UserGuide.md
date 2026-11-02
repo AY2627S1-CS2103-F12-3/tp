@@ -549,6 +549,8 @@ Format: `delete INDEX`
 * Deletes the candidate at the specified `INDEX`.
 * The index refers to the index number shown in the displayed candidate list.
 * The index **must be a positive integer** 1, 2, 3, ...
+* Extra text after a valid index, such as `delete 1 extra`, is rejected with the usage and
+  `The delete command takes only a candidate index.` No candidate is deleted.
 
 Examples:
 * `list` followed by `delete 2` deletes the 2nd candidate in RecruiterBuddy.
