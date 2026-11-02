@@ -106,6 +106,7 @@ public class Messages {
 
     /**
      * Formats the {@code person} for display to the user.
+     * The note and interview are left out when empty, as on the candidate card.
      */
     public static String format(Person person) {
         final StringBuilder builder = new StringBuilder();
@@ -118,13 +119,26 @@ public class Messages {
                 .append(person.getAddress())
                 .append("; Role: ")
                 .append(person.getRole())
-                .append("; Note: ")
-                .append(person.getNote())
-                .append("; Interview: ")
-                .append(person.getInterview())
-                .append("; Tags: ");
-        person.getTags().forEach(builder::append);
+                .append("; Status: ")
+                .append(person.getStatus());
+        appendIfPresent(builder, "Note", person.getNote().toString());
+        appendIfPresent(builder, "Interview", person.getInterview().toString());
+
+        if (!person.getTags().isEmpty()) {
+            builder.append("; Tags: ");
+            person.getTags().forEach(builder::append);
+        }
+
         return builder.toString();
+    }
+
+    /**
+     * Appends {@code label} and {@code value} to {@code builder}, unless {@code value} is empty.
+     */
+    private static void appendIfPresent(StringBuilder builder, String label, String value) {
+        if (!value.isEmpty()) {
+            builder.append("; ").append(label).append(": ").append(value);
+        }
     }
 
 }

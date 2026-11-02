@@ -31,10 +31,8 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
    <box type="warning" seamless>
 
    **Caution:**
-   Always launch RecruiterBuddy this way. RecruiterBuddy creates its data, preferences, and log files
-   in the folder it is launched from. Other ways of launching it, such as double-clicking the JAR file,
-   may launch it from a different folder, depending on your operating system. RecruiterBuddy would then
-   create and use files in that folder instead of the JAR file's folder.
+   Always launch RecruiterBuddy this way. Other ways of launching it, such as double-clicking the JAR file,
+   may launch it from a different folder, depending on your operating system.
    </box>
 
 5. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to read the offline command guide in the result area.<br>
@@ -136,10 +134,14 @@ recognized only when it starts at a whitespace-delimited token, so a standalone 
 
   Capitalisation is kept as you type it.
 * `PHONE_NUMBER`:
-  * Has 8 to 15 digits, with an optional `+` at the start.
+  * Has 8 to 15 digits, with an optional `+` at the start for a country code.
   * Can include spaces and hyphens, such as `+65 9123-4567`.
-  * A number without a country code is treated as a Singapore number. If it does not look like one (8 digits starting with 3, 6, 8 or 9), such as `12345678`, the candidate is still added, and the result includes a warning reminding you to include the country code for an overseas number, such as `+60 12-345 6789`.
+  * A number without a country code is checked against the Singapore format (8 digits starting with 3, 6, 8 or 9). If it does not match, such as `12345678`, the candidate is still added, and the result includes a reminder to add the country code if it is an overseas number, such as `+60 12-345 6789`.
   * Spaces and hyphens are ignored and removed when the number is saved, so `+65 9123-4567` is shown as `+6591234567`.
+  * Brackets, extensions and other symbols are not accepted:
+    * For a country code, use `+` instead of brackets, such as `+65 9123 4568` instead of `(65) 9123 4568`.
+    * For an extension, such as `ext 12`, you may record it in the candidate's
+      [note](#adding-or-clearing-a-note-note) instead. A new note replaces the existing one.
 * `EMAIL`:
   * Looks like `name@example.com`.
   * Before the `@`, can contain letters, digits and dots, plus:
@@ -153,7 +155,7 @@ recognized only when it starts at a whitespace-delimited token, so a standalone 
   * Must contain one or more of the following: any letter from any language, any digit, `'`, `-`, `_`, `.`, `#`, or `+`.
   * Is displayed with the same capitalization as entered.
   * If supplied tags are identical, only one is kept.
-  * If supplied tags differ only in capitalization, only the first is kept. For example, entering `t/friends t/FRIENDS` displays only `friends`.
+  * If supplied tags differ only in capitalization, only the first is kept. For example, entering `t/referral t/REFERRAL` displays only `referral`.
 * `ROLE` must be the title of an existing role that is `OPEN`. Use [`role add`](#adding-a-role-role-add) to create the role first.
 * `ROLE` is matched ignoring case; for example, `r/software engineer` matches the role `Software Engineer`. The candidate is saved with the role's own spelling of the title.
 * Each candidate needs their own email and phone number. A candidate cannot be added if another candidate already uses the same email or the same phone number, and the error message names that candidate.
@@ -334,6 +336,17 @@ Shows every unique role in RecruiterBuddy. Each role is displayed in its own box
 
 Format: `list role`
 
+Each role card also shows `Pending`, `Hired`, `Rejected`, and `Withdrawn` candidate totals, including
+zeros. For example: `Pending: 3`, `Hired: 1`, `Rejected: 2`, `Withdrawn: 0`.
+
+* Totals include every candidate associated with that role, even when a candidate-name filter hides
+  some records. Filtering candidates does not change the totals.
+* `Pending` combines all recruitment stages before a final outcome. `Hired`, `Rejected`, and
+  `Withdrawn` count their respective final outcomes; each candidate contributes to exactly one total.
+* Both `OPEN` and `CLOSED` roles show totals. An empty role shows zero for all four categories.
+* Totals refresh from the current records after additions, removals, and status changes, and are
+  reconstructed when data is loaded. They do not change candidate statuses or close roles automatically.
+
 ### Undoing a change: `undo`
 
 Undoes the most recent successful command that changed the address book. Undo can be used repeatedly to return to the address-book state at the beginning of the current session.
@@ -368,18 +381,6 @@ Redo is available only after an `undo`. Executing a new address-book change afte
 For example, after undoing `role delete 1` or `role close 1`, `redo` deletes or closes the role again.
 Run `list role` to view the result.
 
-### Editing a person: `edit`
-Each role card also shows `Pending`, `Hired`, `Rejected`, and `Withdrawn` candidate totals, including
-zeros. For example: `Pending: 3`, `Hired: 1`, `Rejected: 2`, `Withdrawn: 0`.
-
-* Totals include every candidate associated with that role, even when a candidate-name filter hides
-  some records. Filtering candidates does not change the totals.
-* `Pending` combines all recruitment stages before a final outcome. `Hired`, `Rejected`, and
-  `Withdrawn` count their respective final outcomes; each candidate contributes to exactly one total.
-* Both `OPEN` and `CLOSED` roles show totals. An empty role shows zero for all four categories.
-* Totals refresh from the current records after additions, removals, and status changes, and are
-  reconstructed when data is loaded. They do not change candidate statuses or close roles automatically.
-
 ### Editing a candidate: `edit`
 
 Edits an existing candidate.
@@ -388,6 +389,10 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITL
 
 * Edits the candidate at the specified `INDEX`. The index refers to the index number shown in the displayed candidate list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
+* If unsupported fields or other text occur between `INDEX` and the first supported edit field,
+  the command is rejected with the edit format and
+  `Unexpected text after the index. Use the edit fields shown above.` For example, `edit 1 st/HIRED`
+  is rejected because `st/` is not an edit field; use `status 1 st/HIRED` to update the status instead.
 * Existing values will be updated to the input values.
 * `NAME`, `PHONE_NUMBER` and `EMAIL` follow the same rules as in [`add`](#adding-a-candidate-add), including typing `a/l` and `a/p` in names as `A/L` and `A/P`.
   The email warnings appear only when you change the email to a different address. Changing only its capitals does not count.
@@ -446,7 +451,7 @@ Format: `note INDEX [NOTE]`
 **Not supported in this version:**
 * Adding text to the end of an existing note. To add to a note, enter the whole note again with the new text. A separate command for adding to a note is planned for a future version.
 * Line breaks in a note. A note is a single line of text, which wraps on the candidate's card.
-* Searching notes. [`find`](#locating-candidates-by-name-find) does not search notes.
+* Searching notes. [`find`](#locating-candidates-find) does not search notes.
 </box>
 
 Examples:
@@ -482,37 +487,36 @@ Examples:
 *  `interview 1 d/2026-10-22 09:30` Reschedules the 1st candidate's interview to 22 October 2026 at 9:30am.
 *  `interview 2` Clears the interview of the 2nd candidate.
 
-### Locating candidates by name: `find`
+### Locating candidates: `find`
 
-Finds candidates whose names contain any of the given keywords.
+Finds candidates matching any supplied name keyword, role-title keyword, or candidate status.
 
-Format: `find [KEYWORD ...] [r/ ROLE ...] [st/ STATUS ...]`
+Format: `find [KEYWORD ...] [r/ROLE ...] [st/STATUS ...]`
 
-`r/` filters by role title and `st/` filters by role status (`OPEN` or `CLOSED`). Within
-each filter, multiple keywords are combined with OR: a role/status matches if it matches
-at least one keyword or status. Different filter types are combined with AND, so a candidate
-must satisfy the name filter, role filter, and status filter that were supplied.
-For example, `find r/Software Engineer st/OPEN` shows candidates in open roles whose
-titles contain either `Software` or `Engineer`, such as Software Engineer, Hardware
-Engineer, or Software Tester roles. The displayed feedback identifies the filter used.
+Unprefixed keywords search candidate names, `r/` searches their assigned role titles,
+and `st/` searches their candidate recruitment statuses. All supplied search terms
+are combined with **OR**, including terms from different fields. A candidate is returned
+when at least one name keyword, role keyword, or candidate status matches.
 
-When a candidate is updated and no longer matches the current filter, they disappear
-from the list and the displayed numbers shift. For updating many candidates, use the
-batch `status` command instead of relying on numbers one at a time.
-
-* The search is case-insensitive; for example, `hans` matches `Hans`.
-* Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
-* Unprefixed keywords search candidate names; `r/` searches role titles and `st/` searches role statuses.
+* Candidate statuses are `RESUME`, `INTERVIEW`, `OFFER`, `DECISION`, `HIRED`,
+  `REJECTED`, and `WITHDRAWN`. Role statuses `OPEN` and `CLOSED` are not accepted by `find st/`.
+* Name keywords, role keywords, and candidate statuses are case-insensitive.
 * Only full words match; for example, `Han` does not match `Hans`.
-* Candidates matching at least one name keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
-* Multiple role keywords also use OR matching; for example, `find r/software test` matches
-  roles containing `software` or `test`. Name, role, and role-status filters are combined
-  with AND when more than one filter type is supplied.
+* Keyword order does not matter. Multiple terms or repeated `r/` and `st/` prefixes use OR.
+* Bare `find` shows all candidates. Use `list` to clear a candidate filter.
+* Filtering candidates does not filter the role list.
+* After a candidate changes and no longer matches, they disappear and displayed numbers shift.
+  Use batch `status` when updating several candidates rather than reusing earlier indices.
+  A successful `status` command resets the candidate list to show all candidates.
 
 Examples:
-* `find John` returns `john` and `John Doe`
-* `find alex david` returns `Alex Yeoh`, `David Li`<br>
-  ![result for 'find alex david'](images/findAlexDavidResult.png)
+
+* `find John` returns `john` and `John Doe`.
+* `find alex david` returns candidates named Alex or David.
+* `find r/Software Engineer` returns candidates whose role title contains Software or Engineer.
+* `find st/INTERVIEW OFFER` returns candidates at either the Interview or Offer stage.
+* `find Alex r/Software st/HIRED` returns candidates named Alex, candidates applying for
+  a role containing Software, and hired candidates, even if they match just one field.
 
 ### Updating a candidate's status: `status`
 
@@ -522,6 +526,8 @@ Format: `status INDEX... st/STATUS`
 
 * Updates the status of the candidates at the specified indices. Each index refers to the index number shown in the displayed candidate list. The index **must be a positive integer** 1, 2, 3, ... and cannot exceed the length of the _displayed_ candidate list.
 * Each candidate's original status is replaced with the one specified in `STATUS`.
+* Upon successful execution, a success message is returned: `Status "STATUS" assigned to: NAME (EMAIL)...`.
+  * Each updated candidate's name and email is listed; candidates appear in no particular order.
 * `STATUS` must be one of the following: `RESUME`, `INTERVIEW`, `OFFER`, `DECISION`, `HIRED`, `REJECTED`, or `WITHDRAWN`.
 * `STATUS` is not case-sensitive; for example, `hired`, `Hired` and `hiRED` are treated as the same as `HIRED`.
 * Each role has exactly one vacancy. If another candidate for the same role is already `HIRED`, assigning the `HIRED` status fails with error message `ROLE_TITLE already has a hired candidate`. Candidates hidden by filters are considered for this, and role titles are compared without case sensitivity.
@@ -545,6 +551,8 @@ Format: `delete INDEX`
 * Deletes the candidate at the specified `INDEX`.
 * The index refers to the index number shown in the displayed candidate list.
 * The index **must be a positive integer** 1, 2, 3, ...
+* Extra text after a valid index, such as `delete 1 extra`, is rejected with the usage and
+  `The delete command takes only a candidate index.` No candidate is deleted.
 
 Examples:
 * `list` followed by `delete 2` deletes the 2nd candidate in RecruiterBuddy.
@@ -662,10 +670,6 @@ A genuinely missing file still starts the application with sample data; a valid 
 empty lists stays empty. There is no automatic migration of old contact-only files.
 </box>
 
-### Archiving data files `[coming in v2.0]`
-
-_Details coming soon ..._
-
 --------------------------------------------------------------------------------------------------------------------
 
 ## FAQ
@@ -689,7 +693,7 @@ Action     | Format, Examples
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITLE] [t/TAG]...`<br> e.g.,`edit 2 n/James Lee r/Data Analyst`
-**Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
+**Find**   | `find [KEYWORD ...] [r/ROLE_KEYWORD ...] [st/STATUS ...]`<br> e.g., `find James Jake`
 **List**   | `list`
 **List roles** | `list role`
 **Undo**   | `undo`

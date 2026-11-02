@@ -53,7 +53,8 @@ public final class CommandGuide {
                 + "\nEach candidate has one status. At most one candidate per role may be HIRED."
                 + " A rejected batch changes no candidates.");
         commandHelpEntries.put(FindCommand.COMMAND_WORD, FindCommand.MESSAGE_USAGE
-                + "\nFilter by candidate names, roles or statuses. Use list to clear the candidate filter.");
+                + "\nMatch any name keyword, role keyword, or candidate status (OR)."
+                + " Use list to clear the candidate filter.");
         commandHelpEntries.put(ListCommand.COMMAND_WORD,
                 "list: Displays all candidates; list role displays all roles.\n"
                 + "Parameters: [role]\nExamples: list; list role");

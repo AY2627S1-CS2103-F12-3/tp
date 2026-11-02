@@ -5,214 +5,120 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
-import seedu.address.model.role.Role;
-import seedu.address.model.role.RoleStatus;
 import seedu.address.testutil.PersonBuilder;
-import seedu.address.testutil.RoleBuilder;
 
 public class NameContainsKeywordsPredicateTest {
+    private final Person alice = new PersonBuilder().withName("Alice Bob").withRole("Software Engineer")
+            .withStatus(Status.INTERVIEW).build();
 
     @Test
     public void constructorAndTest_rejectNullInputs() {
         assertThrows(NullPointerException.class, () -> new NameContainsKeywordsPredicate(null));
-        assertThrows(NullPointerException.class, () -> new NameContainsKeywordsPredicate(
-                List.of(), null, Set.of(), List.of()));
-        assertThrows(NullPointerException.class, () -> new NameContainsKeywordsPredicate(
-                List.of(), List.of(), null, List.of()));
-        assertThrows(NullPointerException.class, () -> new NameContainsKeywordsPredicate(
-                List.of(), List.of(), Set.of(), null));
+        assertThrows(NullPointerException.class, () -> new NameContainsKeywordsPredicate(null, List.of(), Set.of()));
+        assertThrows(NullPointerException.class, () -> new NameContainsKeywordsPredicate(List.of(), null, Set.of()));
+        assertThrows(NullPointerException.class, () -> new NameContainsKeywordsPredicate(List.of(), List.of(), null));
         assertThrows(NullPointerException.class, () -> new NameContainsKeywordsPredicate(List.of()).test(null));
     }
 
     @Test
-    public void equals() {
-        List<String> firstPredicateKeywordList = List.of("first");
-        List<String> secondPredicateKeywordList = List.of("first", "second");
-
-        NameContainsKeywordsPredicate firstPredicate = new NameContainsKeywordsPredicate(firstPredicateKeywordList);
-        NameContainsKeywordsPredicate secondPredicate = new NameContainsKeywordsPredicate(secondPredicateKeywordList);
-
-        // same object -> returns true
-        assertTrue(firstPredicate.equals(firstPredicate));
-
-        // same values -> returns true
-        NameContainsKeywordsPredicate firstPredicateCopy = new NameContainsKeywordsPredicate(firstPredicateKeywordList);
-        assertTrue(firstPredicate.equals(firstPredicateCopy));
-
-        // different types -> returns false
-        assertFalse(firstPredicate.equals(1));
-
-        // null -> returns false
-        assertFalse(firstPredicate.equals(null));
-
-        // different person -> returns false
-        assertFalse(firstPredicate.equals(secondPredicate));
+    public void test_emptyFilter_matchesAll() {
+        assertTrue(new NameContainsKeywordsPredicate(List.of()).test(alice));
     }
 
     @Test
-    public void test_nameContainsKeywords_returnsTrue() {
-        // One keyword
-        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("Alice"));
-        assertTrue(predicate.test(new PersonBuilder().withName("Alice Bob").build()));
-
-        // Multiple keywords
-        predicate = new NameContainsKeywordsPredicate(List.of("Alice", "Bob"));
-        assertTrue(predicate.test(new PersonBuilder().withName("Alice Bob").build()));
-
-        // Only one matching keyword
-        predicate = new NameContainsKeywordsPredicate(List.of("Bob", "Carol"));
-        assertTrue(predicate.test(new PersonBuilder().withName("Alice Carol").build()));
-
-        // Mixed-case keywords
-        predicate = new NameContainsKeywordsPredicate(List.of("aLIce", "bOB"));
-        assertTrue(predicate.test(new PersonBuilder().withName("Alice Bob").build()));
+    public void test_nameKeywords_matchAnyWholeWordIgnoringCase() {
+        assertTrue(new NameContainsKeywordsPredicate(List.of("aLIce")).test(alice));
+        assertTrue(new NameContainsKeywordsPredicate(List.of("Carol", "bOB")).test(alice));
+        assertFalse(new NameContainsKeywordsPredicate(List.of("Ali")).test(alice));
+        assertFalse(new NameContainsKeywordsPredicate(List.of("Carol")).test(alice));
+        assertFalse(new NameContainsKeywordsPredicate(List.of("Software", "Engineer")).test(alice));
     }
 
     @Test
-    public void test_nameDoesNotContainKeywords_returnsFalse() {
-        // An empty filter matches every person, as used by bare find.
-        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of());
-        assertTrue(predicate.test(new PersonBuilder().withName("Alice").build()));
-
-        // Non-matching keyword
-        predicate = new NameContainsKeywordsPredicate(List.of("Carol"));
-        assertFalse(predicate.test(new PersonBuilder().withName("Alice Bob").build()));
-
-        // Keywords match phone, email and address, but do not match name
-        predicate = new NameContainsKeywordsPredicate(
-                List.of("12345678", "alice@email.com", "Main", "Street"));
-        assertFalse(predicate.test(new PersonBuilder().withName("Alice").withPhone("12345678")
-                .withEmail("alice@email.com").withAddress("Main Street").build()));
+    public void test_roleKeywords_matchAssignedTitle() {
+        assertTrue(new NameContainsKeywordsPredicate(List.of(), List.of("Designer", "sOFTware"), Set.of()).test(alice));
+        assertFalse(new NameContainsKeywordsPredicate(List.of(), List.of("Soft"), Set.of()).test(alice));
+        assertFalse(new NameContainsKeywordsPredicate(List.of(), List.of("Designer"), Set.of()).test(alice));
     }
 
     @Test
-    public void test_noFilters_matchesAllPersons() {
-        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of());
-        assertTrue(predicate.test(new PersonBuilder().withName("Alice").build()));
+    public void test_statusFilter_usesCandidateStatus() {
+        for (Status status : Status.values()) {
+            Person person = new PersonBuilder(alice).withStatus(status).build();
+            assertTrue(new NameContainsKeywordsPredicate(List.of(), List.of(), Set.of(status)).test(person));
+            assertEquals(status == Status.INTERVIEW,
+                    new NameContainsKeywordsPredicate(List.of(), List.of(), Set.of(Status.INTERVIEW)).test(person));
+        }
+        assertTrue(new NameContainsKeywordsPredicate(List.of(), List.of(),
+                Set.of(Status.HIRED, Status.INTERVIEW)).test(alice));
+    }
+
+    @Test
+    public void test_mixedFilters_useOrAcrossFields() {
+        assertTrue(new NameContainsKeywordsPredicate(List.of("Alice"), List.of("Designer"),
+                Set.of(Status.HIRED)).test(alice));
+        assertTrue(new NameContainsKeywordsPredicate(List.of("Carol"), List.of("Engineer"),
+                Set.of(Status.HIRED)).test(alice));
+        assertTrue(new NameContainsKeywordsPredicate(List.of("Carol"), List.of("Designer"),
+                Set.of(Status.INTERVIEW)).test(alice));
+        assertFalse(new NameContainsKeywordsPredicate(List.of("Carol"), List.of("Designer"),
+                Set.of(Status.HIRED)).test(alice));
+    }
+
+    @Test
+    public void constructor_copiesFilters() {
+        List<String> names = new ArrayList<>();
+        List<String> roles = new ArrayList<>();
+        Set<Status> statuses = new HashSet<>();
+        names.add("Carol");
+        roles.add("Designer");
+        statuses.add(Status.HIRED);
+        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(names, roles, statuses);
+        names.add("Alice");
+        roles.add("Engineer");
+        statuses.add(Status.INTERVIEW);
+        assertFalse(predicate.test(alice));
+    }
+
+    @Test
+    public void equals_comparesAllFilters() {
+        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(
+                List.of("Alice"), List.of("Engineer"), Set.of(Status.INTERVIEW));
+        assertTrue(predicate.equals(predicate));
+        assertEquals(predicate, new NameContainsKeywordsPredicate(
+                List.of("Alice"), List.of("Engineer"), Set.of(Status.INTERVIEW)));
+        assertFalse(predicate.equals(null));
+        assertFalse(predicate.equals(1));
+        assertFalse(predicate.equals(new NameContainsKeywordsPredicate(
+                List.of("Carol"), List.of("Engineer"), Set.of(Status.INTERVIEW))));
+        assertFalse(predicate.equals(new NameContainsKeywordsPredicate(
+                List.of("Alice"), List.of("Designer"), Set.of(Status.INTERVIEW))));
+        assertFalse(predicate.equals(new NameContainsKeywordsPredicate(
+                List.of("Alice"), List.of("Engineer"), Set.of(Status.HIRED))));
+    }
+
+    @Test
+    public void getFilterDescription_listsCandidateFilters() {
+        assertEquals("", new NameContainsKeywordsPredicate(List.of()).getFilterDescription());
+        assertEquals("Name: Alice, Bob; Role: Software Engineer; Candidate status: HIRED, INTERVIEW",
+                new NameContainsKeywordsPredicate(List.of("Alice", "Bob"), List.of("Software", "Engineer"),
+                        Set.of(Status.INTERVIEW, Status.HIRED)).getFilterDescription());
+        assertFalse(new NameContainsKeywordsPredicate(List.of("Alice")).hasFieldFilters());
+        assertTrue(new NameContainsKeywordsPredicate(List.of(), List.of("Engineer"), Set.of()).hasFieldFilters());
+        assertTrue(new NameContainsKeywordsPredicate(List.of(), List.of(), Set.of(Status.HIRED)).hasFieldFilters());
     }
 
     @Test
     public void toStringMethod() {
         List<String> keywords = List.of("keyword1", "keyword2");
-        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(keywords);
-
-        String expected = NameContainsKeywordsPredicate.class.getCanonicalName() + "{keywords=" + keywords + "}";
-        assertEquals(expected, predicate.toString());
-    }
-
-    @Test
-    public void getFilterDescription_listsEachFilterCombination() {
-        assertEquals("Name: Alice, Bob",
-                new NameContainsKeywordsPredicate(List.of("Alice", "Bob"))
-                        .getFilterDescription());
-        assertEquals("Role: Software Engineer",
-                new NameContainsKeywordsPredicate(List.of(), List.of("Software", "Engineer"), Set.of(), List.of())
-                        .getFilterDescription());
-        assertEquals("Role status: CLOSED, OPEN",
-                new NameContainsKeywordsPredicate(List.of(), List.of(), Set.of(RoleStatus.OPEN, RoleStatus.CLOSED),
-                        List.of()).getFilterDescription());
-    }
-
-    @Test
-    public void test_roleFilters_matchRoleAndStatusAndTag() {
-        Role openRole = new RoleBuilder().withTitle("Software Engineer").withStatus(RoleStatus.OPEN).build();
-        Person person = new PersonBuilder().withName("Alice").withTags("SoftwareEngineer").build();
-        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(
-                List.of("Alice"), List.of("Software", "Engineer"), Set.of(RoleStatus.OPEN), List.of(openRole));
-        assertTrue(predicate.test(person));
-        assertTrue(predicate.hasRoleFilters());
-        assertTrue(predicate.withRoles(List.of(openRole)).test(person));
-    }
-
-    @Test
-    public void test_roleFilters_eachOptionalFilterPath() {
-        Role role = new RoleBuilder().withTitle("Engineer").withStatus(RoleStatus.OPEN).build();
-        Person person = new PersonBuilder().withName("Alice").withRole("Engineer").withTags("Engineer").build();
-        assertTrue(new NameContainsKeywordsPredicate(List.of("Alice"), List.of(), Set.of(), List.of(role))
-                .test(person));
-        assertTrue(new NameContainsKeywordsPredicate(List.of("Alice"), List.of("Engineer"), Set.of(), List.of(role))
-                .test(person));
-        assertTrue(new NameContainsKeywordsPredicate(List.of("Alice"), List.of(),
-                Set.of(RoleStatus.OPEN), List.of(role))
-                .test(person));
-    }
-
-    @Test
-    public void equals_roleFiltersDiffer_returnsFalse() {
-        NameContainsKeywordsPredicate rolePredicate = new NameContainsKeywordsPredicate(
-                List.of("Alice"), List.of("Engineer"), Set.of(RoleStatus.OPEN), List.of());
-        NameContainsKeywordsPredicate statusPredicate = new NameContainsKeywordsPredicate(
-                List.of("Alice"), List.of("Engineer"), Set.of(RoleStatus.CLOSED), List.of());
-        assertFalse(rolePredicate.equals(statusPredicate));
-    }
-
-    @Test
-    public void test_roleFilters_mismatch() {
-        Role closedRole = new RoleBuilder().withTitle("Software Engineer").withStatus(RoleStatus.CLOSED).build();
-        Person person = new PersonBuilder().withName("Alice").withTags("OtherRole").build();
-        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(
-                List.of("Alice"), List.of("Software"), Set.of(RoleStatus.OPEN), List.of(closedRole));
-        assertFalse(predicate.test(person));
-        assertFalse(new NameContainsKeywordsPredicate(List.of("Alice")).hasRoleFilters());
-    }
-
-    @Test
-    public void test_roleFilters_withoutName() {
-        Role openRole = new RoleBuilder().withTitle("Software Engineer").withStatus(RoleStatus.OPEN).build();
-        Person person = new PersonBuilder().withName("Alice").withRole("Software Engineer").build();
-        assertTrue(new NameContainsKeywordsPredicate(List.of(), List.of("Software", "Engineer"),
-                Set.of(RoleStatus.OPEN), List.of(openRole)).test(person));
-    }
-
-    @Test
-    public void test_roleFilters_anyKeywordMatches() {
-        Role role = new RoleBuilder().withTitle("Software Engineer").withStatus(RoleStatus.OPEN).build();
-        Person person = new PersonBuilder().withRole("Software Engineer").build();
-
-        assertTrue(new NameContainsKeywordsPredicate(List.of(), List.of("Software", "Test"),
-                Set.of(), List.of(role)).test(person));
-    }
-
-    @Test
-    public void test_roleFilters_usesAssignedRole() {
-        Role openRole = new RoleBuilder().withTitle("Software Engineer").withStatus(RoleStatus.OPEN).build();
-        Person person = new PersonBuilder().withName("Alice").withRole("Designer")
-                .withTags("SoftwareEngineer").build();
-        assertFalse(new NameContainsKeywordsPredicate(List.of(), List.of("Software", "Engineer"),
-                Set.of(RoleStatus.OPEN), List.of(openRole)).test(person));
-    }
-
-    @Test
-    public void test_roleFilters_hasRoleFiltersForRoleAndStatus() {
-        Role openRole = new RoleBuilder().withTitle("Software Engineer").withStatus(RoleStatus.OPEN).build();
-        Person person = new PersonBuilder().withRole("Software Engineer").build();
-        assertTrue(new NameContainsKeywordsPredicate(List.of(), List.of("Software"), Set.of(), List.of(openRole))
-                .hasRoleFilters());
-        assertTrue(new NameContainsKeywordsPredicate(List.of(), List.of(), Set.of(RoleStatus.OPEN), List.of(openRole))
-                .hasRoleFilters());
-        assertTrue(new NameContainsKeywordsPredicate(List.of(), List.of("Software"), Set.of(RoleStatus.OPEN),
-                List.of(openRole)).test(person));
-    }
-
-    @Test
-    public void test_roleFilters_mismatchedTitleAndAssignedRole() {
-        Role openRole = new RoleBuilder().withTitle("Software Engineer").withStatus(RoleStatus.OPEN).build();
-        Person person = new PersonBuilder().withRole("Software Engineer").build();
-        assertFalse(new NameContainsKeywordsPredicate(List.of(), List.of("Designer"), Set.of(), List.of(openRole))
-                .test(person));
-        assertFalse(new NameContainsKeywordsPredicate(List.of(), List.of("Software"), Set.of(),
-                List.of(openRole)).test(new PersonBuilder().withRole("Designer").build()));
-    }
-
-    @Test
-    public void equals_roleKeywordsDiffer_returnsFalse() {
-        assertFalse(new NameContainsKeywordsPredicate(List.of("Alice"), List.of("Engineer"), Set.of(), List.of())
-                .equals(new NameContainsKeywordsPredicate(List.of("Alice"), List.of("Designer"), Set.of(),
-                        List.of())));
+        assertEquals(NameContainsKeywordsPredicate.class.getCanonicalName() + "{keywords=" + keywords + "}",
+                new NameContainsKeywordsPredicate(keywords).toString());
     }
 }

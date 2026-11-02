@@ -46,7 +46,8 @@ public class DeleteCommandTest {
         Index outOfBoundIndex = Index.fromOneBased(model.getFilteredPersonList().size() + 1);
         DeleteCommand deleteCommand = new DeleteCommand(outOfBoundIndex);
 
-        assertCommandFailure(deleteCommand, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        assertCommandFailure(deleteCommand, model,
+                Messages.getErrorMessageForInvalidPersonIndex(outOfBoundIndex, model.getFilteredPersonList().size()));
     }
 
     @Test
@@ -76,7 +77,15 @@ public class DeleteCommandTest {
 
         DeleteCommand deleteCommand = new DeleteCommand(outOfBoundIndex);
 
-        assertCommandFailure(deleteCommand, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        assertCommandFailure(deleteCommand, model,
+                Messages.getErrorMessageForInvalidPersonIndex(outOfBoundIndex, model.getFilteredPersonList().size()));
+    }
+
+    @Test
+    public void execute_emptyFilteredList_explainsHowToRestoreCandidates() {
+        showNoPerson(model);
+        assertCommandFailure(new DeleteCommand(INDEX_FIRST_PERSON), model,
+                Messages.getErrorMessageForInvalidPersonIndex(INDEX_FIRST_PERSON, 0));
     }
 
     @Test
