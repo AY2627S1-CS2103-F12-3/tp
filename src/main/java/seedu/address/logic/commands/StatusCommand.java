@@ -72,7 +72,7 @@ public class StatusCommand extends Command {
      *
      * @param model {@code Model} which the command should operate on.
      * @return {@code CommandResult} containing the success message containing the status and
-     *      the names of the updated candidates (in no particular order).
+     *     the names of the updated candidates (in no particular order).
      * @throws CommandException if no candidate list is displayed, the index is invalid, a pending status is
      *     requested for a closed role, or another candidate for the same role is already hired when assigning
      *     {@code HIRED}.
