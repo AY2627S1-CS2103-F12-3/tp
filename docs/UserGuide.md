@@ -483,7 +483,7 @@ Examples:
 
 Finds candidates whose names contain any of the given keywords.
 
-Format: `find [KEYWORD ...] [r/ ROLE ...] [st/ STATUS ...]`
+Format: `find [KEYWORD ...] [r/ROLE ...] [st/STATUS ...]`
 
 `r/` filters by role title and `st/` filters by role status (`OPEN` or `CLOSED`). Within
 each filter, multiple keywords are combined with OR: a role/status matches if it matches
@@ -686,7 +686,7 @@ Action     | Format, Examples
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITLE] [t/TAG]...`<br> e.g.,`edit 2 n/James Lee r/Data Analyst`
-**Find**   | `find [KEYWORD ...] [r/ROLE_KEYWORD ...] [st/CANDIDATE_STATUS ...]`<br> e.g., `find James Jake`
+**Find**   | `find [KEYWORD ...] [r/ROLE_KEYWORD ...] [st/STATUS ...]`<br> e.g., `find James Jake`
 **List**   | `list`
 **List roles** | `list role`
 **Undo**   | `undo`
