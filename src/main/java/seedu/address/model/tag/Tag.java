@@ -10,7 +10,6 @@ import java.util.Locale;
  * Guarantees: immutable; name is valid as declared in {@link #isValidTagName(String)}
  */
 public class Tag {
-
     public static final String MESSAGE_CONSTRAINTS = "Tag names should be at least one character long"
             + " and contain letters, digits, and the symbols ' - _ . # +";
     public static final String VALIDATION_REGEX = "[\\p{L}\\p{M}0-9'\\-_.#+]+";

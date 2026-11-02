@@ -118,11 +118,17 @@ public class Messages {
                 .append("; Address: ")
                 .append(person.getAddress())
                 .append("; Role: ")
-                .append(person.getRole());
+                .append(person.getRole())
+                .append("; Status: ")
+                .append(person.getStatus());
         appendIfPresent(builder, "Note", person.getNote().toString());
         appendIfPresent(builder, "Interview", person.getInterview().toString());
-        builder.append("; Tags: ");
-        person.getTags().forEach(builder::append);
+
+        if (!person.getTags().isEmpty()) {
+            builder.append("; Tags: ");
+            person.getTags().forEach(builder::append);
+        }
+
         return builder.toString();
     }
 
