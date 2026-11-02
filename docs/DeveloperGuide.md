@@ -107,6 +107,7 @@ The sequence diagram below illustrates the interactions within the `Logic` compo
 How the `Logic` component works:
 
 1. When `Logic` is called upon to execute a command, the command is passed to an `AddressBookParser` object, which in turn creates a parser that matches the command (e.g., `DeleteCommandParser`) and uses it to parse the command.
+   * The exceptions to this are the commands `undo`, `redo`, `clear` and `exit`. For these commands, `AddressBookParser` returns their `Command` objects without creating a parser.
 1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteCommand`) which is executed by the `LogicManager`.
 1. The command can communicate with the `Model` when it is executed. For `delete 1`, it retrieves
    the filtered candidate list, resolves the first displayed candidate with `get(0)`, and passes that
@@ -127,7 +128,8 @@ Here are the other classes in `Logic` (omitted from the class diagram above) tha
 <puml src="diagrams/ParserClasses.puml" width="600"/>
 
 How the parsing works:
-* When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
+* When called upon to parse a user command (except for `undo`, `redo`, `clear` and `exit`), the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
+  * For `undo`, `redo`, `clear` and `exit`, `AddressBookParser` checks that no arguments have been passed. Nonblank arguments cause a `ParseException`; otherwise, the corresponding `XYZCommand` is returned directly.
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
 
 The focused class diagram below shows parsing for the `role` command group. `AddressBookParser`
