@@ -81,6 +81,22 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_undoRedoWithArguments_preservesDataFileAndHistory() throws Exception {
+        logic.execute("role add r/Software Engineer x/2 years");
+        String saved = Files.readString(addressBookStorage.getAddressBookFilePath());
+        assertThrows(ParseException.class, () -> logic.execute("undo unexpected"));
+        assertEquals(1, model.getAddressBook().getRoleList().size());
+        assertEquals(saved, Files.readString(addressBookStorage.getAddressBookFilePath()));
+        logic.execute("undo");
+        saved = Files.readString(addressBookStorage.getAddressBookFilePath());
+        assertThrows(ParseException.class, () -> logic.execute("redo unexpected"));
+        assertTrue(model.getAddressBook().getRoleList().isEmpty());
+        assertEquals(saved, Files.readString(addressBookStorage.getAddressBookFilePath()));
+        logic.execute("redo");
+        assertEquals(1, model.getAddressBook().getRoleList().size());
+    }
+    
+    @Test
     public void execute_findCandidateStatus_combinesFieldsWithOrAndTracksChanges() throws Exception {
         model.addRole(SOFTWARE_ENGINEER);
         model.addPerson(new PersonBuilder(AMY).withStatus(Status.INTERVIEW).build());
@@ -145,7 +161,8 @@ public class LogicManagerTest {
     @Test
     public void execute_commandExecutionError_throwsCommandException() {
         String deleteCommand = "delete 9";
-        assertCommandException(deleteCommand, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        assertCommandException(deleteCommand, Messages.getErrorMessageForInvalidPersonIndex(
+                seedu.address.commons.core.index.Index.fromOneBased(9), 0));
     }
 
     @Test
@@ -326,7 +343,8 @@ public class LogicManagerTest {
         logic.execute(addCommand);
         logic.execute("undo");
 
-        assertCommandException("delete 9", MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        assertCommandException("delete 9", Messages.getErrorMessageForInvalidPersonIndex(
+                seedu.address.commons.core.index.Index.fromOneBased(9), 0));
         logic.execute("redo");
         assertEquals(1, model.getAddressBook().getPersonList().size());
     }
