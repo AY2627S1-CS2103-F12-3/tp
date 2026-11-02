@@ -202,7 +202,7 @@ public class StatusCommandTest {
         StatusCommand statusCommand = new StatusCommand(Set.of(INDEX_FIRST_PERSON), VALID_STATUS_1);
 
         String expectedMessage = String.format(StatusCommand.MESSAGE_ADD_STATUS_SUCCESS,
-                VALID_STATUS_1, firstPerson.getName());
+                VALID_STATUS_1, candidateDetails(firstPerson));
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(firstPerson, editedPerson);
@@ -219,7 +219,7 @@ public class StatusCommandTest {
         Person editedPerson = new PersonBuilder(personWithStatus).withStatus(VALID_STATUS_2).build();
         StatusCommand statusCommand = new StatusCommand(Set.of(INDEX_FIRST_PERSON), VALID_STATUS_2);
         String expectedMessage = String.format(StatusCommand.MESSAGE_ADD_STATUS_SUCCESS,
-                VALID_STATUS_2, personWithStatus.getName());
+                VALID_STATUS_2, candidateDetails(personWithStatus));
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(personWithStatus, editedPerson);
@@ -237,7 +237,7 @@ public class StatusCommandTest {
         Person editedPerson = new PersonBuilder(personWithInterview).withStatus(VALID_STATUS_2).build();
         StatusCommand statusCommand = new StatusCommand(Set.of(INDEX_FIRST_PERSON), VALID_STATUS_2);
         String expectedMessage = String.format(StatusCommand.MESSAGE_ADD_STATUS_SUCCESS,
-                VALID_STATUS_2, personWithInterview.getName());
+                VALID_STATUS_2, candidateDetails(personWithInterview));
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(personWithInterview, editedPerson);
@@ -250,7 +250,7 @@ public class StatusCommandTest {
         Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         StatusCommand statusCommand = new StatusCommand(Set.of(INDEX_FIRST_PERSON), firstPerson.getStatus());
         String expectedMessage = String.format(StatusCommand.MESSAGE_ADD_STATUS_SUCCESS,
-                firstPerson.getStatus(), firstPerson.getName());
+                firstPerson.getStatus(), candidateDetails(firstPerson));
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
 
@@ -268,7 +268,7 @@ public class StatusCommandTest {
         StatusCommand statusCommand = new StatusCommand(Set.of(INDEX_FIRST_PERSON), VALID_STATUS_1);
 
         String expectedMessage = String.format(StatusCommand.MESSAGE_ADD_STATUS_SUCCESS,
-                VALID_STATUS_1, personInFilteredList.getName());
+                VALID_STATUS_1, candidateDetails(personInFilteredList));
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(personInFilteredList, editedPerson);
@@ -327,6 +327,17 @@ public class StatusCommandTest {
         assertSuccessfulBatch(Status.HIRED, Set.of(INDEX_FIRST_PERSON, INDEX_SECOND_PERSON), first, second);
         assertFalse(model.findRole(first.getRole()).orElseThrow().isClosed());
         assertFalse(model.findRole(second.getRole()).orElseThrow().isClosed());
+    }
+
+    @Test
+    public void execute_batchCandidatesWithSameName_listsBothEmails() {
+        Person first = new PersonBuilder().withName("Alex Lee").withEmail("alex.one@example.com")
+                .withPhone("91234567").build();
+        Person second = new PersonBuilder().withName("Alex Lee").withEmail("alex.two@example.com")
+                .withPhone("92345678").build();
+        setHiringCandidates(first, second);
+
+        assertSuccessfulBatch(Status.REJECTED, Set.of(INDEX_FIRST_PERSON, INDEX_SECOND_PERSON), first, second);
     }
 
     @Test
@@ -492,12 +503,16 @@ public class StatusCommandTest {
         }
     }
 
+    private String candidateDetails(Person candidate) {
+        return candidate.getName() + " (" + candidate.getEmail() + ")";
+    }
+
     private void assertSuccessfulHire(Person candidate) {
         Person hired = new PersonBuilder(candidate).withStatus(Status.HIRED).build();
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         expectedModel.setPerson(candidate, hired);
         assertCommandSuccess(new StatusCommand(Set.of(INDEX_FIRST_PERSON), Status.HIRED), model,
-                String.format(StatusCommand.MESSAGE_ADD_STATUS_SUCCESS, Status.HIRED, candidate.getName()),
+                String.format(StatusCommand.MESSAGE_ADD_STATUS_SUCCESS, Status.HIRED, candidateDetails(candidate)),
                 expectedModel);
     }
 
@@ -511,11 +526,11 @@ public class StatusCommandTest {
             String prefix = String.format(StatusCommand.MESSAGE_ADD_STATUS_SUCCESS, newStatus, "");
             assertTrue(feedback.startsWith(prefix));
 
-            List<String> actualNames = List.of(feedback.substring(prefix.length()).split(", "));
-            Set<String> expectedNames = new HashSet<>(Arrays.stream(candidates)
-                    .map(candidate -> candidate.getName().toString()).toList());
-            assertEquals(candidates.length, actualNames.size());
-            assertEquals(expectedNames, new HashSet<>(actualNames));
+            List<String> actualCandidateDetails = List.of(feedback.substring(prefix.length()).split(", "));
+            Set<String> expectedCandidateDetails = new HashSet<>(Arrays.stream(candidates)
+                    .map(this::candidateDetails).toList());
+            assertEquals(candidates.length, actualCandidateDetails.size());
+            assertEquals(expectedCandidateDetails, new HashSet<>(actualCandidateDetails));
             assertEquals(expectedModel, model);
         } catch (CommandException e) {
             throw new AssertionError("Execution of command should not fail.", e);
