@@ -133,7 +133,7 @@ recognized only when it starts at a whitespace-delimited token, so a standalone 
 
   Capitalisation is kept as you type it.
 * `PHONE_NUMBER`:
-  * Has 8 to 15 digits, with an optional `+` at the start.
+  * Has 8 to 15 digits, with an optional `+` at the start for a country code.
   * Can include spaces and hyphens, such as `+65 9123-4567`.
   * A number without a country code is checked against the Singapore format (8 digits starting with 3, 6, 8 or 9). If it does not match, such as `12345678`, the candidate is still added, and the result includes a reminder to add the country code if it is an overseas number, such as `+60 12-345 6789`.
   * Spaces and hyphens are ignored and removed when the number is saved, so `+65 9123-4567` is shown as `+6591234567`.
