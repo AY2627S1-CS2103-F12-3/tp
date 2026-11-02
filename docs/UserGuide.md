@@ -448,7 +448,7 @@ Format: `note INDEX [NOTE]`
 **Not supported in this version:**
 * Adding text to the end of an existing note. To add to a note, enter the whole note again with the new text. A separate command for adding to a note is planned for a future version.
 * Line breaks in a note. A note is a single line of text, which wraps on the candidate's card.
-* Searching notes. [`find`](#locating-candidates-by-name-find) does not search notes.
+* Searching notes. [`find`](#locating-candidates-find) does not search notes.
 </box>
 
 Examples:
@@ -484,37 +484,36 @@ Examples:
 *  `interview 1 d/2026-10-22 09:30` Reschedules the 1st candidate's interview to 22 October 2026 at 9:30am.
 *  `interview 2` Clears the interview of the 2nd candidate.
 
-### Locating candidates by name: `find`
+### Locating candidates: `find`
 
-Finds candidates whose names contain any of the given keywords.
+Finds candidates matching any supplied name keyword, role-title keyword, or candidate status.
 
 Format: `find [KEYWORD ...] [r/ROLE ...] [st/STATUS ...]`
 
-`r/` filters by role title and `st/` filters by role status (`OPEN` or `CLOSED`). Within
-each filter, multiple keywords are combined with OR: a role/status matches if it matches
-at least one keyword or status. Different filter types are combined with AND, so a candidate
-must satisfy the name filter, role filter, and status filter that were supplied.
-For example, `find r/Software Engineer st/OPEN` shows candidates in open roles whose
-titles contain either `Software` or `Engineer`, such as Software Engineer, Hardware
-Engineer, or Software Tester roles. The displayed feedback identifies the filter used.
+Unprefixed keywords search candidate names, `r/` searches their assigned role titles,
+and `st/` searches their candidate recruitment statuses. All supplied search terms
+are combined with **OR**, including terms from different fields. A candidate is returned
+when at least one name keyword, role keyword, or candidate status matches.
 
-When a candidate is updated and no longer matches the current filter, they disappear
-from the list and the displayed numbers shift. For updating many candidates, use the
-batch `status` command instead of relying on numbers one at a time.
-
-* The search is case-insensitive; for example, `hans` matches `Hans`.
-* Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
-* Unprefixed keywords search candidate names; `r/` searches role titles and `st/` searches role statuses.
+* Candidate statuses are `RESUME`, `INTERVIEW`, `OFFER`, `DECISION`, `HIRED`,
+  `REJECTED`, and `WITHDRAWN`. Role statuses `OPEN` and `CLOSED` are not accepted by `find st/`.
+* Name keywords, role keywords, and candidate statuses are case-insensitive.
 * Only full words match; for example, `Han` does not match `Hans`.
-* Candidates matching at least one name keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
-* Multiple role keywords also use OR matching; for example, `find r/software test` matches
-  roles containing `software` or `test`. Name, role, and role-status filters are combined
-  with AND when more than one filter type is supplied.
+* Keyword order does not matter. Multiple terms or repeated `r/` and `st/` prefixes use OR.
+* Bare `find` shows all candidates. Use `list` to clear a candidate filter.
+* Filtering candidates does not filter the role list.
+* After a candidate changes and no longer matches, they disappear and displayed numbers shift.
+  Use batch `status` when updating several candidates rather than reusing earlier indices.
+  A successful `status` command resets the candidate list to show all candidates.
 
 Examples:
-* `find John` returns `john` and `John Doe`
-* `find alex david` returns `Alex Yeoh`, `David Li`<br>
-  ![result for 'find alex david'](images/findAlexDavidResult.png)
+
+* `find John` returns `john` and `John Doe`.
+* `find alex david` returns candidates named Alex or David.
+* `find r/Software Engineer` returns candidates whose role title contains Software or Engineer.
+* `find st/INTERVIEW OFFER` returns candidates at either the Interview or Offer stage.
+* `find Alex r/Software st/HIRED` returns candidates named Alex, candidates applying for
+  a role containing Software, and hired candidates, even if they match just one field.
 
 ### Updating a candidate's status: `status`
 
