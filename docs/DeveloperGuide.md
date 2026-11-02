@@ -859,7 +859,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *` | department recruiter | remove a candidate | correct an erroneous entry or remove a record that is no longer required |
 | `* * *` | user | have successful changes saved automatically and restored when RecruiterBuddy starts | avoid losing candidate and role information |
 | `* * *` | user | access a guide covering all supported commands and their formats | understand and correctly use RecruiterBuddy's features |
-| `* *` | department recruiter | be warned when a new candidate's email address or phone number matches an existing candidate | catch the same person entered under a different or misspelled name |
+| `* *` | department recruiter | be warned when a candidate's phone number may match another candidate's number in a different format | spot a likely duplicate without being blocked when two different people's numbers only look alike |
 | `* *` | department recruiter | have an interview's date and time checked when I record or reschedule it | avoid saving an impossible or mistyped interview slot |
 | `* *` | potential user | see sample roles and candidates | understand how RecruiterBuddy looks when populated with department-specific information |
 | `* *` | first-time user | be greeted with a brief guide to key commands | begin using the most important features without feeling lost or overwhelmed |
@@ -940,11 +940,11 @@ Use case ends.
   * 3c1. RecruiterBuddy reports that no new candidates can be added to the role.
   * Use case ends.
 * 3d. RecruiterBuddy detects a candidate with the same email address or phone number.
-  * 3d1. RecruiterBuddy warns the recruiter that a matching candidate record exists.
-  * 3d2. Recruiter chooses to proceed with adding the candidate.
-  * Use case resumes at step 4.
-  * 3d2a. Recruiter chooses to cancel adding the candidate.
-    * Use case ends.
+  * 3d1. RecruiterBuddy reports that the candidate already exists without adding the candidate.
+  * Use case ends.
+* 4a. RecruiterBuddy detects that the phone number may be another candidate's number written differently.
+  * 4a1. RecruiterBuddy confirms that the candidate has been added, with a warning naming the matching candidates.
+  * Use case ends.
 
 #### UC03 — View Command Guide
 
