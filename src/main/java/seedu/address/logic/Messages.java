@@ -11,7 +11,6 @@ import java.util.stream.Stream;
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.parser.Prefix;
 import seedu.address.model.person.Person;
-import seedu.address.model.tag.Tag;
 
 /**
  * Container for user visible messages.
@@ -107,7 +106,7 @@ public class Messages {
 
     /**
      * Formats the {@code person} for display to the user.
-     * The note, interview and tags are left out when empty, as on the candidate card.
+     * The note and interview are left out when empty, as on the candidate card.
      */
     public static String format(Person person) {
         final StringBuilder builder = new StringBuilder();
@@ -122,9 +121,8 @@ public class Messages {
                 .append(person.getRole());
         appendIfPresent(builder, "Note", person.getNote().toString());
         appendIfPresent(builder, "Interview", person.getInterview().toString());
-        appendIfPresent(builder, "Tags", person.getTags().stream()
-                .map(Tag::toString)
-                .collect(Collectors.joining()));
+        builder.append("; Tags: ");
+        person.getTags().forEach(builder::append);
         return builder.toString();
     }
 
