@@ -18,8 +18,7 @@ import seedu.address.model.person.Status;
 public class FindCommandParser implements Parser<FindCommand> {
     private static final Logger logger = LogsCenter.getLogger(FindCommandParser.class);
 
-    private static final String MESSAGE_INVALID_STATUS =
-            "Invalid candidate status. Use one of: " + java.util.Arrays.toString(Status.values()) + ".";
+    private static final String MESSAGE_INVALID_STATUS = Status.getConstraintsMessage();
 
     /**
      * Parses the given {@code String} of arguments in the context of the FindCommand
@@ -61,7 +60,7 @@ public class FindCommandParser implements Parser<FindCommand> {
         try {
             return Status.valueOf(status.toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException exception) {
-            throw new ParseException(MESSAGE_INVALID_STATUS, exception);
+            throw new ParseException(MESSAGE_INVALID_STATUS);
         }
     }
 
