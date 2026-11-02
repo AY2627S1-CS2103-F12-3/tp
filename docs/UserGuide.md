@@ -331,6 +331,17 @@ Shows every unique role in RecruiterBuddy. Each role is displayed in its own box
 
 Format: `list role`
 
+Each role card also shows `Pending`, `Hired`, `Rejected`, and `Withdrawn` candidate totals, including
+zeros. For example: `Pending: 3`, `Hired: 1`, `Rejected: 2`, `Withdrawn: 0`.
+
+* Totals include every candidate associated with that role, even when a candidate-name filter hides
+  some records. Filtering candidates does not change the totals.
+* `Pending` combines all recruitment stages before a final outcome. `Hired`, `Rejected`, and
+  `Withdrawn` count their respective final outcomes; each candidate contributes to exactly one total.
+* Both `OPEN` and `CLOSED` roles show totals. An empty role shows zero for all four categories.
+* Totals refresh from the current records after additions, removals, and status changes, and are
+  reconstructed when data is loaded. They do not change candidate statuses or close roles automatically.
+
 ### Undoing a change: `undo`
 
 Undoes the most recent successful command that changed the address book. Undo can be used repeatedly to return to the address-book state at the beginning of the current session.
@@ -365,18 +376,6 @@ Redo is available only after an `undo`. Executing a new address-book change afte
 For example, after undoing `role delete 1` or `role close 1`, `redo` deletes or closes the role again.
 Run `list role` to view the result.
 
-### Editing a person: `edit`
-Each role card also shows `Pending`, `Hired`, `Rejected`, and `Withdrawn` candidate totals, including
-zeros. For example: `Pending: 3`, `Hired: 1`, `Rejected: 2`, `Withdrawn: 0`.
-
-* Totals include every candidate associated with that role, even when a candidate-name filter hides
-  some records. Filtering candidates does not change the totals.
-* `Pending` combines all recruitment stages before a final outcome. `Hired`, `Rejected`, and
-  `Withdrawn` count their respective final outcomes; each candidate contributes to exactly one total.
-* Both `OPEN` and `CLOSED` roles show totals. An empty role shows zero for all four categories.
-* Totals refresh from the current records after additions, removals, and status changes, and are
-  reconstructed when data is loaded. They do not change candidate statuses or close roles automatically.
-
 ### Editing a candidate: `edit`
 
 Edits an existing candidate.
@@ -385,6 +384,10 @@ Format: `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [r/ROLE_TITL
 
 * Edits the candidate at the specified `INDEX`. The index refers to the index number shown in the displayed candidate list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
+* If unsupported fields or other text occur between `INDEX` and the first supported edit field,
+  the command is rejected with the edit format and
+  `Unexpected text after the index. Use the edit fields shown above.` For example, `edit 1 st/HIRED`
+  is rejected because `st/` is not an edit field; use `status 1 st/HIRED` to update the status instead.
 * Existing values will be updated to the input values.
 * `NAME`, `PHONE_NUMBER` and `EMAIL` follow the same rules as in [`add`](#adding-a-candidate-add), including typing `a/l` and `a/p` in names as `A/L` and `A/P`.
   The email warnings appear only when you change the email to a different address. Changing only its capitals does not count.
