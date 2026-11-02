@@ -2,7 +2,6 @@ package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
-import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailureWithReason;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 
 import java.util.List;
@@ -68,10 +67,9 @@ public class FindCommandParserTest {
 
     @Test
     public void parse_invalidStatus_throwsParseException() {
-        String message = "Invalid candidate status. Use one of: " + java.util.Arrays.toString(Status.values()) + ".";
-        assertParseFailureWithReason(parser, "Alice st/INVALID", message,
-                "No enum constant seedu.address.model.person.Status.INVALID");
-        assertParseFailure(parser, "Alice st/   ", message);
+        for (String input : List.of("Alice st/INVALID", " st/OPEN", " st/CLOSED", " st/", " st/hired INVALID")) {
+            assertParseFailure(parser, input, Status.getConstraintsMessage());
+        }
     }
 
     @Test
