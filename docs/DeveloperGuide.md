@@ -1126,11 +1126,20 @@ Use case ends.
 
 **Main success scenario:**
 
-1. User requests to undo the most recent n changes.
-2. RecruiterBuddy reverses the requested changes.
-3. RecruiterBuddy confirms that the changes have been undone.
+1. User requests to undo the most recent data-changing command.
+2. RecruiterBuddy restores the state before that command.
+3. RecruiterBuddy confirms that the change has been undone.
 
 Use case ends.
+
+**Extensions:**
+
+* 1a. There is no earlier change in the current session.
+  * 1a1. RecruiterBuddy reports `There is no change to undo.`
+  * Use case ends.
+
+* 3a. User requests to undo another earlier change.
+  * Use case resumes at step 1, reversing one command per `undo` invocation.
 
 ##### UC16 — Update Candidate Details
 
