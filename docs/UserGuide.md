@@ -178,7 +178,7 @@ A tag typed more than once with the same capitalisation is saved only once, so `
 </box>
 
 Examples:
-* `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 r/Software Engineer`
+* `add n/John Doe p/98765432 e/johnd@example.com r/Software Engineer`
 * `add n/Betsy Crowe t/referral e/betsycrowe@example.com a/Newgate Prison p/12345678 r/product manager t/java`
 * `add n/Ravi s/o Kumar p/+65 9123-4567 e/ravi@example.com a/Bedok North r/Software Engineer` Adds `Ravi s/o Kumar` with the phone number `+6591234567`.
 
