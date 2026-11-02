@@ -31,10 +31,8 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
    <box type="warning" seamless>
 
    **Caution:**
-   Always launch RecruiterBuddy this way. RecruiterBuddy creates its data, preferences, and log files
-   in the folder it is launched from. Other ways of launching it, such as double-clicking the JAR file,
-   may launch it from a different folder, depending on your operating system. RecruiterBuddy would then
-   create and use files in that folder instead of the JAR file's folder.
+   Always launch RecruiterBuddy this way. Other ways of launching it, such as double-clicking the JAR file,
+   may launch it from a different folder, depending on your operating system.
    </box>
 
 5. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to read the offline command guide in the result area.<br>
