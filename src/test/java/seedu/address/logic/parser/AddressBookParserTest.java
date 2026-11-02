@@ -26,6 +26,8 @@ import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.InterviewCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.NoteCommand;
+import seedu.address.logic.commands.RedoCommand;
+import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Interview;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
@@ -64,7 +66,9 @@ public class AddressBookParserTest {
     @Test
     public void parseCommand_clear() throws Exception {
         assertTrue(parser.parseCommand(ClearCommand.COMMAND_WORD) instanceof ClearCommand);
-        assertTrue(parser.parseCommand(ClearCommand.COMMAND_WORD + " 3") instanceof ClearCommand);
+        assertTrue(parser.parseCommand("clear \t ") instanceof ClearCommand);
+        assertThrows(ParseException.class, "Command clear does not accept arguments. Usage: clear", () ->
+                parser.parseCommand("clear 3"));
     }
 
     @Test
@@ -86,7 +90,27 @@ public class AddressBookParserTest {
     @Test
     public void parseCommand_exit() throws Exception {
         assertTrue(parser.parseCommand(ExitCommand.COMMAND_WORD) instanceof ExitCommand);
-        assertTrue(parser.parseCommand(ExitCommand.COMMAND_WORD + " 3") instanceof ExitCommand);
+        assertTrue(parser.parseCommand("exit \t ") instanceof ExitCommand);
+        assertThrows(ParseException.class, "Command exit does not accept arguments. Usage: exit", () ->
+                parser.parseCommand("exit 3"));
+        assertThrows(ParseException.class, "Command exit does not accept arguments. Usage: exit", () ->
+                parser.parseCommand("exit\t3"));
+    }
+
+    @Test
+    public void parseCommand_undo() throws Exception {
+        assertTrue(parser.parseCommand(UndoCommand.COMMAND_WORD) instanceof UndoCommand);
+        assertTrue(parser.parseCommand("undo \t ") instanceof UndoCommand);
+        assertThrows(ParseException.class, "Command undo does not accept arguments. Usage: undo", () ->
+                parser.parseCommand("undo 3"));
+    }
+
+    @Test
+    public void parseCommand_redo() throws Exception {
+        assertTrue(parser.parseCommand(RedoCommand.COMMAND_WORD) instanceof RedoCommand);
+        assertTrue(parser.parseCommand("redo \t ") instanceof RedoCommand);
+        assertThrows(ParseException.class, "Command redo does not accept arguments. Usage: redo", () ->
+                parser.parseCommand("redo 3"));
     }
 
     @Test

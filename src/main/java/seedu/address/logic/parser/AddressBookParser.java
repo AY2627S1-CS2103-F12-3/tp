@@ -38,9 +38,9 @@ public class AddressBookParser {
     /**
      * Parses user input into command for execution.
      *
-     * @param userInput full user input string
-     * @return the command based on the user input
-     * @throws ParseException if the user input does not conform to the expected format
+     * @param userInput full user input string.
+     * @return the command based on the user input.
+     * @throws ParseException if the user input does not conform to the expected format.
      */
     public Command parseCommand(String userInput) throws ParseException {
         final Matcher matcher = BASIC_COMMAND_FORMAT.matcher(userInput.trim());
@@ -66,30 +66,38 @@ public class AddressBookParser {
             case DeleteCommand.COMMAND_WORD -> new DeleteCommandParser().parse(arguments);
             case NoteCommand.COMMAND_WORD -> new NoteCommandParser().parse(arguments);
             case InterviewCommand.COMMAND_WORD -> new InterviewCommandParser().parse(arguments);
-            case ClearCommand.COMMAND_WORD -> new ClearCommand();
             case FindCommand.COMMAND_WORD -> new FindCommandParser().parse(arguments);
             case ListCommand.COMMAND_WORD -> new ListCommandParser().parse(arguments);
-            case ExitCommand.COMMAND_WORD -> new ExitCommand();
             case HelpCommand.COMMAND_WORD -> new HelpCommandParser().parse(arguments);
             case StatusCommand.COMMAND_WORD -> new StatusCommandParser().parse(arguments);
-            case UndoCommand.COMMAND_WORD -> {
-                if (!arguments.isBlank()) {
-                    throw new ParseException("Undo does not accept arguments. Usage: undo");
-                }
-                yield new UndoCommand();
-            }
-            case RedoCommand.COMMAND_WORD -> {
-                if (!arguments.isBlank()) {
-                    throw new ParseException("Redo does not accept arguments. Usage: redo");
-                }
-                yield new RedoCommand();
-            }
+            case ClearCommand.COMMAND_WORD -> verifyNoArgs(new ClearCommand(), arguments, ClearCommand.COMMAND_WORD);
+            case ExitCommand.COMMAND_WORD -> verifyNoArgs(new ExitCommand(), arguments, ExitCommand.COMMAND_WORD);
+            case UndoCommand.COMMAND_WORD -> verifyNoArgs(new UndoCommand(), arguments, UndoCommand.COMMAND_WORD);
+            case RedoCommand.COMMAND_WORD -> verifyNoArgs(new RedoCommand(), arguments, RedoCommand.COMMAND_WORD);
 
             default -> {
                 logger.finer("This user input caused a ParseException: " + userInput);
                 throw new ParseException(MESSAGE_UNKNOWN_COMMAND);
             }
         };
+    }
+
+    /**
+     * Throws a parseException if arguments are nonempty.
+     * This is for commands like {@code undo}, which do not accept any arguments.
+     *
+     * @param command {@code Command} object corresponding to the command being parsed.
+     * @param arguments arguments that were passed by the user.
+     * @param commandWord Command word that user must type to invoke this command.
+     * @return the command, only if no arguments have been received.
+     * @throws ParseException if nonempty argument received.
+     */
+    private Command verifyNoArgs(Command command, String arguments, String commandWord) throws ParseException {
+        if (!arguments.isBlank()) {
+            throw new ParseException(
+                    String.format("Command %1$s does not accept arguments. Usage: %2$s", commandWord, commandWord));
+        }
+        return command;
     }
 
 }
