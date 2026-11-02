@@ -98,8 +98,9 @@ Format: `help [COMMAND]`
 * `help` shows the complete guide; `help COMMAND` shows only that command's syntax, purpose and examples.
 * Supported topics: `add`, `edit`, `delete`, `note`, `interview`, `status`, `find`, `list`, `role`,
   `clear`, `undo`, `redo`, `exit` and `help`.
-* Help keywords are case-insensitive: `HELP ADD` and `help add` show the same instructions. This does
-  not change the casing accepted when executing other commands.
+* Help keywords are case-insensitive: `HELP ADD` and `help add` show the same instructions. Case-insensitivity
+  also applies to command words and role subcommands. For example, `LIST ROLE`, `Find Alex`,
+  and `ROLE ADD r/Software Engineer x/Senior` are accepted. Prefixes such as `n/` remain lowercase.
 * `help list` explains both `list` and `list role`. `help role` explains `role add`, `role edit`,
   `role close` and `role delete`. Subcommands are grouped under these single-word topics;
   `help list role` is not supported.

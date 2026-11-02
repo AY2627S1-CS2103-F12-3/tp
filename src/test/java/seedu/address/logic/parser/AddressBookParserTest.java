@@ -123,9 +123,17 @@ public class AddressBookParserTest {
     }
 
     @Test
-    public void parseCommand_otherCommandCasing_remainsUnchanged() {
-        assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () -> parser.parseCommand("LIST"));
-        assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () -> parser.parseCommand("ADD"));
+    public void parseCommand_mixedCaseCommands_preserveArgumentCase() throws Exception {
+        assertTrue(parser.parseCommand("LIST") instanceof ListCommand);
+        assertTrue(parser.parseCommand("list ROLE") instanceof ListCommand);
+        assertTrue(parser.parseCommand("UnDo") instanceof seedu.address.logic.commands.UndoCommand);
+        assertTrue(parser.parseCommand("ReDo") instanceof seedu.address.logic.commands.RedoCommand);
+        assertEquals(parser.parseCommand("find Alex"), parser.parseCommand("Find Alex"));
+        assertEquals(parser.parseCommand("role add r/Mixed Case x/Senior"),
+                parser.parseCommand("ROLE AdD r/Mixed Case x/Senior"));
+        Person person = new PersonBuilder().build();
+        assertEquals(new AddCommand(person),
+                parser.parseCommand(PersonUtil.getAddCommand(person).replaceFirst("add", "ADD")));
     }
 
     @Test

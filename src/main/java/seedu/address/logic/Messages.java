@@ -17,7 +17,7 @@ import seedu.address.model.person.Person;
  */
 public class Messages {
 
-    public static final String MESSAGE_UNKNOWN_COMMAND = "Unknown command.";
+    public static final String MESSAGE_UNKNOWN_COMMAND = "Unknown command. Use help to view available commands.";
     public static final String MESSAGE_INVALID_ROLE_DISPLAYED_INDEX = "Role index must refer to a displayed role.";
     public static final String MESSAGE_DUPLICATE_ROLE = "A role named “%1$s” already exists.";
     public static final String MESSAGE_ROLE_LIST_NOT_DISPLAYED =

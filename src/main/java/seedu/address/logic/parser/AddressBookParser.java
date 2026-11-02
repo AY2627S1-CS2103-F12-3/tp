@@ -3,6 +3,7 @@ package seedu.address.logic.parser;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 
+import java.util.Locale;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -56,9 +57,7 @@ public class AddressBookParser {
         // Lower level log messages are used sparingly to minimize noise in the code.
         logger.fine("Command word: " + commandWord + "; Arguments: " + arguments);
 
-        // Help lookup is case-insensitive without changing the syntax of other commands.
-        String dispatchWord = HelpCommand.COMMAND_WORD.equalsIgnoreCase(commandWord)
-                ? HelpCommand.COMMAND_WORD : commandWord;
+        String dispatchWord = commandWord.toLowerCase(Locale.ROOT);
         return switch (dispatchWord) {
             case AddCommand.COMMAND_WORD -> new AddCommandParser().parse(arguments);
             case RoleCommandParser.COMMAND_WORD -> new RoleCommandParser().parse(arguments);
