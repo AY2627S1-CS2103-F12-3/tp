@@ -1229,28 +1229,7 @@ Use case ends.
 * 3a. User requests to undo another earlier change.
   * Use case resumes at step 1, reversing one command per `undo` invocation.
 
-#### UC15 — Update Candidate Status
-
-**System:** RecruiterBuddy<br>
-**Actor:** Recruiter
-
-**Main success scenario:**
-
-1. Recruiter requests to update a candidate’s status.
-2. Recruiter selects a candidate and provides the new status.
-3. RecruiterBuddy updates the candidate’s status.
-4. RecruiterBuddy confirms that the status has been updated.
-
-Use case ends.
-
-**Extensions:**
-
-* 2a. Recruiter selects multiple candidates and chooses a status to apply to all of them.
-  * 2a1. RecruiterBuddy updates the selected candidates’ statuses.
-  * 2a2. RecruiterBuddy confirms that the statuses have been updated.
-  * Use case ends.
-
-#### UC16 — Update Candidate Details
+##### UC16 — Update Candidate Details
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter
