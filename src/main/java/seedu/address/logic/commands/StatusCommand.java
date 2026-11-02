@@ -42,7 +42,7 @@ public class StatusCommand extends Command {
             + Arrays.stream(Status.values()).map(Status::name).collect(Collectors.joining(", ")) + ".\n"
             + "Example: " + COMMAND_WORD + " 1 2 3 " + PREFIX_STATUS + Status.values()[0].name();
 
-    public static final String MESSAGE_ADD_STATUS_SUCCESS = "Status of candidate: %1$s";
+    public static final String MESSAGE_ADD_STATUS_SUCCESS = "Status \"%1$s\" assigned to: %2$s";
     public static final String MESSAGE_ROLE_ALREADY_HAS_HIRED_CANDIDATE =
             CandidateRoleChecks.MESSAGE_ROLE_ALREADY_HAS_HIRED_CANDIDATE;
     public static final String MESSAGE_CANDIDATES_HIRED_SAME_ROLE =
@@ -71,7 +71,8 @@ public class StatusCommand extends Command {
      * Executes StatusCommand based on current model.
      *
      * @param model {@code Model} which the command should operate on.
-     * @return {@code CommandResult} containing the success message.
+     * @return {@code CommandResult} containing the success message containing the status and
+     *     the names of the updated candidates (in no particular order).
      * @throws CommandException if no candidate list is displayed, the index is invalid, a pending status is
      *     requested for a closed role, or another candidate for the same role is already hired when assigning
      *     {@code HIRED}.
@@ -101,8 +102,12 @@ public class StatusCommand extends Command {
             model.setPerson(p, editedPerson);
         }
 
+        String editedPeopleNamesAndEmails = peopleToEdit.stream()
+                .map(p -> String.format("%1$s (%2$s)", p.getName(), p.getEmail()))
+                .collect(Collectors.joining(", "));
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
-        return new CommandResult(String.format(MESSAGE_ADD_STATUS_SUCCESS, status));
+        return new CommandResult(
+                String.format(MESSAGE_ADD_STATUS_SUCCESS, status, String.join(", ", editedPeopleNamesAndEmails)));
     }
 
     /**
