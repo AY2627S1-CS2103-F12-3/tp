@@ -439,7 +439,7 @@ or reassigns candidates. Deletion takes effect immediately, but can be undone in
 
 Close and delete inherit `Command#isUndoable` returning `true`. Before execution, `LogicManager`
 asks `ModelManager#recordAddressBookState` to retain a complete `AddressBook` snapshot, including
-roles and candidates. Successful execution clears redo history through `commitAddressBookState`;
+roles and candidates. Successful execution that changes stored values clears redo history through `commitAddressBookState`;
 an execution failure discards the pending snapshot instead.
 
 `undo` and `redo` restore these snapshots in reverse and forward order respectively, and
@@ -533,7 +533,10 @@ is not persisted in `addressbook.json`; restarting the application clears both s
 `Command#isUndoable()` identifies commands that can change address-book data. In
 `LogicManager#execute(String)`, an undoable command first calls
 `Model#recordAddressBookState()`, which pushes a defensive copy onto the undo stack.
-After successful execution, `Model#commitAddressBookState()` clears the redo stack. If
+After successful execution, `LogicManager` compares the stored values before and after the command.
+If they changed, `Model#commitAddressBookState()` clears the redo stack. Otherwise,
+`Model#discardAddressBookState()` removes the redundant snapshot, preserving redo history.
+For example, editing a phone number to its existing value does not consume undo history or invalidate redo. If
 execution fails with a `CommandException` or runtime exception,
 `Model#discardAddressBookState()` removes the snapshot so the failed command does not
 consume undo history.
@@ -544,8 +547,8 @@ address book is unchanged and the user sees `There is no change to undo.`
 
 `RedoCommand` performs the inverse operation through `Model#redoAddressBook()`. If no
 redo snapshot exists, the address book is unchanged and the user sees
-`There is no change to redo.` A new successful undoable command after an undo clears redo
-history. Successful undo and redo operations are saved through the normal storage step,
+`There is no change to redo.` A new successful command that changes stored data after an undo clears redo
+history. Successful commands that leave stored values unchanged preserve both histories. Successful undo and redo operations are saved through the normal storage step,
 but the history itself remains in memory only. Read-only commands such as `list`, `find`
 and `help` do not affect either stack.
 
