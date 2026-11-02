@@ -816,11 +816,6 @@ Interviews are stored as the `interview` field of each candidate in the JSON dat
   * Pros: A mistyped year cannot be saved.
   * Cons: Valid interviews would be refused, and the recruiter would need a way to override the check.
 
-### \[Proposed\] Data archiving
-
-_{Explain here how the data archiving feature will be implemented}_
-
-
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Documentation, logging, testing, dev-ops**
