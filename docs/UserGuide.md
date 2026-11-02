@@ -69,6 +69,10 @@ RecruiterBuddy is optimised for use through a Command Line Interface (CLI) while
 * Words in `UPPER_CASE` are the parameters to be supplied by the user.<br>
   For example, in `add n/NAME`, replace `NAME` with a value such as `John Doe`.
 
+* Command words and role subcommands are case-insensitive.<br>
+  For example, `LIST ROLE`, `Find Alex`, and `ROLE ADD r/Software Engineer x/Senior` are accepted.
+  Prefixes such as `n/` remain lowercase.
+
 * Items in square brackets are optional.<br>
   For example, `n/NAME [t/TAG]` can be used as `n/John Doe t/referral` or as `n/John Doe`.
 
@@ -98,9 +102,7 @@ Format: `help [COMMAND]`
 * `help` shows the complete guide; `help COMMAND` shows only that command's syntax, purpose and examples.
 * Supported topics: `add`, `edit`, `delete`, `note`, `interview`, `status`, `find`, `list`, `role`,
   `clear`, `undo`, `redo`, `exit` and `help`.
-* Help keywords are case-insensitive: `HELP ADD` and `help add` show the same instructions. Case-insensitivity
-  also applies to command words and role subcommands. For example, `LIST ROLE`, `Find Alex`,
-  and `ROLE ADD r/Software Engineer x/Senior` are accepted. Prefixes such as `n/` remain lowercase.
+* Help keywords are case-insensitive: `HELP ADD` and `help add` show the same instructions.
 * `help list` explains both `list` and `list role`. `help role` explains `role add`, `role edit`,
   `role close` and `role delete`. Subcommands are grouped under these single-word topics;
   `help list role` is not supported.
