@@ -659,10 +659,6 @@ A genuinely missing file still starts the application with sample data; a valid 
 empty lists stays empty. There is no automatic migration of old contact-only files.
 </box>
 
-### Archiving data files `[coming in v2.0]`
-
-_Details coming soon ..._
-
 --------------------------------------------------------------------------------------------------------------------
 
 ## FAQ
