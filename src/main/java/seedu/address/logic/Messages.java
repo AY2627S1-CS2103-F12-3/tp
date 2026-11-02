@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.parser.Prefix;
 import seedu.address.model.person.Person;
+import seedu.address.model.tag.Tag;
 
 /**
  * Container for user visible messages.
@@ -106,6 +107,7 @@ public class Messages {
 
     /**
      * Formats the {@code person} for display to the user.
+     * The note, interview and tags are left out when empty, as on the candidate card.
      */
     public static String format(Person person) {
         final StringBuilder builder = new StringBuilder();
@@ -117,14 +119,22 @@ public class Messages {
                 .append("; Address: ")
                 .append(person.getAddress())
                 .append("; Role: ")
-                .append(person.getRole())
-                .append("; Note: ")
-                .append(person.getNote())
-                .append("; Interview: ")
-                .append(person.getInterview())
-                .append("; Tags: ");
-        person.getTags().forEach(builder::append);
+                .append(person.getRole());
+        appendIfPresent(builder, "Note", person.getNote().toString());
+        appendIfPresent(builder, "Interview", person.getInterview().toString());
+        appendIfPresent(builder, "Tags", person.getTags().stream()
+                .map(Tag::toString)
+                .collect(Collectors.joining()));
         return builder.toString();
+    }
+
+    /**
+     * Appends {@code label} and {@code value} to {@code builder}, unless {@code value} is empty.
+     */
+    private static void appendIfPresent(StringBuilder builder, String label, String value) {
+        if (!value.isEmpty()) {
+            builder.append("; ").append(label).append(": ").append(value);
+        }
     }
 
 }
