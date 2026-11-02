@@ -81,6 +81,22 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_undoRedoWithArguments_preservesDataFileAndHistory() throws Exception {
+        logic.execute("role add r/Software Engineer x/2 years");
+        String saved = Files.readString(addressBookStorage.getAddressBookFilePath());
+        assertThrows(ParseException.class, () -> logic.execute("undo unexpected"));
+        assertEquals(1, model.getAddressBook().getRoleList().size());
+        assertEquals(saved, Files.readString(addressBookStorage.getAddressBookFilePath()));
+        logic.execute("undo");
+        saved = Files.readString(addressBookStorage.getAddressBookFilePath());
+        assertThrows(ParseException.class, () -> logic.execute("redo unexpected"));
+        assertTrue(model.getAddressBook().getRoleList().isEmpty());
+        assertEquals(saved, Files.readString(addressBookStorage.getAddressBookFilePath()));
+        logic.execute("redo");
+        assertEquals(1, model.getAddressBook().getRoleList().size());
+    }
+    
+    @Test
     public void execute_findCandidateStatus_combinesFieldsWithOrAndTracksChanges() throws Exception {
         model.addRole(SOFTWARE_ENGINEER);
         model.addPerson(new PersonBuilder(AMY).withStatus(Status.INTERVIEW).build());
