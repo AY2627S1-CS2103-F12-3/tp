@@ -194,7 +194,8 @@ public class InterviewCommand extends Command {
                 .collect(Collectors.joining(", "));
         int otherCandidateCount = names.size() - displayedNameCount;
         if (otherCandidateCount > 0) {
-            displayedNamesText += String.format(" (+%d others)", otherCandidateCount);
+            String otherWord = otherCandidateCount == 1 ? "other" : "others";
+            displayedNamesText += String.format(" (+%d %s)", otherCandidateCount, otherWord);
         }
         return Optional.of(String.format(MESSAGE_SAME_TIME, displayedNamesText));
     }

@@ -46,6 +46,8 @@ public class InterviewCommandTest {
 
     /** A fourth typical candidate, for tests that need more than two other candidates. */
     private static final Index INDEX_FOURTH_PERSON = Index.fromOneBased(4);
+    /** A fifth typical candidate, for tests that need more than one unnamed other candidate. */
+    private static final Index INDEX_FIFTH_PERSON = Index.fromOneBased(5);
 
     private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
 
@@ -179,7 +181,21 @@ public class InterviewCommandTest {
                 builder -> builder.withInterview(VALID_INTERVIEW_AMY));
         replacePerson(model, INDEX_FOURTH_PERSON, builder -> builder.withInterview(VALID_INTERVIEW_AMY));
 
-        String displayedNames = "A".repeat(29) + "…, " + thirdPerson.getName() + " (+1 others)";
+        String displayedNames = "A".repeat(29) + "…, " + thirdPerson.getName() + " (+1 other)";
+        assertScheduleSuccess(INDEX_FIRST_PERSON, VALID_INTERVIEW_AMY, BEFORE_VALID_INTERVIEWS_CLOCK,
+                String.format(InterviewCommand.MESSAGE_SAME_TIME, displayedNames));
+    }
+
+    @Test
+    public void execute_fourSameTimeCandidates_countsUnnamedAsOthers() {
+        Person secondPerson = replacePerson(model, INDEX_SECOND_PERSON,
+                builder -> builder.withInterview(VALID_INTERVIEW_AMY));
+        Person thirdPerson = replacePerson(model, INDEX_THIRD_PERSON,
+                builder -> builder.withInterview(VALID_INTERVIEW_AMY));
+        replacePerson(model, INDEX_FOURTH_PERSON, builder -> builder.withInterview(VALID_INTERVIEW_AMY));
+        replacePerson(model, INDEX_FIFTH_PERSON, builder -> builder.withInterview(VALID_INTERVIEW_AMY));
+
+        String displayedNames = secondPerson.getName() + ", " + thirdPerson.getName() + " (+2 others)";
         assertScheduleSuccess(INDEX_FIRST_PERSON, VALID_INTERVIEW_AMY, BEFORE_VALID_INTERVIEWS_CLOCK,
                 String.format(InterviewCommand.MESSAGE_SAME_TIME, displayedNames));
     }
