@@ -1,34 +1,60 @@
 package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailureWithReason;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
+import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.DeleteCommand;
 
 /**
- * As we are only doing white-box testing, our test cases do not cover path variations
- * outside of the DeleteCommand code. For example, inputs "1" and "1 abc" take the
- * same path through the DeleteCommand, and therefore we test only one of them.
- * The path variation for those two cases occurs inside the ParserUtil, and
- * therefore should be covered by the ParserUtilTest.
+ * Tests candidate indices and unexpected arguments for the delete command.
  */
 public class DeleteCommandParserTest {
+
+    private static final String FORMAT_ERROR =
+            String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE);
 
     private DeleteCommandParser parser = new DeleteCommandParser();
 
     @Test
     public void parse_validArgs_returnsDeleteCommand() {
-        assertParseSuccess(parser, "1", new DeleteCommand(INDEX_FIRST_PERSON));
+        for (String input : List.of("1", " 1 ", "\t1\r\n", "0001")) {
+            assertParseSuccess(parser, input, new DeleteCommand(INDEX_FIRST_PERSON));
+        }
     }
 
     @Test
-    public void parse_invalidArgs_throwsParseException() {
-        assertParseFailureWithReason(parser, "a",
-                String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE),
-                ParserUtil.MESSAGE_INVALID_INDEX);
+    public void parse_invalidIndex_throwsIndexParseException() {
+        for (String input : List.of("", " ", "a", "0", "-1", "+1", "1.5", "1extra", "a extra", "0 extra")) {
+            assertParseFailureWithReason(parser, input, FORMAT_ERROR, ParserUtil.MESSAGE_INVALID_INDEX);
+        }
+    }
+
+    @Test
+    public void parse_oversizedIndex_throwsSizeParseException() {
+        for (String input : List.of("2147483648", "2147483648 extra")) {
+            assertParseFailureWithReason(parser, input, FORMAT_ERROR,
+                    String.format(ParserUtil.MESSAGE_INDEX_TOO_LARGE, "2147483648"));
+        }
+    }
+
+    @Test
+    public void parse_validIndexWithExtraArguments_throwsExtraTextParseException() {
+        for (String input : List.of("1 extra", "1 2", "1 n/Alice", " 1\textra ", "1\nextra", "1 r/QA",
+                "2147483647 extra")) {
+            assertParseFailure(parser, input, FORMAT_ERROR + "\nThe delete command takes only a candidate index.");
+        }
+    }
+
+    @Test
+    public void parse_largestSupportedIndex_returnsDeleteCommand() {
+        assertParseSuccess(parser, "2147483647", new DeleteCommand(Index.fromOneBased(Integer.MAX_VALUE)));
     }
 }

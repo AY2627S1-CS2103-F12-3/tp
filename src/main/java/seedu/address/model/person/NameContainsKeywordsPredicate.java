@@ -9,42 +9,30 @@ import java.util.stream.Collectors;
 
 import seedu.address.commons.util.StringUtil;
 import seedu.address.commons.util.ToStringBuilder;
-import seedu.address.model.role.Role;
-import seedu.address.model.role.RoleStatus;
 
 /**
- * Tests that a {@code Person}'s {@code Name} matches any of the keywords given.
+ * Matches any supplied candidate-name keyword, role-title keyword, or candidate status.
  */
 public class NameContainsKeywordsPredicate implements Predicate<Person> {
     private final List<String> keywords;
     private final List<String> roleKeywords;
-    private final Set<RoleStatus> roleStatuses;
-    private final List<Role> roles;
+    private final Set<Status> statuses;
 
     /** Creates a predicate that matches candidate names against the supplied keywords. */
     public NameContainsKeywordsPredicate(List<String> keywords) {
-        this(keywords, List.of(), Set.of(), List.of());
+        this(keywords, List.of(), Set.of());
     }
 
-    /** Creates a predicate with name, role, status, and role data filters. */
+    /** Creates a predicate combining name, role-title and candidate-status searches with OR. */
     public NameContainsKeywordsPredicate(List<String> keywords, List<String> roleKeywords,
-            Set<RoleStatus> roleStatuses, List<Role> roles) {
-        requireNonNull(keywords);
-        requireNonNull(roleKeywords);
-        requireNonNull(roleStatuses);
-        requireNonNull(roles);
-        this.keywords = keywords;
-        this.roleKeywords = roleKeywords;
-        this.roleStatuses = roleStatuses;
-        this.roles = roles;
+            Set<Status> statuses) {
+        this.keywords = List.copyOf(requireNonNull(keywords));
+        this.roleKeywords = List.copyOf(requireNonNull(roleKeywords));
+        this.statuses = Set.copyOf(requireNonNull(statuses));
     }
 
-    public NameContainsKeywordsPredicate withRoles(List<Role> roles) {
-        return new NameContainsKeywordsPredicate(keywords, roleKeywords, roleStatuses, roles);
-    }
-
-    public boolean hasRoleFilters() {
-        return !roleKeywords.isEmpty() || !roleStatuses.isEmpty();
+    public boolean hasFieldFilters() {
+        return !roleKeywords.isEmpty() || !statuses.isEmpty();
     }
 
     /** Returns a user-facing description of the filters applied by this predicate. */
@@ -56,9 +44,9 @@ public class NameContainsKeywordsPredicate implements Predicate<Person> {
         if (!roleKeywords.isEmpty()) {
             filters.add("Role: " + String.join(" ", roleKeywords));
         }
-        if (!roleStatuses.isEmpty()) {
-            filters.add("Role status: " + roleStatuses.stream()
-                    .map(RoleStatus::name)
+        if (!statuses.isEmpty()) {
+            filters.add("Candidate status: " + statuses.stream()
+                    .map(Status::name)
                     .sorted()
                     .collect(Collectors.joining(", ")));
         }
@@ -68,20 +56,14 @@ public class NameContainsKeywordsPredicate implements Predicate<Person> {
     @Override
     public boolean test(Person person) {
         requireNonNull(person);
-        boolean nameMatches = !keywords.isEmpty() && keywords.stream()
-                .anyMatch(keyword -> StringUtil.containsWordIgnoreCase(person.getName().fullName, keyword));
-        boolean roleMatches = roleKeywords.isEmpty() && roleStatuses.isEmpty()
-                || roles.stream().anyMatch(role -> roleMatches(person, role));
-        boolean nameFilterMatches = keywords.isEmpty() || nameMatches;
-        return nameFilterMatches && roleMatches;
-    }
-
-    private boolean roleMatches(Person person, Role role) {
-        boolean titleMatches = roleKeywords.isEmpty() || roleKeywords.stream()
-                .anyMatch(keyword -> StringUtil.containsWordIgnoreCase(role.getTitle().value, keyword));
-        boolean statusMatches = roleStatuses.isEmpty() || roleStatuses.contains(role.getStatus());
-        boolean assignedRoleMatches = person.getRole().isSameTitle(role.getTitle());
-        return titleMatches && statusMatches && assignedRoleMatches;
+        if (keywords.isEmpty() && !hasFieldFilters()) {
+            return true;
+        }
+        return keywords.stream()
+                .anyMatch(keyword -> StringUtil.containsWordIgnoreCase(person.getName().fullName, keyword))
+                || roleKeywords.stream()
+                .anyMatch(keyword -> StringUtil.containsWordIgnoreCase(person.getRole().value, keyword))
+                || statuses.contains(person.getStatus());
     }
 
     @Override
@@ -89,15 +71,12 @@ public class NameContainsKeywordsPredicate implements Predicate<Person> {
         if (other == this) {
             return true;
         }
-
-        // instanceof handles nulls
-        if (!(other instanceof NameContainsKeywordsPredicate otherNameContainsKeywordsPredicate)) {
+        if (!(other instanceof NameContainsKeywordsPredicate otherPredicate)) {
             return false;
         }
-
-        return keywords.equals(otherNameContainsKeywordsPredicate.keywords)
-                && roleKeywords.equals(otherNameContainsKeywordsPredicate.roleKeywords)
-                && roleStatuses.equals(otherNameContainsKeywordsPredicate.roleStatuses);
+        return keywords.equals(otherPredicate.keywords)
+                && roleKeywords.equals(otherPredicate.roleKeywords)
+                && statuses.equals(otherPredicate.statuses);
     }
 
     @Override

@@ -20,6 +20,8 @@ import static seedu.address.testutil.TypicalRoles.PRODUCT_ANALYST;
 import static seedu.address.testutil.TypicalRoles.SOFTWARE_ENGINEER;
 import static seedu.address.testutil.TypicalRoles.getTypicalRoleAddressBook;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -199,7 +201,8 @@ public class StatusCommandTest {
         Person editedPerson = new PersonBuilder(firstPerson).withStatus(VALID_STATUS_1).build();
         StatusCommand statusCommand = new StatusCommand(Set.of(INDEX_FIRST_PERSON), VALID_STATUS_1);
 
-        String expectedMessage = String.format(StatusCommand.MESSAGE_ADD_STATUS_SUCCESS, VALID_STATUS_1);
+        String expectedMessage = String.format(StatusCommand.MESSAGE_ADD_STATUS_SUCCESS,
+                VALID_STATUS_1, candidateDetails(firstPerson));
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(firstPerson, editedPerson);
@@ -215,7 +218,8 @@ public class StatusCommandTest {
 
         Person editedPerson = new PersonBuilder(personWithStatus).withStatus(VALID_STATUS_2).build();
         StatusCommand statusCommand = new StatusCommand(Set.of(INDEX_FIRST_PERSON), VALID_STATUS_2);
-        String expectedMessage = String.format(StatusCommand.MESSAGE_ADD_STATUS_SUCCESS, VALID_STATUS_2);
+        String expectedMessage = String.format(StatusCommand.MESSAGE_ADD_STATUS_SUCCESS,
+                VALID_STATUS_2, candidateDetails(personWithStatus));
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(personWithStatus, editedPerson);
@@ -232,7 +236,8 @@ public class StatusCommandTest {
 
         Person editedPerson = new PersonBuilder(personWithInterview).withStatus(VALID_STATUS_2).build();
         StatusCommand statusCommand = new StatusCommand(Set.of(INDEX_FIRST_PERSON), VALID_STATUS_2);
-        String expectedMessage = String.format(StatusCommand.MESSAGE_ADD_STATUS_SUCCESS, VALID_STATUS_2);
+        String expectedMessage = String.format(StatusCommand.MESSAGE_ADD_STATUS_SUCCESS,
+                VALID_STATUS_2, candidateDetails(personWithInterview));
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(personWithInterview, editedPerson);
@@ -244,7 +249,8 @@ public class StatusCommandTest {
     public void execute_sameStatus_success() {
         Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         StatusCommand statusCommand = new StatusCommand(Set.of(INDEX_FIRST_PERSON), firstPerson.getStatus());
-        String expectedMessage = String.format(StatusCommand.MESSAGE_ADD_STATUS_SUCCESS, firstPerson.getStatus());
+        String expectedMessage = String.format(StatusCommand.MESSAGE_ADD_STATUS_SUCCESS,
+                firstPerson.getStatus(), candidateDetails(firstPerson));
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
 
@@ -261,7 +267,8 @@ public class StatusCommandTest {
 
         StatusCommand statusCommand = new StatusCommand(Set.of(INDEX_FIRST_PERSON), VALID_STATUS_1);
 
-        String expectedMessage = String.format(StatusCommand.MESSAGE_ADD_STATUS_SUCCESS, VALID_STATUS_1);
+        String expectedMessage = String.format(StatusCommand.MESSAGE_ADD_STATUS_SUCCESS,
+                VALID_STATUS_1, candidateDetails(personInFilteredList));
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(personInFilteredList, editedPerson);
@@ -320,6 +327,17 @@ public class StatusCommandTest {
         assertSuccessfulBatch(Status.HIRED, Set.of(INDEX_FIRST_PERSON, INDEX_SECOND_PERSON), first, second);
         assertFalse(model.findRole(first.getRole()).orElseThrow().isClosed());
         assertFalse(model.findRole(second.getRole()).orElseThrow().isClosed());
+    }
+
+    @Test
+    public void execute_batchCandidatesWithSameName_listsBothEmails() {
+        Person first = new PersonBuilder().withName("Alex Lee").withEmail("alex.one@example.com")
+                .withPhone("91234567").build();
+        Person second = new PersonBuilder().withName("Alex Lee").withEmail("alex.two@example.com")
+                .withPhone("92345678").build();
+        setHiringCandidates(first, second);
+
+        assertSuccessfulBatch(Status.REJECTED, Set.of(INDEX_FIRST_PERSON, INDEX_SECOND_PERSON), first, second);
     }
 
     @Test
@@ -485,12 +503,17 @@ public class StatusCommandTest {
         }
     }
 
+    private String candidateDetails(Person candidate) {
+        return candidate.getName() + " (" + candidate.getEmail() + ")";
+    }
+
     private void assertSuccessfulHire(Person candidate) {
         Person hired = new PersonBuilder(candidate).withStatus(Status.HIRED).build();
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         expectedModel.setPerson(candidate, hired);
         assertCommandSuccess(new StatusCommand(Set.of(INDEX_FIRST_PERSON), Status.HIRED), model,
-                String.format(StatusCommand.MESSAGE_ADD_STATUS_SUCCESS, Status.HIRED), expectedModel);
+                String.format(StatusCommand.MESSAGE_ADD_STATUS_SUCCESS, Status.HIRED, candidateDetails(candidate)),
+                expectedModel);
     }
 
     private void assertSuccessfulBatch(Status newStatus, Set<Index> indices, Person... candidates) {
@@ -498,8 +521,20 @@ public class StatusCommandTest {
         for (Person candidate : candidates) {
             expectedModel.setPerson(candidate, new PersonBuilder(candidate).withStatus(newStatus).build());
         }
-        assertCommandSuccess(new StatusCommand(indices, newStatus), model,
-                String.format(StatusCommand.MESSAGE_ADD_STATUS_SUCCESS, newStatus), expectedModel);
+        try {
+            String feedback = new StatusCommand(indices, newStatus).execute(model).getFeedbackToUser();
+            String prefix = String.format(StatusCommand.MESSAGE_ADD_STATUS_SUCCESS, newStatus, "");
+            assertTrue(feedback.startsWith(prefix));
+
+            List<String> actualCandidateDetails = List.of(feedback.substring(prefix.length()).split(", "));
+            Set<String> expectedCandidateDetails = new HashSet<>(Arrays.stream(candidates)
+                    .map(this::candidateDetails).toList());
+            assertEquals(candidates.length, actualCandidateDetails.size());
+            assertEquals(expectedCandidateDetails, new HashSet<>(actualCandidateDetails));
+            assertEquals(expectedModel, model);
+        } catch (CommandException e) {
+            throw new AssertionError("Execution of command should not fail.", e);
+        }
     }
 
 }

@@ -11,15 +11,15 @@ import seedu.address.model.Model;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 
 /**
- * Finds and lists all persons in the address book whose name contains any of the argument keywords.
+ * Finds candidates matching any supplied name keyword, role keyword, or candidate status.
  * Keyword matching is case insensitive.
  */
 public class FindCommand extends Command {
     public static final String COMMAND_WORD = "find";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Finds all candidates whose names contain any of "
-            + "the specified keywords (case-insensitive) and displays them as a list with index numbers.\n"
+            + ": Finds all candidates matching any of "
+            + "the specified name/role keywords or candidate statuses (case-insensitive).\n"
             + "Parameters: [KEYWORD ...] [r/ ROLE ...] [st/ STATUS ...]\n"
             + "Example: " + COMMAND_WORD + " alice bob charlie";
 
@@ -42,10 +42,10 @@ public class FindCommand extends Command {
     public CommandResult execute(Model model) {
         requireNonNull(model);
         logger.info("Applying candidate find filter");
-        model.updateFilteredPersonList(predicate.withRoles(model.getAddressBook().getRoleList()));
+        model.updateFilteredPersonList(predicate);
         String message = String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW,
                 model.getFilteredPersonList().size());
-        return new CommandResult(message + (predicate.hasRoleFilters()
+        return new CommandResult(message + (predicate.hasFieldFilters()
                 ? " List filter: " + predicate.getFilterDescription() : ""));
     }
 
