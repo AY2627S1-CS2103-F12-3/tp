@@ -1183,10 +1183,16 @@ Use case ends.
 2. RecruiterBuddy restores the state before that command.
 3. RecruiterBuddy confirms that the change has been undone.
 
-The user may repeat `undo` to reverse earlier changes, one command at a time.
-If there is no earlier change in this session, RecruiterBuddy reports `There is no change to undo.`.
-
 Use case ends.
+
+**Extensions:**
+
+* 1a. There is no earlier change in the current session.
+  * 1a1. RecruiterBuddy reports `There is no change to undo.`
+  * Use case ends.
+
+* 3a. User requests to undo another earlier change.
+  * Use case resumes at step 1, reversing one command per `undo` invocation.
 
 #### UC15 — Update Candidate Status
 
