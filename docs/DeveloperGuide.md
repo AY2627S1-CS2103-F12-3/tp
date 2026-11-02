@@ -1119,88 +1119,8 @@ Use case ends.
   * 1a1. RecruiterBuddy reports the error without changing records.
   * Use case ends.
 
-#### Optional
 
-##### UC10 — View Sample Data
-
-**System:** RecruiterBuddy<br>
-**Actor:** User
-
-**Main success scenario:**
-
-1. User requests to view sample data.
-2. RecruiterBuddy displays sample roles and candidate records.
-3. User reviews the sample data.
-
-Use case ends.
-
-**Extensions:**
-
-* 2a. User requests to clear the sample data.
-  * 2a1. RecruiterBuddy removes all sample records.
-  * 2a2. RecruiterBuddy confirms that the sample data has been removed.
-  * Use case ends.
-
-##### UC11 — View Key Command Introduction
-
-**System:** RecruiterBuddy<br>
-**Actor:** User
-
-**Main success scenario:**
-
-1. User requests an introduction to key commands.
-2. RecruiterBuddy displays an introduction to the main commands.
-3. User reviews the introduction.
-
-Use case ends.
-
-##### UC12 — View Status Definitions
-
-**System:** RecruiterBuddy<br>
-**Actor:** User
-
-**Main success scenario:**
-
-1. User requests candidate and role status definitions.
-2. RecruiterBuddy displays the status definitions.
-3. User reviews the definitions.
-
-Use case ends.
-
-##### UC13 — Get Guidance for Invalid Command
-
-**System:** RecruiterBuddy<br>
-**Actor:** User
-
-**Main success scenario:**
-
-1. User enters a command.
-2. RecruiterBuddy processes the command.
-3. RecruiterBuddy displays the result.
-
-Use case ends.
-
-**Extensions:**
-
-* 1a. User enters an invalid command.
-  * 1a1. RecruiterBuddy explains why the command is invalid and provides guidance for correcting it.
-  * 1a2. User corrects and resubmits the command.
-  * Use case resumes at step 2.
-
-##### UC14 — Undo Changes
-
-**System:** RecruiterBuddy<br>
-**Actor:** User
-
-**Main success scenario:**
-
-1. User requests to undo the most recent n changes.
-2. RecruiterBuddy reverses the requested changes.
-3. RecruiterBuddy confirms that the changes have been undone.
-
-Use case ends.
-
-##### UC15 — Update Candidate Status
+##### UC10 — Update Candidate Status
 
 **System:** RecruiterBuddy<br>
 **Actor:** Recruiter
@@ -1220,6 +1140,87 @@ Use case ends.
   * 2a1. RecruiterBuddy updates the selected candidates’ statuses.
   * 2a2. RecruiterBuddy confirms that the statuses have been updated.
   * Use case ends.
+
+#### Optional
+
+##### UC11 — View Sample Data
+
+**System:** RecruiterBuddy<br>
+**Actor:** User
+
+**Main success scenario:**
+
+1. User requests to view sample data.
+2. RecruiterBuddy displays sample roles and candidate records.
+3. User reviews the sample data.
+
+Use case ends.
+
+**Extensions:**
+
+* 2a. User requests to clear the sample data.
+  * 2a1. RecruiterBuddy removes all sample records.
+  * 2a2. RecruiterBuddy confirms that the sample data has been removed.
+  * Use case ends.
+
+##### UC12 — View Key Command Introduction
+
+**System:** RecruiterBuddy<br>
+**Actor:** User
+
+**Main success scenario:**
+
+1. User requests an introduction to key commands.
+2. RecruiterBuddy displays an introduction to the main commands.
+3. User reviews the introduction.
+
+Use case ends.
+
+##### UC13 — View Status Definitions
+
+**System:** RecruiterBuddy<br>
+**Actor:** User
+
+**Main success scenario:**
+
+1. User requests candidate and role status definitions.
+2. RecruiterBuddy displays the status definitions.
+3. User reviews the definitions.
+
+Use case ends.
+
+##### UC14 — Get Guidance for Invalid Command
+
+**System:** RecruiterBuddy<br>
+**Actor:** User
+
+**Main success scenario:**
+
+1. User enters a command.
+2. RecruiterBuddy processes the command.
+3. RecruiterBuddy displays the result.
+
+Use case ends.
+
+**Extensions:**
+
+* 1a. User enters an invalid command.
+  * 1a1. RecruiterBuddy explains why the command is invalid and provides guidance for correcting it.
+  * 1a2. User corrects and resubmits the command.
+  * Use case resumes at step 2.
+
+##### UC15 — Undo Changes
+
+**System:** RecruiterBuddy<br>
+**Actor:** User
+
+**Main success scenario:**
+
+1. User requests to undo the most recent n changes.
+2. RecruiterBuddy reverses the requested changes.
+3. RecruiterBuddy confirms that the changes have been undone.
+
+Use case ends.
 
 ##### UC16 — Update Candidate Details
 
