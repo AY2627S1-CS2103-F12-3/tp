@@ -1,0 +1,31 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+actor User
+participant ":LogicManager" as Logic
+participant ":CloseRoleCommand" as Command
+participant ":ModelManager" as Model
+participant "all candidates" as Candidates
+participant ":AddressBook" as AddressBook
+participant ":Storage" as Storage
+
+User -> Logic : execute("role close INDEX")
+Logic -> Command : execute(model)
+Command -> Model : getFilteredRoleList()
+Model --> Command : displayed roles
+Command -> Model : getAddressBook().getPersonList()
+Model --> Command : all candidates
+Command -> Candidates : count pending / hired
+alt invalid index or already closed
+    Command --> Logic : CommandException
+else pending candidates or multiple hires
+    Command --> Logic : CommandException
+else all candidates have final outcomes
+    Command -> Model : setRole(role, CLOSED role)
+    Model -> AddressBook : setRole(target, closedRole)
+    AddressBook --> Model
+    Model --> Command : success
+    Logic -> Storage : saveAddressBook()
+end
+@enduml
