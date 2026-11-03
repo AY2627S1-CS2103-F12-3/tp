@@ -1,0 +1,32 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+start
+:Parse name keywords;
+:Parse role-title keywords;
+:Parse candidate-status values;
+if (No criteria supplied?) then (yes)
+    :Keep every candidate;
+else (no)
+    :Evaluate each candidate;
+    if (Any name keyword matches?) then (yes)
+        :Keep candidate;
+    elseif (Any role-title keyword matches?) then (yes)
+        :Keep candidate;
+    elseif (Candidate status is selected?) then (yes)
+        :Keep candidate;
+    else (no)
+        :Hide candidate;
+    endif
+endif
+:Regenerate visible indices;
+stop
+
+note right
+All supplied criteria are alternatives (OR),
+not cumulative (AND). Matching is case-insensitive.
+The find command has no role-status filter;
+role status is handled by the role list commands.
+end note
+@enduml
