@@ -1,0 +1,47 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+actor User
+participant ":LogicManager" as Logic
+participant ":EditCommand" as Command
+participant ":ModelManager" as Model
+participant ":CandidateRoleChecks" as Checks
+participant ":AddressBook" as AddressBook
+participant ":Storage" as Storage
+
+User -> Logic : execute("edit INDEX r/ROLE")
+Logic -> Command : execute(model)
+Command -> Model : getFilteredPersonList()
+Model --> Command : displayed candidates
+Command -> Model : findRole(requested title)
+alt index invalid / role missing / destination closed
+    Model --> Command : failure
+    Command --> Logic : CommandException
+else destination is valid
+    Model --> Command : canonical role
+    Command -> Command : build edited Person
+    Command -> Model : findSamePersonExcluding(...)
+    alt duplicate candidate
+        Model --> Command : duplicate found
+        Command --> Logic : CommandException
+    else no duplicate
+        opt candidate becomes HIRED or remains HIRED
+            Command -> Checks : verifyHiringAllowed(...)
+            Checks -> Model : inspect all candidates in destination role
+        end
+        Command -> Model : setPerson(original, edited)
+        Model -> AddressBook : replace candidate
+        AddressBook --> Model
+        Command -> Model : show all candidates
+        Model --> Command : success
+        Logic -> Storage : saveAddressBook()
+    end
+end
+
+note over Command,Model
+The role transfer preserves the candidate's note, interview,
+status and other fields not explicitly edited. The candidate
+filter is reset after a successful edit.
+end note
+@enduml

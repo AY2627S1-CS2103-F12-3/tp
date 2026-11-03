@@ -1,0 +1,31 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+actor User
+participant ":LogicManager" as Logic
+participant ":DeleteRoleCommand" as Command
+participant ":ModelManager" as Model
+participant ":AddressBook" as AddressBook
+participant ":UniqueRoleList" as Roles
+participant ":Storage" as Storage
+
+User -> Logic : execute("role delete INDEX")
+Logic -> Command : execute(model)
+Command -> Model : getFilteredRoleList()
+Model --> Command : displayed roles
+Command -> Model : getAddressBook().getPersonList()
+Model --> Command : all candidates
+Command -> Command : count candidates for role
+alt invalid index or associated candidates exist
+    Command --> Logic : CommandException
+else role has no candidates
+    Command -> Model : deleteRole(role)
+    Model -> AddressBook : removeRole(role)
+    AddressBook -> Roles : remove(role)
+    Roles --> AddressBook
+    AddressBook --> Model
+    Model --> Command : success
+    Logic -> Storage : saveAddressBook()
+end
+@enduml

@@ -438,6 +438,9 @@ count, then rejects more than one hired candidate. No candidates, or no hired ca
 After validation, `Model#setRole` replaces the immutable role with a `CLOSED` copy. Candidate records
 and statuses remain unchanged. The observable role list refreshes, and `LogicManager` saves the change. `AddCommand` rejects new candidates for closed roles.
 
+<puml src="diagrams/CloseRoleSequenceDiagram.puml" width="900"
+  alt="Role closure validation and persistence"></puml>
+
 #### Deleting an unused role
 
 `RoleCommandParser` delegates `delete` to `DeleteRoleCommandParser`. `DeleteRoleCommand` applies the
@@ -449,6 +452,9 @@ Deletion goes through `Model#deleteRole`, `AddressBook#removeRole`, and `UniqueR
 The role list refreshes and its indices update.
 `LogicManager` saves the removal. Deletion releases the title for reuse but never deletes, detaches,
 or reassigns candidates. Deletion takes effect immediately, but can be undone in the current session.
+
+<puml src="diagrams/DeleteRoleSequenceDiagram.puml" width="900"
+  alt="Validation and deletion of an unused role"></puml>
 
 #### Undoing and redoing role changes
 
@@ -533,6 +539,16 @@ updated candidate, including the new name and canonical role. Normal `LogicManag
 the association without a JSON schema change. Validation failures leave records and filters
 unchanged and do not save. Neither role's status changes automatically.
 
+<puml src="diagrams/EditCandidateRoleSequenceDiagram.puml" width="900"
+  alt="Candidate role reassignment validation and persistence"></puml>
+
+### Candidate filtering
+
+The candidate filter is applied by the `find` command.
+
+<puml src="diagrams/CandidateFilteringActivityDiagram.puml" width="850"
+  alt="Candidate filtering activity flow"></puml>
+
 ### Role workflow diagnostics and internal checks
 
 Role commands and candidate-role transfers reuse `LogsCenter`, with `INFO` for successful in-memory changes and `FINE` for expected recruitment-rule rejections. Closure and deletion refusals include relevant candidate counts, while successful indexed operations identify the displayed index. These events precede storage saving and never claim that persistence succeeded. The messages omit candidate names, contact details, notes and raw commands; the pre-existing central command log is not covered by this restriction. See the [logging guide](Logging.md#role-workflow-diagnostics) for levels and limitations.
@@ -547,7 +563,8 @@ Undo and redo are implemented in `ModelManager` using two in-memory stacks of co
 `AddressBook` snapshots: `undoStack` and `redoStack`. The history is session-scoped and
 is not persisted in `recruiterbuddy.json`; restarting the application clears both stacks.
 
-#### Implementation
+<puml src="diagrams/UndoSequenceDiagram.puml" width="900"
+alt="Implemented undo flow using complete candidate and role snapshots"></puml>
 
 `Command#isUndoable()` identifies commands that can change candidate and role data. In
 `LogicManager#execute(String)`, an undoable command first calls
