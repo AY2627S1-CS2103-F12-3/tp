@@ -1,0 +1,53 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+actor User
+participant ":LogicManager" as Logic
+participant ":Command" as Command
+participant ":ModelManager" as Model
+participant "undoStack" as History
+participant "AddressBook snapshot" as Snapshot
+participant ":Storage" as Storage
+
+== Recording a command ==
+User -> Logic : execute(data-changing command)
+Logic -> Command : isUndoable()
+Command --> Logic : true
+Logic -> Model : recordAddressBookState()
+Model -> Snapshot : copy complete AddressBook
+Model -> History : push(snapshot)
+Logic -> Command : execute(model)
+Command -> Model : mutate candidate/role data
+alt command fails or stored values are unchanged
+    Logic -> Model : discardAddressBookState()
+    Model -> History : remove pending snapshot
+else data changed successfully
+    Logic -> Model : commitAddressBookState()
+    Logic -> Storage : saveAddressBook()
+end
+
+== Undoing a change ==
+User -> Logic : execute("undo")
+Logic -> Command : execute(model)
+Command -> Model : undoAddressBook()
+alt history is empty
+    Model --> Command : false
+    Command --> Logic : "There is no change to undo."
+else history contains a snapshot
+    Model -> History : pop latest snapshot
+    Model -> Model : setAddressBook(snapshot)
+    Model -> Model : refresh retained filters
+    Model --> Command : true
+    Command --> Logic : success
+    Logic -> Storage : saveAddressBook(restored data)
+end
+
+note over History,Snapshot
+One snapshot contains all candidates and roles. Undo therefore restores
+names, contact fields, notes, interviews, statuses, role edits, and
+candidate-role reassignment together. Repeated undo consumes one
+successful data-changing snapshot per invocation. The history is held
+in memory and does not survive application restart.
+end note
+@enduml
